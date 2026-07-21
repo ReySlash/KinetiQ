@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -10,4 +5,255 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum BodyRegion {
+  UPPER_BODY
+  LOWER_BODY
+  CORE
+  FULL_BODY
+  OTHER
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+  OTHER
+}
+
+enum ForceType {
+  PUSH
+  PULL
+  STATIC
+  OTHER
+}
+
+enum KineticChain {
+  OPEN
+  CLOSED
+  MIXED
+}
+
+enum Laterality {
+  UNILATERAL
+  BILATERAL
+  ALTERNATING
+  OTHER
+}
+
+enum ContractionMode {
+  DYNAMIC
+  ISOMETRIC
+  MIXED
+}
+
+enum BodyPosition {
+  STANDING
+  SITTING
+  SUPINE
+  PRONE
+  KNEELING
+  HINGED
+  INVERTED
+  OTHER
+}
+
+enum MuscleRole {
+  PRIMARY
+  SECONDARY
+  STABILIZER
+}
+
+enum RoutineVisibility {
+  PRIVATE
+}
+
+model MuscleGroup {
+  id          String   @id @db.Uuid
+  name        String
+  slug        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  muscles     Muscle[]
+}
+
+model Muscle {
+  id                 String   @id @db.Uuid
+  name               String
+  slug               String   @unique
+  description        String
+  bodyRegion         BodyRegion // (e.g., UPPER_BODY, LOWER_BODY)
+  muscleGroupId      String?  @db.Uuid
+  parentId           String?  @db.Uuid
+  thumbnailUrl       String?
+  thumbnailStorageKey String?
+  imageAltText       String?
+  isActive           Boolean  @default(true)
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime @updatedAt @db.Timestamptz(3)
+  muscleGroup        MuscleGroup? @relation(fields: [muscleGroupId], references: [id], onDelete: Restrict)
+  parent             Muscle?  @relation("MuscleHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children           Muscle[] @relation("MuscleHierarchy")
+  exerciseMuscles    ExerciseMuscle[] // Many-to-many relationship with exercises
+
+  @@index([bodyRegion, isActive])
+  @@index([muscleGroupId, isActive])
+  @@index([parentId])
+}
+
+model Equipment {
+  id          String   @id @db.Uuid
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  exercises   ExerciseEquipment[]
+}
+
+model MovementPattern {
+  id          String   @id @db.Uuid
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  exercises   Exercise[]
+}
+
+model Exercise {
+  id                    String   @id @db.Uuid
+  name                  String
+  slug                  String   @unique
+  description           String
+  instructions          String
+  commonMistakes        String?
+  movementPatternId     String?  @db.Uuid
+  forceType             ForceType // ENUM (e.g., PUSH, PULL)
+  kineticChain          KineticChain // ENUM (e.g., open, closed, mixed)
+  isCompound            Boolean
+  laterality            Laterality // ENUM (e.g., unilateral, bilateral)
+  contractionMode       ContractionMode // ENUM (e.g., dinamyc, isometric, mixed)
+  bodyPosition          BodyPosition // ENUM (e.g., standing, sitting)
+  skillLevel            SkillLevel // ENUM (e.g., beginner, intermediate, advanced)
+  thumbnailUrl          String?
+  thumbnailStorageKey   String?
+  imageAltText          String?
+  isActive              Boolean  @default(true)
+  archivedAt            DateTime? @db.Timestamptz(3)
+  createdAt             DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime @updatedAt @db.Timestamptz(3)
+  movementPattern       MovementPattern? @relation(fields: [movementPatternId], references: [id], onDelete: Restrict)  
+  muscles               ExerciseMuscle[] // MODEL (Many-to-Many)
+  capabilities          ExerciseCapabilityProfile? // MODEL (One-to-One)
+  demands               ExerciseDemandProfile? // MODEL (One-to-One)
+  equipment             ExerciseEquipment[] // MODEL (Many-to-Many)
+  routineExercises       RoutineExercise[] // MODEL (Many-to-Many)
+
+  @@index([isActive, name])
+  @@index([movementPatternId, isActive])
+  @@index([skillLevel, isActive])
+}
+
+model ExerciseEquipment {
+  exerciseId String   @db.Uuid
+  equipmentId String   @db.Uuid
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+
+  @@id([exerciseId, equipmentId])
+  @@index([equipmentId, exerciseId])
+}
+
+model ExerciseMuscle {
+  exerciseId        String   @db.Uuid
+  muscleId          String   @db.Uuid
+  role              MuscleRole // ENUM (e.g., primary, secondary, stabilizer)
+  involvementScore  Int
+  notes             String?
+  createdAt         DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @db.Timestamptz(3)
+  exercise          Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  muscle            Muscle   @relation(fields: [muscleId], references: [id], onDelete: Restrict)
+
+  @@id([exerciseId, muscleId])
+  @@index([muscleId, role])
+  @@index([exerciseId, role])
+}
+
+model ExerciseCapabilityProfile {
+  exerciseId                 String   @id @db.Uuid
+  hypertrophyPotential       Int
+  maximalStrengthPotential   Int
+  powerDevelopmentPotential  Int
+  muscularEndurancePotential Int
+  stabilityDevelopmentPotential Int
+  typicalLoadability         Int
+  stretchPositionLoading     Int
+  shortenedPositionLoading   Int
+  editorialNotes             String?
+  createdAt                  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt                  DateTime @updatedAt @db.Timestamptz(3)
+  exercise                   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model ExerciseDemandProfile {
+  exerciseId                String   @id @db.Uuid
+  technicalDemand           Int
+  setupComplexity           Int
+  stabilityDemand          Int
+  systemicFatiguePotential Int
+  localFatiguePotential    Int
+  recoveryCostPotential    Int
+  gripDemand               Int
+  axialLoadingPotential    Int
+  editorialNotes           String?
+  createdAt                DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime @updatedAt @db.Timestamptz(3)
+  exercise                 Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model Routine {
+  id          String            @id @db.Uuid
+  ownerId     String            @db.Uuid
+  name        String
+  description String?
+  visibility  RoutineVisibility @default(PRIVATE)
+  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime          @updatedAt @db.Timestamptz(3)
+  exercises   RoutineExercise[]
+
+  @@index([ownerId, updatedAt])
+  @@index([ownerId, name])
+}
+
+model RoutineExercise {
+  id          String   @id @db.Uuid
+  routineId   String   @db.Uuid
+  exerciseId  String   @db.Uuid
+  order       Int
+  sets        Int
+  minReps     Int
+  maxReps     Int
+  targetRir   Int?
+  restSeconds Int?
+  tempo       String?
+  notes       String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  routine     Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+
+  @@unique([routineId, order])
+  @@index([routineId])
+  @@index([exerciseId])
 }
