@@ -2,11 +2,15 @@ import { validateEnv } from './env.validation';
 
 describe('validateEnv', () => {
   it('applies safe defaults for the initial scaffold', () => {
-    expect(validateEnv({})).toEqual({
+    expect(
+      validateEnv({
+        DATABASE_URL: 'postgresql://localhost:5432/kinetiq',
+      }),
+    ).toEqual({
       NODE_ENV: 'development',
       PORT: 3000,
       WEB_ORIGIN: undefined,
-      DATABASE_URL: undefined,
+      DATABASE_URL: 'postgresql://localhost:5432/kinetiq',
       BETTER_AUTH_SECRET: undefined,
       BETTER_AUTH_URL: undefined,
     });

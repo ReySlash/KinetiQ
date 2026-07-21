@@ -4,7 +4,7 @@ export interface EnvironmentVariables {
   NODE_ENV: NodeEnv;
   PORT: number;
   WEB_ORIGIN?: string;
-  DATABASE_URL?: string;
+  DATABASE_URL: string;
   BETTER_AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;
 }
@@ -76,7 +76,11 @@ export function validateEnv(
     NODE_ENV: parseNodeEnv(nodeEnv),
     PORT: parsePort(port),
     WEB_ORIGIN: parseOptionalUrl('WEB_ORIGIN', webOrigin),
-    DATABASE_URL: databaseUrl,
+    DATABASE_URL:
+      databaseUrl ??
+      (() => {
+        throw new Error('DATABASE_URL is required.');
+      })(),
     BETTER_AUTH_SECRET: betterAuthSecret,
     BETTER_AUTH_URL: parseOptionalUrl('BETTER_AUTH_URL', betterAuthUrl),
   };
