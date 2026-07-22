@@ -8,6 +8,9 @@ import { CreateMuscleDto } from './dto/create-muscle.dto';
 import { buildMuscleCreateData } from './mappers/create-muscle.mapper';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginationDto } from './dto/pagination-muscle.dto';
+import { UpdateMuscleDto } from './dto/update-muscle.dto';
+import { buildMuscleUpdateData } from './mappers/update-muscle.mapper';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 
 @Injectable()
 export class MusclesService {
@@ -105,6 +108,41 @@ export class MusclesService {
         throw error;
       }
       throw new InternalServerErrorException('Failed to fetch muscle');
+    }
+  }
+
+  async update(slug: string, updateMuscleDto: UpdateMuscleDto) {
+    const updatedMuscle = buildMuscleUpdateData(updateMuscleDto);
+
+    try {
+      await this.prisma.muscle.update({
+        where: {
+          slug,
+        },
+        data: updatedMuscle,
+      });
+      return 'Muscle updated successfully';
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Muscle not found');
+      }
+      const uniqueConstraintError = toPrismaUniqueConstraintBadRequest(error, {
+        entityLabel: 'muscle',
+        fieldMessages: {
+          name: 'A muscle with that name already exists',
+          slug: 'A muscle with that slug already exists',
+        },
+        resolveField: (detectedField) =>
+          updateMuscleDto.slug ? (detectedField ?? 'slug') : 'name',
+      });
+
+      if (uniqueConstraintError) {
+        throw uniqueConstraintError;
+      }
+      throw new InternalServerErrorException('Failed to update muscle');
     }
   }
 }

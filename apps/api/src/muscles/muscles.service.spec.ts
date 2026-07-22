@@ -4,6 +4,7 @@ jest.mock('../prisma/prisma.service', () => ({
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 import type { MuscleModel } from '../../generated/prisma/models/Muscle';
 import { PrismaService } from '../prisma/prisma.service';
 import { MusclesService } from './muscles.service';
@@ -15,16 +16,19 @@ describe('MusclesService', () => {
   let create: jest.MockedFunction<MuscleDelegate['create']>;
   let findMany: jest.MockedFunction<MuscleDelegate['findMany']>;
   let findFirst: jest.MockedFunction<MuscleDelegate['findFirst']>;
+  let update: jest.MockedFunction<MuscleDelegate['update']>;
 
   beforeEach(async () => {
     create = jest.fn();
     findMany = jest.fn();
     findFirst = jest.fn();
+    update = jest.fn();
     const prismaServiceMock = {
       muscle: {
         create,
         findMany,
         findFirst,
+        update,
       },
     };
 
@@ -244,5 +248,51 @@ describe('MusclesService', () => {
     await expect(service.findOne('missing-slug')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('updates a muscle with normalized name, description, and slug fields', async () => {
+    update.mockResolvedValue({
+      id: 'a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0',
+      name: 'Biceps brachii',
+      slug: 'existing-slug',
+      description: 'Primary elbow flexor of the upper arm.',
+      bodyRegion: 'UPPER_BODY',
+      thumbnailUrl: null,
+      thumbnailStorageKey: null,
+      imageAltText: null,
+      sortOrder: 1,
+    });
+
+    await service.update('biceps-brachii', {
+      name: 'biceps brachii',
+      slug: 'existing slug',
+      description: 'primary elbow flexor of the upper arm.',
+    });
+
+    expect(update).toHaveBeenCalledWith({
+      where: {
+        slug: 'biceps-brachii',
+      },
+      data: {
+        name: 'Biceps brachii',
+        slug: 'existing-slug',
+        description: 'Primary elbow flexor of the upper arm.',
+      },
+    });
+  });
+
+  it('throws NotFoundException when update targets a missing muscle', async () => {
+    const notFoundError = Object.create(
+      PrismaClientKnownRequestError.prototype,
+    ) as PrismaClientKnownRequestError;
+    notFoundError.code = 'P2025';
+
+    update.mockRejectedValueOnce(notFoundError);
+
+    await expect(
+      service.update('missing-slug', {
+        name: 'biceps brachii',
+      }),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

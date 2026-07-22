@@ -2,7 +2,11 @@ import { randomUUID } from 'crypto';
 import { Prisma } from '../../../generated/prisma/client';
 import { CreateMuscleDto } from '../dto/create-muscle.dto';
 
-function buildMuscleSlug(value: string): string {
+export function capitalizeFirstCharacter(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function buildMuscleSlug(value: string): string {
   return value
     .trim()
     .toLowerCase()
@@ -13,14 +17,14 @@ function buildMuscleSlug(value: string): string {
 export function buildMuscleCreateData(
   createMuscleDto: CreateMuscleDto,
 ): Prisma.MuscleUncheckedCreateInput {
-  const name = createMuscleDto.name;
+  const name = capitalizeFirstCharacter(createMuscleDto.name);
   const slugSource = createMuscleDto.slug ?? name;
-
+  const description = capitalizeFirstCharacter(createMuscleDto.description);
   return {
     id: randomUUID(),
     name,
     slug: buildMuscleSlug(slugSource),
-    description: createMuscleDto.description,
+    description,
     bodyRegion: createMuscleDto.bodyRegion,
     thumbnailUrl: createMuscleDto.thumbnailUrl ?? null,
     thumbnailStorageKey: createMuscleDto.thumbnailStorageKey ?? null,
