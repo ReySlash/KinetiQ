@@ -1,27 +1,9 @@
 import { randomUUID } from 'crypto';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
+import { toPrismaUniqueConstraintBadRequest } from '../common/prisma/prisma-unique-constraint';
 import { CreateMuscleDto } from './dto/create-muscle.dto';
 import { PrismaService } from '../prisma/prisma.service';
-
-type PrismaP2002Meta = {
-  target?: string[];
-  modelName?: string;
-  driverAdapterError?: {
-    cause?: {
-      constraint?: {
-        fields?: string[];
-      };
-    };
-  };
-};
-
-type UniqueViolationError = {
-  code?: string;
-  meta?: PrismaP2002Meta;
-};
-
-type MuscleConflictField = 'name' | 'slug';
 
 function buildMuscleSlug(value: string): string {
   return value
@@ -31,68 +13,14 @@ function buildMuscleSlug(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-function getMuscleConflictField(
-  error: UniqueViolationError,
-): MuscleConflictField | undefined {
-  const field =
-    error.meta?.target?.[0] ??
-    error.meta?.driverAdapterError?.cause?.constraint?.fields?.[0];
-
-  if (field === 'name' || field === 'slug') {
-    return field;
-  }
-
-  return undefined;
-}
-
 @Injectable()
 export class MusclesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createMuscleDto: CreateMuscleDto) {
-    const name = createMuscleDto.name.trim();
+    const name = createMuscleDto.name;
     const slugSource = createMuscleDto.slug ?? name;
     const slug = buildMuscleSlug(slugSource);
-
-    if (!name) {
-      throw new BadRequestException({
-        message: 'Muscle name cannot be empty',
-        field: 'name',
-      });
-    }
-
-    if (!slug) {
-      throw new BadRequestException({
-        message:
-          'Muscle name or slug must contain at least one letter or number',
-        field: createMuscleDto.slug ? 'slug' : 'name',
-      });
-    }
-
-    const [existingName, existingSlug] = await Promise.all([
-      this.prisma.muscle.findUnique({
-        where: { name },
-        select: { id: true },
-      }),
-      this.prisma.muscle.findUnique({
-        where: { slug },
-        select: { id: true },
-      }),
-    ]);
-
-    if (existingName) {
-      throw new BadRequestException({
-        message: 'A muscle with that name already exists',
-        field: 'name',
-      });
-    }
-
-    if (existingSlug) {
-      throw new BadRequestException({
-        message: 'A muscle with that slug already exists',
-        field: 'slug',
-      });
-    }
 
     const newMuscle: Prisma.MuscleUncheckedCreateInput = {
       id: randomUUID(),
@@ -117,21 +45,18 @@ export class MusclesService {
         message: 'Muscle created successfully',
       };
     } catch (error) {
-      const uniqueViolation = error as UniqueViolationError;
+      const uniqueConstraintError = toPrismaUniqueConstraintBadRequest(error, {
+        entityLabel: 'muscle',
+        fieldMessages: {
+          name: 'A muscle with that name already exists',
+          slug: 'A muscle with that slug already exists',
+        },
+        resolveField: (detectedField) =>
+          createMuscleDto.slug ? (detectedField ?? 'slug') : 'name',
+      });
 
-      if (uniqueViolation.code === 'P2002') {
-        const field = getMuscleConflictField(uniqueViolation);
-        const message =
-          field === 'name'
-            ? 'A muscle with that name already exists'
-            : field === 'slug'
-              ? 'A muscle with that slug already exists'
-              : 'A muscle with that value already exists';
-
-        throw new BadRequestException({
-          message,
-          ...(field ? { field } : {}),
-        });
+      if (uniqueConstraintError) {
+        throw uniqueConstraintError;
       }
 
       throw error;

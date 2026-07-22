@@ -12,15 +12,12 @@ type MuscleDelegate = InstanceType<typeof PrismaService>['muscle'];
 
 describe('MusclesService', () => {
   let service: MusclesService;
-  let findUnique: jest.MockedFunction<MuscleDelegate['findUnique']>;
   let create: jest.MockedFunction<MuscleDelegate['create']>;
 
   beforeEach(async () => {
-    findUnique = jest.fn();
     create = jest.fn();
     const prismaServiceMock = {
       muscle: {
-        findUnique,
         create,
       },
     };
@@ -64,11 +61,10 @@ describe('MusclesService', () => {
       updatedAt: new Date('2026-07-21T00:00:00.000Z'),
     } satisfies MuscleModel;
 
-    findUnique.mockResolvedValue(null);
     create.mockResolvedValue(createdMuscle);
 
     const result = await service.create({
-      name: '  Biceps Brachii  ',
+      name: 'Biceps Brachii',
       description: 'Primary elbow flexor of the upper arm.',
       bodyRegion: 'UPPER_BODY',
       muscleGroupId: 'd0c0e5fa-9f8d-4a34-8d0e-9f45ab7d2e12',
@@ -76,14 +72,6 @@ describe('MusclesService', () => {
       sortOrder: 3,
     });
 
-    expect(findUnique).toHaveBeenNthCalledWith(1, {
-      where: { name: 'Biceps Brachii' },
-      select: { id: true },
-    });
-    expect(findUnique).toHaveBeenNthCalledWith(2, {
-      where: { slug: 'biceps-brachii' },
-      select: { id: true },
-    });
     expect(create).toHaveBeenCalledTimes(1);
     expect(create.mock.calls[0]?.[0].data.name).toBe('Biceps Brachii');
     expect(create.mock.calls[0]?.[0].data.slug).toBe('biceps-brachii');
@@ -99,18 +87,15 @@ describe('MusclesService', () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
     expect(result).toEqual({
-      message: 'Muscle with slug biceps-brachii created successfully',
-      muscle: createdMuscle,
+      message: 'Muscle created successfully',
     });
   });
 
-  it('rejects duplicate names before create', async () => {
-    findUnique
-      .mockResolvedValueOnce({ id: 'existing-name-id' } satisfies Pick<
-        MuscleModel,
-        'id'
-      >)
-      .mockResolvedValueOnce(null);
+  it('maps a generated-slug duplicate back to the name field without extra lookups', async () => {
+    create.mockRejectedValueOnce({
+      code: 'P2002',
+      meta: { target: ['slug'] },
+    });
 
     try {
       await service.create({
@@ -129,17 +114,14 @@ describe('MusclesService', () => {
       }
     }
 
-    expect(create).not.toHaveBeenCalled();
-    expect(findUnique).toHaveBeenCalledTimes(2);
+    expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects duplicate slugs before create', async () => {
-    findUnique
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({ id: 'existing-slug-id' } satisfies Pick<
-        MuscleModel,
-        'id'
-      >);
+  it('maps duplicate slug errors without extra lookups', async () => {
+    create.mockRejectedValueOnce({
+      code: 'P2002',
+      meta: { target: ['slug'] },
+    });
 
     try {
       await service.create({
@@ -159,7 +141,6 @@ describe('MusclesService', () => {
       }
     }
 
-    expect(create).not.toHaveBeenCalled();
-    expect(findUnique).toHaveBeenCalledTimes(2);
+    expect(create).toHaveBeenCalledTimes(1);
   });
 });
