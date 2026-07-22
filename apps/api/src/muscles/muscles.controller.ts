@@ -17,8 +17,8 @@ export class MusclesController {
     return this.musclesService.findAll(paginationDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.musclesService.findOne(id);
+  @Get(':slug')
+  findOne(@Param('slug') slug: string) {
+    return this.musclesService.findOne(slug);
   }
 }

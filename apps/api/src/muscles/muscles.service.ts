@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { toPrismaUniqueConstraintBadRequest } from '../common/prisma/prisma-unique-constraint';
 import { CreateMuscleDto } from './dto/create-muscle.dto';
 import { buildMuscleCreateData } from './mappers/create-muscle.mapper';
@@ -73,7 +77,34 @@ export class MusclesService {
     }
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} muscle`;
+  async findOne(slug: string) {
+    try {
+      const muscle = await this.prisma.muscle.findFirst({
+        where: {
+          slug,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          bodyRegion: true,
+          thumbnailUrl: true,
+          thumbnailStorageKey: true,
+          imageAltText: true,
+          sortOrder: true,
+        },
+      });
+      if (!muscle) {
+        throw new NotFoundException('Muscle not found');
+      }
+      return muscle;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch muscle');
+    }
   }
 }

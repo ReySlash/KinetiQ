@@ -2,7 +2,7 @@ jest.mock('../prisma/prisma.service', () => ({
   PrismaService: class PrismaService {},
 }));
 
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { MuscleModel } from '../../generated/prisma/models/Muscle';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,14 +14,17 @@ describe('MusclesService', () => {
   let service: MusclesService;
   let create: jest.MockedFunction<MuscleDelegate['create']>;
   let findMany: jest.MockedFunction<MuscleDelegate['findMany']>;
+  let findFirst: jest.MockedFunction<MuscleDelegate['findFirst']>;
 
   beforeEach(async () => {
     create = jest.fn();
     findMany = jest.fn();
+    findFirst = jest.fn();
     const prismaServiceMock = {
       muscle: {
         create,
         findMany,
+        findFirst,
       },
     };
 
@@ -189,5 +192,57 @@ describe('MusclesService', () => {
       },
     });
     expect(result).toEqual([]);
+  });
+
+  it('returns an active muscle by slug', async () => {
+    findFirst.mockResolvedValue({
+      id: 'a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0',
+      name: 'Biceps Brachii',
+      slug: 'biceps-brachii',
+      description: 'Primary elbow flexor of the upper arm.',
+      bodyRegion: 'UPPER_BODY',
+      thumbnailUrl: null,
+      thumbnailStorageKey: null,
+      imageAltText: null,
+      sortOrder: 1,
+    });
+
+    await expect(service.findOne('biceps-brachii')).resolves.toEqual({
+      id: 'a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0',
+      name: 'Biceps Brachii',
+      slug: 'biceps-brachii',
+      description: 'Primary elbow flexor of the upper arm.',
+      bodyRegion: 'UPPER_BODY',
+      thumbnailUrl: null,
+      thumbnailStorageKey: null,
+      imageAltText: null,
+      sortOrder: 1,
+    });
+
+    expect(findFirst).toHaveBeenCalledWith({
+      where: {
+        slug: 'biceps-brachii',
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        bodyRegion: true,
+        thumbnailUrl: true,
+        thumbnailStorageKey: true,
+        imageAltText: true,
+        sortOrder: true,
+      },
+    });
+  });
+
+  it('throws NotFoundException when an active muscle does not exist', async () => {
+    findFirst.mockResolvedValue(null);
+
+    await expect(service.findOne('missing-slug')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
