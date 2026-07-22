@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { toPrismaUniqueConstraintBadRequest } from '../common/prisma/prisma-unique-constraint';
 import { CreateMuscleDto } from './dto/create-muscle.dto';
 import { buildMuscleCreateData } from './mappers/create-muscle.mapper';
 import { PrismaService } from '../prisma/prisma.service';
+import { PaginationDto } from './dto/pagination-muscle.dto';
 
 @Injectable()
 export class MusclesService {
@@ -38,8 +39,38 @@ export class MusclesService {
     }
   }
 
-  findAll() {
-    return `This action returns all muscles`;
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 5, offset = 0 } = paginationDto;
+
+    try {
+      const muscles = await this.prisma.muscle.findMany({
+        where: {
+          isActive: true,
+        },
+        orderBy: [
+          { sortOrder: 'asc' },
+          { name: 'asc' },
+          { createdAt: 'asc' },
+          { id: 'asc' },
+        ],
+        take: limit,
+        skip: offset,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          bodyRegion: true,
+          thumbnailUrl: true,
+          thumbnailStorageKey: true,
+          imageAltText: true,
+          sortOrder: true,
+        },
+      });
+      return muscles;
+    } catch {
+      throw new InternalServerErrorException('Failed to fetch muscles');
+    }
   }
 
   findOne(id: string) {

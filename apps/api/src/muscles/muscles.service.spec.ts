@@ -13,12 +13,15 @@ type MuscleDelegate = InstanceType<typeof PrismaService>['muscle'];
 describe('MusclesService', () => {
   let service: MusclesService;
   let create: jest.MockedFunction<MuscleDelegate['create']>;
+  let findMany: jest.MockedFunction<MuscleDelegate['findMany']>;
 
   beforeEach(async () => {
     create = jest.fn();
+    findMany = jest.fn();
     const prismaServiceMock = {
       muscle: {
         create,
+        findMany,
       },
     };
 
@@ -142,5 +145,49 @@ describe('MusclesService', () => {
     }
 
     expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns a paginated, active-only list with a stable ordering', async () => {
+    findMany.mockResolvedValue([]);
+
+    const result = await service.findAll({
+      limit: 10,
+      offset: 20,
+    });
+
+    expect(findMany).toHaveBeenCalledTimes(1);
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        isActive: true,
+      },
+      orderBy: [
+        {
+          sortOrder: 'asc',
+        },
+        {
+          name: 'asc',
+        },
+        {
+          createdAt: 'asc',
+        },
+        {
+          id: 'asc',
+        },
+      ],
+      take: 10,
+      skip: 20,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        bodyRegion: true,
+        thumbnailUrl: true,
+        thumbnailStorageKey: true,
+        imageAltText: true,
+        sortOrder: true,
+      },
+    });
+    expect(result).toEqual([]);
   });
 });

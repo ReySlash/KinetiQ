@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { MusclesService } from './muscles.service';
 import { CreateMuscleDto } from './dto/create-muscle.dto';
+import { PaginationDto } from './dto/pagination-muscle.dto';
 
 @Controller('muscles')
 export class MusclesController {
@@ -12,8 +13,8 @@ export class MusclesController {
   }
 
   @Get()
-  findAll() {
-    return this.musclesService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.musclesService.findAll(paginationDto);
   }
 
   @Get(':id')
