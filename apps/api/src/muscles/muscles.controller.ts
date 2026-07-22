@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -37,5 +38,10 @@ export class MusclesController {
     @Body() updateMuscleDto: UpdateMuscleDto,
   ) {
     return this.musclesService.update(slug, updateMuscleDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.musclesService.remove(id);
   }
 }

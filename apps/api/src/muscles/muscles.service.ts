@@ -145,4 +145,26 @@ export class MusclesService {
       throw new InternalServerErrorException('Failed to update muscle');
     }
   }
+
+  async remove(id: string) {
+    try {
+      await this.prisma.muscle.update({
+        where: {
+          id,
+        },
+        data: {
+          isActive: false,
+        },
+      });
+      return 'Resource soft-deleted successfully';
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Muscle not found');
+      }
+      throw new InternalServerErrorException('Failed to delete muscle');
+    }
+  }
 }

@@ -295,4 +295,45 @@ describe('MusclesService', () => {
       }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('soft-deletes a muscle by id', async () => {
+    update.mockResolvedValue({
+      id: 'a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0',
+      name: 'Biceps Brachii',
+      slug: 'biceps-brachii',
+      description: 'Primary elbow flexor of the upper arm.',
+      bodyRegion: 'UPPER_BODY',
+      isActive: false,
+      thumbnailUrl: null,
+      thumbnailStorageKey: null,
+      imageAltText: null,
+      sortOrder: 1,
+    });
+
+    await expect(
+      service.remove('a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0'),
+    ).resolves.toBe('Muscle removed successfully');
+
+    expect(update).toHaveBeenCalledWith({
+      where: {
+        id: 'a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0',
+      },
+      data: {
+        isActive: false,
+      },
+    });
+  });
+
+  it('throws NotFoundException when remove targets a missing muscle', async () => {
+    const notFoundError = Object.create(
+      PrismaClientKnownRequestError.prototype,
+    ) as PrismaClientKnownRequestError;
+    notFoundError.code = 'P2025';
+
+    update.mockRejectedValueOnce(notFoundError);
+
+    await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
 });
