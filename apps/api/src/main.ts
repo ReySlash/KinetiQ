@@ -8,6 +8,7 @@ async function bootstrap() {
   const prismaService = app.get(PrismaService);
   const port = Number(process.env.PORT ?? 3000);
 
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -72,7 +73,7 @@ enum RoutineVisibility {
 
 model MuscleGroup {
   id          String   @id @db.Uuid
-  name        String
+  name        String   @unique
   slug        String   @unique
   description String?
   sortOrder   Int      @default(0)
@@ -83,7 +84,7 @@ model MuscleGroup {
 
 model Muscle {
   id                 String   @id @db.Uuid
-  name               String
+  name               String   @unique
   slug               String   @unique
   description        String
   bodyRegion         BodyRegion // (e.g., UPPER_BODY, LOWER_BODY)
@@ -108,7 +109,7 @@ model Muscle {
 
 model Equipment {
   id          String   @id @db.Uuid
-  name        String
+  name        String   @unique
   slug        String   @unique
   description String?
   isActive    Boolean  @default(true)
@@ -120,7 +121,7 @@ model Equipment {
 
 model MovementPattern {
   id          String   @id @db.Uuid
-  name        String
+  name        String   @unique
   slug        String   @unique
   description String?
   isActive    Boolean  @default(true)
@@ -132,7 +133,7 @@ model MovementPattern {
 
 model Exercise {
   id                    String   @id @db.Uuid
-  name                  String
+  name                  String   @unique
   slug                  String   @unique
   description           String
   instructions          String
@@ -225,7 +226,7 @@ model ExerciseDemandProfile {
 model Routine {
   id          String            @id @db.Uuid
   ownerId     String            @db.Uuid
-  name        String
+  name        String            
   description String?
   visibility  RoutineVisibility @default(PRIVATE)
   createdAt   DateTime          @default(now()) @db.Timestamptz(3)
