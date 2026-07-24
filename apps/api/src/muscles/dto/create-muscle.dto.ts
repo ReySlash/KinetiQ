@@ -5,6 +5,7 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 import { Transform, type TransformFnParams } from 'class-transformer';
@@ -79,5 +80,6 @@ export class CreateMuscleDto {
 
   @IsOptional()
   @IsInt()
+  @Min(0)
   sortOrder?: number;
 }
