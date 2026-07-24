@@ -17,6 +17,9 @@ export class MuscleGroupsService {
           slug: true,
           description: true,
           sortOrder: true,
+          thumbnailUrl: true,
+          thumbnailStorageKey: true,
+          imageAltText: true,
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
       });
@@ -37,6 +40,9 @@ export class MuscleGroupsService {
           name: true,
           slug: true,
           description: true,
+          thumbnailUrl: true,
+          thumbnailStorageKey: true,
+          imageAltText: true,
           muscles: {
             orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
             where: {

@@ -40,4 +40,19 @@ export class CreateMuscleGroupDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  thumbnailUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  thumbnailStorageKey?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  imageAltText?: string;
 }

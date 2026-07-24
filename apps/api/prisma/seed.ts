@@ -12,6 +12,7 @@ type MuscleGroupSeed = {
   slug: string;
   description: string;
   sortOrder: number;
+  imageAltText: string;
 };
 
 type MuscleSeed = {
@@ -32,6 +33,7 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles associated with movement and stabilization of the shoulder and upper arm across the front of the torso.',
     sortOrder: 100,
+    imageAltText: 'Anatomical illustration highlighting the chest muscle group',
   },
   {
     name: 'Back',
@@ -39,6 +41,7 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles of the posterior torso involved in pulling, scapular movement, spinal control, and posture.',
     sortOrder: 200,
+    imageAltText: 'Anatomical illustration highlighting the back muscle group',
   },
   {
     name: 'Shoulders',
@@ -46,6 +49,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles responsible for moving and stabilizing the shoulder joint and shoulder girdle.',
     sortOrder: 300,
+    imageAltText:
+      'Anatomical illustration highlighting the shoulder muscle group',
   },
   {
     name: 'Biceps',
@@ -53,6 +58,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Anterior upper-arm muscles involved primarily in elbow flexion and forearm supination.',
     sortOrder: 400,
+    imageAltText:
+      'Anatomical illustration highlighting the biceps muscle group',
   },
   {
     name: 'Triceps',
@@ -60,6 +67,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Posterior upper-arm muscles responsible primarily for elbow extension.',
     sortOrder: 500,
+    imageAltText:
+      'Anatomical illustration highlighting the triceps muscle group',
   },
   {
     name: 'Forearms',
@@ -67,6 +76,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles controlling wrist, hand, finger, and forearm movement and contributing to grip strength.',
     sortOrder: 600,
+    imageAltText:
+      'Anatomical illustration highlighting the forearm muscle group',
   },
   {
     name: 'Core',
@@ -74,6 +85,7 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles responsible for trunk movement, spinal stability, force transfer, and control of the pelvis and rib cage.',
     sortOrder: 700,
+    imageAltText: 'Anatomical illustration highlighting the core muscle group',
   },
   {
     name: 'Glutes',
@@ -81,6 +93,7 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Posterior and lateral hip muscles involved in hip extension, abduction, rotation, and pelvic stabilization.',
     sortOrder: 800,
+    imageAltText: 'Anatomical illustration highlighting the glute muscle group',
   },
   {
     name: 'Quadriceps',
@@ -88,6 +101,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Anterior thigh muscles responsible primarily for knee extension and assisting hip flexion.',
     sortOrder: 900,
+    imageAltText:
+      'Anatomical illustration highlighting the quadriceps muscle group',
   },
   {
     name: 'Hamstrings',
@@ -95,6 +110,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Posterior thigh muscles involved in knee flexion, hip extension, and pelvic control.',
     sortOrder: 1000,
+    imageAltText:
+      'Anatomical illustration highlighting the hamstring muscle group',
   },
   {
     name: 'Adductors',
@@ -102,6 +119,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Inner-thigh muscles responsible for hip adduction and contributing to hip and pelvic stability.',
     sortOrder: 1100,
+    imageAltText:
+      'Anatomical illustration highlighting the adductor muscle group',
   },
   {
     name: 'Hip Flexors',
@@ -109,6 +128,8 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles contributing primarily to hip flexion and stabilization of the pelvis and lumbar region.',
     sortOrder: 1200,
+    imageAltText:
+      'Anatomical illustration highlighting the hip flexor muscle group',
   },
   {
     name: 'Calves',
@@ -116,6 +137,7 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Lower-leg muscles involved in ankle movement and control of the foot and ankle.',
     sortOrder: 1300,
+    imageAltText: 'Anatomical illustration highlighting the calf muscle group',
   },
   {
     name: 'Neck',
@@ -123,6 +145,7 @@ const muscleGroups: MuscleGroupSeed[] = [
     description:
       'Muscles responsible for movement and stabilization of the cervical spine and head.',
     sortOrder: 1400,
+    imageAltText: 'Anatomical illustration highlighting the neck muscle group',
   },
 ];
 
@@ -801,6 +824,7 @@ async function seedMuscleGroups(): Promise<Map<string, string>> {
       update: {
         name: muscleGroup.name,
         description: muscleGroup.description,
+        imageAltText: muscleGroup.imageAltText,
         sortOrder: muscleGroup.sortOrder,
       },
       create: {
