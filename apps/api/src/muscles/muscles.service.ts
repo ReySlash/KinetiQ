@@ -97,6 +97,12 @@ export class MusclesService {
           thumbnailStorageKey: true,
           imageAltText: true,
           sortOrder: true,
+          muscleGroup: {
+            select: {
+              name: true,
+              slug: true,
+            },
+          },
         },
       });
       if (!muscle) {

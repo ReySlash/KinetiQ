@@ -7,6 +7,7 @@ export type MuscleGroup = {
   thumbnailStorageKey: string | null;
   imageAltText: string | null;
   sortOrder: number;
+  bodyRegion: string;
 };
 
 export type Muscle = {
@@ -19,4 +20,5 @@ export type Muscle = {
   thumbnailStorageKey: string | null;
   imageAltText: string | null;
   sortOrder: number;
+  muscleGroup: MuscleGroup;
 };

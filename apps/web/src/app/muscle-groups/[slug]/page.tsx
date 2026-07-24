@@ -18,6 +18,7 @@ type MuscleGroupDetails = {
   thumbnailUrl: string | null;
   thumbnailStorageKey: string | null;
   imageAltText: string | null;
+  bodyRegion: string;
   muscles: Muscle[];
 };
 
@@ -89,7 +90,7 @@ export default async function MuscleGroupPage(props: {
               </CardDescription>
               <div className="flex flex-col gap-3 text-lg text-muted-foreground leading-none col-span-1">
                 <p>Group</p>
-                <p>Region</p>
+                <p>Body Region</p>
                 <p>Primary Function</p>
                 <p>Secondary Function</p>
                 <p>Number of muscles</p>
@@ -97,7 +98,7 @@ export default async function MuscleGroupPage(props: {
               </div>
               <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
                 <p>{muscleGroupDetails.name}</p>
-                <p> - placeholder -</p>
+                <p>{muscleGroupDetails.bodyRegion.replace("_", " ")}</p>
                 <p> - placeholder -</p>
                 <p> - placeholder -</p>
                 <p>{muscleGroupDetails.muscles.length}</p>

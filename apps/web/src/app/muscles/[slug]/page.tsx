@@ -76,23 +76,46 @@ export default async function MuscleGroupPage(props: {
                 {muscleDetails.description}
               </CardDescription>
               <div className="flex flex-col gap-3 text-lg text-muted-foreground leading-none col-span-1">
-                <p>Group</p>
-                <p>Region</p>
+                <p>Muscle Name</p>
+                <p>Muscle Group</p>
+                <p>Body Region</p>
                 <p>Primary Function</p>
                 <p>Secondary Function</p>
                 <p>Exercises</p>
               </div>
               <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
                 <p>{muscleDetails.name}</p>
-                <p>
-                  {muscleDetails.bodyRegion.replace("_", " ").toLowerCase()}
-                </p>
+                <p>{muscleDetails.muscleGroup.name}</p>
+                <p>{muscleDetails.bodyRegion.replace("_", " ")}</p>
                 <p> - placeholder -</p>
                 <p> - placeholder -</p>
                 <p>- placeholder -</p>
               </div>
             </CardContent>
           </Card>
+          {/* <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-bold leading-none mb-1">
+                Muscles in this group
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-lg text-muted-foreground leading-none mb-1">
+              {muscleDetails.muscles.map((muscle) => (
+                <div
+                  className="border-t p-3 flex items-center justify-between"
+                  key={muscle.id}
+                >
+                  <p>{muscle.name}</p>
+                  <Link
+                    className="bg-primary text-primary-foreground hover:bg-primary/80 text-center rounded-sm py-1 p-2"
+                    href={`/muscles/${muscle.slug}`}
+                  >
+                    Details
+                  </Link>
+                </div>
+              ))}
+            </CardContent>
+          </Card> */}
         </div>
       </section>
     </main>

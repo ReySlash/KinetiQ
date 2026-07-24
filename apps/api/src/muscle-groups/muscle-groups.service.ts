@@ -43,6 +43,7 @@ export class MuscleGroupsService {
           thumbnailUrl: true,
           thumbnailStorageKey: true,
           imageAltText: true,
+          bodyRegion: true,
           muscles: {
             orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
             where: {

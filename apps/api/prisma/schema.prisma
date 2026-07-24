@@ -76,6 +76,7 @@ model MuscleGroup {
   name        String   @unique
   slug        String   @unique
   description String?
+  bodyRegion  BodyRegion
   thumbnailUrl        String?
   thumbnailStorageKey String?
   imageAltText        String?
@@ -104,10 +105,10 @@ model Muscle {
   parent             Muscle?  @relation("MuscleHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
   children           Muscle[] @relation("MuscleHierarchy")
   exerciseMuscles    ExerciseMuscle[] // Many-to-many relationship with exercises
-
   @@index([bodyRegion, isActive])
   @@index([muscleGroupId, isActive])
   @@index([parentId])
+  functionAssignments MuscleFunctionAssignment[]
 }
 
 model Equipment {
@@ -260,4 +261,43 @@ model RoutineExercise {
   @@unique([routineId, order])
   @@index([routineId])
   @@index([exerciseId])
+}
+
+
+// ###########################################################################################################################
+// ########################### ADDING MUSCLE FUNCTIONS ######################################################################
+// ###########################################################################################################################
+enum MuscleFunctionRole {
+  PRIMARY
+  SECONDARY
+}
+
+model MuscleFunction {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  assignments MuscleFunctionAssignment[]
+}
+
+model MuscleFunctionAssignment {
+  muscleId         String             @db.Uuid
+  functionId       String             @db.Uuid
+  role             MuscleFunctionRole
+  contributionScore Int?
+  notes            String?
+  createdAt        DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime           @updatedAt @db.Timestamptz(3)
+
+  muscle         Muscle         @relation(fields: [muscleId], references: [id], onDelete: Cascade)
+  muscleFunction MuscleFunction @relation(fields: [functionId], references: [id], onDelete: Restrict)
+
+  @@id([muscleId, functionId])
+  @@index([functionId, role])
+  @@index([muscleId, role])
 }
