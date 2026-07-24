@@ -1,5 +1,5 @@
-import { MuscleSkeletonCard } from "@/components/muscle-skeleton-card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { MuscleSkeletonCard } from "./components/muscle-skeleton-card";
 
 export default async function Loading() {
   return (
@@ -14,7 +14,7 @@ export default async function Loading() {
         </div>
       </header>
       <main className="h-full w-full p-2 md:p-3">
-        <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-9 xl:grid-cols-4 justify-between gap-auto rounded-3xl border border-border/70 bg-card/80 shadow-sm h-full">
+        <section className="@container grid gap-2 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))]">
           <MuscleSkeletonCard />
         </section>
       </main>

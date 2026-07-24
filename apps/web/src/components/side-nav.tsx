@@ -20,7 +20,7 @@ const items = [
     icon: IoMdFitness,
   },
   {
-    href: "/muscles",
+    href: "/muscle-groups",
     label: "Muscle Groups",
     icon: GiStrong,
   },
