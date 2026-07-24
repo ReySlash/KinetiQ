@@ -1,22 +1,7 @@
-import { MuscleCard } from "@/components/muscle-card";
+import { MuscleSkeletonCard } from "@/components/muscle-skeleton-card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Muscle } from "@/types/muscle-types";
 
-async function fetchData(url: string): Promise<Muscle[]> {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch muscles: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  return response.json();
-}
-
-export default async function MusclesPage() {
-  const muscles = await fetchData("http://localhost:3001/api/muscles?limit=20");
-
+export default async function Loading() {
   return (
     <>
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60 px-4">
@@ -30,15 +15,7 @@ export default async function MusclesPage() {
       </header>
       <main className="h-full w-full p-2 md:p-3">
         <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-9 xl:grid-cols-4 justify-between gap-auto rounded-3xl border border-border/70 bg-card/80 shadow-sm h-full">
-          {muscles.map((muscle) => (
-            <MuscleCard
-              key={muscle.id}
-              imageUrl={muscle.thumbnailUrl}
-              imageAltText={muscle.imageAltText}
-              bodyRegion={muscle.bodyRegion}
-              name={muscle.name}
-            />
-          ))}
+          <MuscleSkeletonCard />
         </section>
       </main>
     </>

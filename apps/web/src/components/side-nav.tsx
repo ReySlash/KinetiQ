@@ -21,7 +21,7 @@ const items = [
   },
   {
     href: "/muscles",
-    label: "Muscles",
+    label: "Muscle Groups",
     icon: GiStrong,
   },
   {

@@ -231,3 +231,11 @@ At the end of a task, report:
 5. Any remaining risks or follow-up work.
 
 Do not declare a task complete when relevant verification has not been run. State clearly when a check could not be executed.
+
+## Current Worktree Context
+
+- The `apps/web` shell is partially scaffolded with `SidebarProvider`, a themed root layout, a footer user dropdown, and a theme submenu using radio semantics.
+- Top-level placeholder routes now exist for `/dashboard`, `/exercises`, `/muscles`, `/routines`, `/training-programs`, `/analytics`, `/progress`, and `/calendar`.
+- `pnpm --filter web lint` currently passes.
+- `pnpm --filter web build` fails in this sandbox with a Turbopack port-binding error (`Operation not permitted`), which appears environment-related rather than a code regression.
+- Preserve existing user work in the web tree; do not revert unrelated changes or rewrite docs unless the user explicitly asks.
