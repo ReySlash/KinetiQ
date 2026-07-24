@@ -5,7 +5,11 @@ import { randomUUID } from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
-import { BodyRegion, PrismaClient } from '../generated/prisma/client';
+import {
+  BodyRegion,
+  MuscleFunctionRole,
+  PrismaClient,
+} from '../generated/prisma/client';
 
 type MuscleGroupSeed = {
   name: string;
@@ -25,6 +29,19 @@ type MuscleSeed = {
   parentSlug?: string;
   imageAltText: string;
   sortOrder: number;
+};
+
+type MuscleFunctionSeed = {
+  name: string;
+  slug: string;
+  description: string;
+  sortOrder: number;
+};
+
+type MuscleFunctionAssignmentSeed = {
+  muscleSlug: string;
+  muscleFunctionSlug: string;
+  role: MuscleFunctionRole;
 };
 
 const muscleGroups: MuscleGroupSeed[] = [
@@ -812,6 +829,343 @@ const childMuscles: MuscleSeed[] = [
   },
 ];
 
+const muscleFunctions: MuscleFunctionSeed[] = [
+  {
+    name: 'Shoulder horizontal adduction',
+    slug: 'shoulder-horizontal-adduction',
+    description:
+      'Moves the humerus across the body in the transverse plane.',
+    sortOrder: 100,
+  },
+  {
+    name: 'Shoulder flexion',
+    slug: 'shoulder-flexion',
+    description: 'Moves the humerus forward and upward in front of the body.',
+    sortOrder: 200,
+  },
+  {
+    name: 'Shoulder extension',
+    slug: 'shoulder-extension',
+    description: 'Moves the humerus backward behind the torso.',
+    sortOrder: 300,
+  },
+  {
+    name: 'Shoulder abduction',
+    slug: 'shoulder-abduction',
+    description: 'Moves the humerus away from the midline of the body.',
+    sortOrder: 400,
+  },
+  {
+    name: 'Shoulder internal rotation',
+    slug: 'shoulder-internal-rotation',
+    description: 'Rotates the humerus inward toward the body.',
+    sortOrder: 500,
+  },
+  {
+    name: 'Shoulder external rotation',
+    slug: 'shoulder-external-rotation',
+    description: 'Rotates the humerus outward away from the body.',
+    sortOrder: 600,
+  },
+  {
+    name: 'Shoulder stabilization',
+    slug: 'shoulder-stabilization',
+    description:
+      'Maintains control and position of the glenohumeral joint.',
+    sortOrder: 700,
+  },
+  {
+    name: 'Scapular protraction',
+    slug: 'scapular-protraction',
+    description: 'Draws the scapula forward around the rib cage.',
+    sortOrder: 800,
+  },
+  {
+    name: 'Scapular retraction',
+    slug: 'scapular-retraction',
+    description: 'Draws the scapula back toward the spine.',
+    sortOrder: 900,
+  },
+  {
+    name: 'Scapular elevation',
+    slug: 'scapular-elevation',
+    description: 'Raises the shoulder girdle.',
+    sortOrder: 1000,
+  },
+  {
+    name: 'Scapular depression',
+    slug: 'scapular-depression',
+    description: 'Lowers the shoulder girdle.',
+    sortOrder: 1100,
+  },
+  {
+    name: 'Scapular upward rotation',
+    slug: 'scapular-upward-rotation',
+    description: 'Rotates the scapula to support overhead motion.',
+    sortOrder: 1200,
+  },
+  {
+    name: 'Scapular stabilization',
+    slug: 'scapular-stabilization',
+    description: 'Maintains control and positioning of the scapula.',
+    sortOrder: 1300,
+  },
+  {
+    name: 'Elbow flexion',
+    slug: 'elbow-flexion',
+    description: 'Bends the elbow joint.',
+    sortOrder: 1400,
+  },
+  {
+    name: 'Elbow extension',
+    slug: 'elbow-extension',
+    description: 'Straightens the elbow joint.',
+    sortOrder: 1500,
+  },
+  {
+    name: 'Forearm supination',
+    slug: 'forearm-supination',
+    description: 'Turns the forearm so the palm faces upward.',
+    sortOrder: 1600,
+  },
+  {
+    name: 'Wrist flexion',
+    slug: 'wrist-flexion',
+    description: 'Bends the wrist toward the palm side.',
+    sortOrder: 1700,
+  },
+  {
+    name: 'Wrist extension',
+    slug: 'wrist-extension',
+    description: 'Lifts the back of the hand toward the forearm.',
+    sortOrder: 1800,
+  },
+  {
+    name: 'Grip assistance',
+    slug: 'grip-assistance',
+    description: 'Supports gripping and holding tasks at the hand and wrist.',
+    sortOrder: 1900,
+  },
+  {
+    name: 'Trunk flexion',
+    slug: 'trunk-flexion',
+    description: 'Bends the torso forward.',
+    sortOrder: 2000,
+  },
+  {
+    name: 'Trunk rotation',
+    slug: 'trunk-rotation',
+    description: 'Rotates the torso around its longitudinal axis.',
+    sortOrder: 2100,
+  },
+  {
+    name: 'Trunk lateral flexion',
+    slug: 'trunk-lateral-flexion',
+    description: 'Bends the torso sideways.',
+    sortOrder: 2200,
+  },
+  {
+    name: 'Abdominal compression',
+    slug: 'abdominal-compression',
+    description: 'Compresses and braces the abdominal wall.',
+    sortOrder: 2300,
+  },
+  {
+    name: 'Spinal stabilization',
+    slug: 'spinal-stabilization',
+    description: 'Maintains position and control of the spinal column.',
+    sortOrder: 2400,
+  },
+  {
+    name: 'Pelvic stabilization',
+    slug: 'pelvic-stabilization',
+    description: 'Helps keep the pelvis level and controlled.',
+    sortOrder: 2500,
+  },
+  {
+    name: 'Hip extension',
+    slug: 'hip-extension',
+    description: 'Moves the thigh backward at the hip joint.',
+    sortOrder: 2600,
+  },
+  {
+    name: 'Hip abduction',
+    slug: 'hip-abduction',
+    description: 'Moves the thigh away from the body midline.',
+    sortOrder: 2700,
+  },
+  {
+    name: 'Hip adduction',
+    slug: 'hip-adduction',
+    description: 'Moves the thigh toward the body midline.',
+    sortOrder: 2800,
+  },
+  {
+    name: 'Hip flexion',
+    slug: 'hip-flexion',
+    description: 'Lifts the thigh toward the torso.',
+    sortOrder: 2900,
+  },
+  {
+    name: 'Knee extension',
+    slug: 'knee-extension',
+    description: 'Straightens the knee joint.',
+    sortOrder: 3000,
+  },
+  {
+    name: 'Knee flexion',
+    slug: 'knee-flexion',
+    description: 'Bends the knee joint.',
+    sortOrder: 3100,
+  },
+  {
+    name: 'Ankle plantar flexion',
+    slug: 'ankle-plantar-flexion',
+    description: 'Points the foot downward away from the shin.',
+    sortOrder: 3200,
+  },
+  {
+    name: 'Ankle dorsiflexion',
+    slug: 'ankle-dorsiflexion',
+    description: 'Pulls the foot upward toward the shin.',
+    sortOrder: 3300,
+  },
+  {
+    name: 'Foot inversion',
+    slug: 'foot-inversion',
+    description: 'Turns the sole of the foot inward.',
+    sortOrder: 3400,
+  },
+  {
+    name: 'Cervical flexion',
+    slug: 'cervical-flexion',
+    description: 'Bends the neck forward.',
+    sortOrder: 3500,
+  },
+  {
+    name: 'Cervical rotation',
+    slug: 'cervical-rotation',
+    description: 'Rotates the head and neck.',
+    sortOrder: 3600,
+  },
+  {
+    name: 'Cervical stabilization',
+    slug: 'cervical-stabilization',
+    description: 'Maintains control of the neck and head position.',
+    sortOrder: 3700,
+  },
+];
+
+const muscleFunctionAssignments: MuscleFunctionAssignmentSeed[] = [
+  { muscleSlug: 'pectoralis-major', muscleFunctionSlug: 'shoulder-horizontal-adduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'pectoralis-minor', muscleFunctionSlug: 'scapular-protraction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'serratus-anterior', muscleFunctionSlug: 'scapular-upward-rotation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'latissimus-dorsi', muscleFunctionSlug: 'shoulder-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'trapezius', muscleFunctionSlug: 'scapular-stabilization', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'rhomboids', muscleFunctionSlug: 'scapular-retraction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'teres-major', muscleFunctionSlug: 'shoulder-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'erector-spinae', muscleFunctionSlug: 'spinal-stabilization', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'deltoid', muscleFunctionSlug: 'shoulder-abduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'rotator-cuff', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'biceps-brachii', muscleFunctionSlug: 'elbow-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'brachialis', muscleFunctionSlug: 'elbow-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'brachioradialis', muscleFunctionSlug: 'elbow-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'triceps-brachii', muscleFunctionSlug: 'elbow-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'forearm-flexors', muscleFunctionSlug: 'wrist-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'forearm-extensors', muscleFunctionSlug: 'wrist-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'rectus-abdominis', muscleFunctionSlug: 'trunk-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'external-obliques', muscleFunctionSlug: 'trunk-rotation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'internal-obliques', muscleFunctionSlug: 'trunk-rotation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'transverse-abdominis', muscleFunctionSlug: 'abdominal-compression', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'gluteus-maximus', muscleFunctionSlug: 'hip-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'gluteus-medius', muscleFunctionSlug: 'hip-abduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'gluteus-minimus', muscleFunctionSlug: 'hip-abduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'quadriceps', muscleFunctionSlug: 'knee-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'hamstrings', muscleFunctionSlug: 'knee-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'hip-adductors', muscleFunctionSlug: 'hip-adduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'iliopsoas', muscleFunctionSlug: 'hip-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'gastrocnemius', muscleFunctionSlug: 'ankle-plantar-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'soleus', muscleFunctionSlug: 'ankle-plantar-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'tibialis-anterior', muscleFunctionSlug: 'ankle-dorsiflexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'sternocleidomastoid', muscleFunctionSlug: 'cervical-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'clavicular-head-pectoralis-major', muscleFunctionSlug: 'shoulder-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'sternocostal-head-pectoralis-major', muscleFunctionSlug: 'shoulder-horizontal-adduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'upper-trapezius', muscleFunctionSlug: 'scapular-elevation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'middle-trapezius', muscleFunctionSlug: 'scapular-retraction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'lower-trapezius', muscleFunctionSlug: 'scapular-depression', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'anterior-deltoid', muscleFunctionSlug: 'shoulder-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'lateral-deltoid', muscleFunctionSlug: 'shoulder-abduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'posterior-deltoid', muscleFunctionSlug: 'shoulder-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'supraspinatus', muscleFunctionSlug: 'shoulder-abduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'infraspinatus', muscleFunctionSlug: 'shoulder-external-rotation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'teres-minor', muscleFunctionSlug: 'shoulder-external-rotation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'subscapularis', muscleFunctionSlug: 'shoulder-internal-rotation', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'long-head-biceps-brachii', muscleFunctionSlug: 'elbow-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'short-head-biceps-brachii', muscleFunctionSlug: 'elbow-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'long-head-triceps-brachii', muscleFunctionSlug: 'elbow-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'lateral-head-triceps-brachii', muscleFunctionSlug: 'elbow-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'medial-head-triceps-brachii', muscleFunctionSlug: 'elbow-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'rectus-femoris', muscleFunctionSlug: 'knee-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'vastus-lateralis', muscleFunctionSlug: 'knee-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'vastus-medialis', muscleFunctionSlug: 'knee-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'vastus-intermedius', muscleFunctionSlug: 'knee-extension', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'biceps-femoris', muscleFunctionSlug: 'knee-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'semitendinosus', muscleFunctionSlug: 'knee-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'semimembranosus', muscleFunctionSlug: 'knee-flexion', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'adductor-magnus', muscleFunctionSlug: 'hip-adduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'adductor-longus', muscleFunctionSlug: 'hip-adduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'adductor-brevis', muscleFunctionSlug: 'hip-adduction', role: MuscleFunctionRole.PRIMARY },
+  { muscleSlug: 'pectoralis-major', muscleFunctionSlug: 'shoulder-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'pectoralis-minor', muscleFunctionSlug: 'scapular-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'serratus-anterior', muscleFunctionSlug: 'scapular-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'latissimus-dorsi', muscleFunctionSlug: 'shoulder-internal-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'trapezius', muscleFunctionSlug: 'scapular-upward-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'rhomboids', muscleFunctionSlug: 'scapular-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'teres-major', muscleFunctionSlug: 'shoulder-internal-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'erector-spinae', muscleFunctionSlug: 'trunk-lateral-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'biceps-brachii', muscleFunctionSlug: 'forearm-supination', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'brachioradialis', muscleFunctionSlug: 'forearm-supination', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'forearm-flexors', muscleFunctionSlug: 'grip-assistance', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'forearm-extensors', muscleFunctionSlug: 'grip-assistance', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'rectus-abdominis', muscleFunctionSlug: 'abdominal-compression', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'external-obliques', muscleFunctionSlug: 'trunk-lateral-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'internal-obliques', muscleFunctionSlug: 'trunk-lateral-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'transverse-abdominis', muscleFunctionSlug: 'pelvic-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'gluteus-maximus', muscleFunctionSlug: 'pelvic-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'gluteus-medius', muscleFunctionSlug: 'pelvic-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'gluteus-minimus', muscleFunctionSlug: 'pelvic-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'hamstrings', muscleFunctionSlug: 'hip-extension', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'hip-adductors', muscleFunctionSlug: 'hip-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'iliopsoas', muscleFunctionSlug: 'pelvic-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'gastrocnemius', muscleFunctionSlug: 'knee-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'tibialis-anterior', muscleFunctionSlug: 'foot-inversion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'sternocleidomastoid', muscleFunctionSlug: 'cervical-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'clavicular-head-pectoralis-major', muscleFunctionSlug: 'shoulder-horizontal-adduction', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'sternocostal-head-pectoralis-major', muscleFunctionSlug: 'shoulder-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'upper-trapezius', muscleFunctionSlug: 'scapular-upward-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'middle-trapezius', muscleFunctionSlug: 'scapular-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'lower-trapezius', muscleFunctionSlug: 'scapular-upward-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'anterior-deltoid', muscleFunctionSlug: 'shoulder-horizontal-adduction', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'lateral-deltoid', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'posterior-deltoid', muscleFunctionSlug: 'shoulder-external-rotation', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'supraspinatus', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'infraspinatus', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'teres-minor', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'subscapularis', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'long-head-biceps-brachii', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'short-head-biceps-brachii', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'long-head-triceps-brachii', muscleFunctionSlug: 'shoulder-extension', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'lateral-head-triceps-brachii', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'medial-head-triceps-brachii', muscleFunctionSlug: 'shoulder-stabilization', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'rectus-femoris', muscleFunctionSlug: 'hip-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'biceps-femoris', muscleFunctionSlug: 'hip-extension', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'semitendinosus', muscleFunctionSlug: 'hip-extension', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'semimembranosus', muscleFunctionSlug: 'hip-extension', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'adductor-magnus', muscleFunctionSlug: 'hip-extension', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'adductor-longus', muscleFunctionSlug: 'hip-flexion', role: MuscleFunctionRole.SECONDARY },
+  { muscleSlug: 'adductor-brevis', muscleFunctionSlug: 'hip-flexion', role: MuscleFunctionRole.SECONDARY },
+];
+
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
@@ -839,6 +1193,7 @@ async function seedMuscleGroups(): Promise<Map<string, string>> {
       update: {
         name: muscleGroup.name,
         description: muscleGroup.description,
+        bodyRegion: muscleGroup.bodyRegion,
         imageAltText: muscleGroup.imageAltText,
         sortOrder: muscleGroup.sortOrder,
       },
@@ -854,6 +1209,32 @@ async function seedMuscleGroups(): Promise<Map<string, string>> {
   console.log('Muscle groups seeded successfully.');
 
   return groupIdsBySlug;
+}
+
+async function seedMuscleFunctions(): Promise<Map<string, string>> {
+  console.log(`Seeding ${muscleFunctions.length} muscle functions...`);
+
+  await prisma.muscleFunctionAssignment.deleteMany({});
+  await prisma.muscleFunction.deleteMany({});
+
+  const functionRecords = muscleFunctions.map((muscleFunction) => ({
+    id: randomUUID(),
+    ...muscleFunction,
+  }));
+
+  await prisma.muscleFunction.createMany({
+    data: functionRecords,
+  });
+
+  const functionIdsBySlug = new Map<string, string>();
+
+  for (const muscleFunction of functionRecords) {
+    functionIdsBySlug.set(muscleFunction.slug, muscleFunction.id);
+  }
+
+  console.log('Muscle functions seeded successfully.');
+
+  return functionIdsBySlug;
 }
 
 async function upsertMuscle(
@@ -914,7 +1295,9 @@ async function upsertMuscle(
   return savedMuscle.id;
 }
 
-async function seedMuscles(groupIdsBySlug: Map<string, string>): Promise<void> {
+async function seedMuscles(
+  groupIdsBySlug: Map<string, string>,
+): Promise<Map<string, string>> {
   console.log(
     `Seeding ${parentMuscles.length + childMuscles.length} muscles...`,
   );
@@ -942,14 +1325,62 @@ async function seedMuscles(groupIdsBySlug: Map<string, string>): Promise<void> {
   }
 
   console.log('Muscles seeded successfully.');
+
+  return parentIdsBySlug;
+}
+
+async function seedMuscleFunctionAssignments(
+  muscleIdsBySlug: Map<string, string>,
+  muscleFunctionIdsBySlug: Map<string, string>,
+): Promise<void> {
+  console.log(
+    `Seeding ${muscleFunctionAssignments.length} muscle function assignments...`,
+  );
+
+  const assignmentRecords = muscleFunctionAssignments.map((assignment) => {
+    const muscleId = muscleIdsBySlug.get(assignment.muscleSlug);
+
+    if (!muscleId) {
+      throw new Error(
+        `Muscle "${assignment.muscleSlug}" was not found while assigning muscle functions.`,
+      );
+    }
+
+    const muscleFunctionId = muscleFunctionIdsBySlug.get(
+      assignment.muscleFunctionSlug,
+    );
+
+    if (!muscleFunctionId) {
+      throw new Error(
+        `Muscle function "${assignment.muscleFunctionSlug}" was not found while assigning it to "${assignment.muscleSlug}".`,
+      );
+    }
+
+    return {
+      muscleId,
+      functionId: muscleFunctionId,
+      role: assignment.role,
+    };
+  });
+
+  await prisma.muscleFunctionAssignment.createMany({
+    data: assignmentRecords,
+  });
+
+  console.log('Muscle function assignments seeded successfully.');
 }
 
 async function main(): Promise<void> {
   console.log('Starting database seed...');
 
   const groupIdsBySlug = await seedMuscleGroups();
+  const muscleIdsBySlug = await seedMuscles(groupIdsBySlug);
+  const muscleFunctionIdsBySlug = await seedMuscleFunctions();
 
-  await seedMuscles(groupIdsBySlug);
+  await seedMuscleFunctionAssignments(
+    muscleIdsBySlug,
+    muscleFunctionIdsBySlug,
+  );
 
   console.log('Database seed completed successfully.');
 }

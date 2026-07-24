@@ -97,6 +97,18 @@ export class MusclesService {
           thumbnailStorageKey: true,
           imageAltText: true,
           sortOrder: true,
+          functionAssignments: {
+            select: {
+              role: true,
+              muscleFunction: {
+                select: {
+                  name: true,
+                  slug: true,
+                  description: true,
+                },
+              },
+            },
+          },
           muscleGroup: {
             select: {
               name: true,
