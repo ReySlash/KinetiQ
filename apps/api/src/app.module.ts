@@ -6,6 +6,7 @@ import { validateEnv } from './config/env.validation';
 import { PrismaModule } from './prisma/prisma.module';
 import { MusclesModule } from './muscles/muscles.module';
 import { MuscleGroupsModule } from './muscle-groups/muscle-groups.module';
+import { ExercisesModule } from './exercises/exercises.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MuscleGroupsModule } from './muscle-groups/muscle-groups.module';
     PrismaModule,
     MusclesModule,
     MuscleGroupsModule,
+    ExercisesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

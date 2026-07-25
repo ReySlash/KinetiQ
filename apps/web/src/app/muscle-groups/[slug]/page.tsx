@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type MuscleGroupDetails = {
   id: string;
@@ -113,11 +114,8 @@ export default async function MuscleGroupPage(props: {
                   key={muscle.id}
                 >
                   <p>{muscle.name}</p>
-                  <Link
-                    className="bg-primary text-primary-foreground hover:bg-primary/80 text-center rounded-sm py-1 p-2"
-                    href={`/muscles/${muscle.slug}`}
-                  >
-                    Details
+                  <Link href={`/muscles/${muscle.slug}`}>
+                    <Button variant={"default"}>Details</Button>
                   </Link>
                 </div>
               ))}

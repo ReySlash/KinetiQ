@@ -47,7 +47,7 @@ export class MusclesService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 5, offset = 0 } = paginationDto;
+    const { limit = 20, offset = 0 } = paginationDto;
 
     try {
       const muscles = await this.prisma.muscle.findMany({

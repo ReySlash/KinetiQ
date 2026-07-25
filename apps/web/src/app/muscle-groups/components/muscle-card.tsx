@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -36,11 +37,10 @@ export function MuscleCard(props: MuscleCardProps) {
         </CardAction>
       </CardHeader>
       <CardFooter className="py-auto">
-        <Link
-          className="bg-primary text-primary-foreground hover:bg-primary/80 w-full sticky bottom-0 text-center rounded-sm py-1"
-          href={`/muscle-groups/${slug}`}
-        >
-          Details
+        <Link className="w-full" href={`/muscle-groups/${slug}`}>
+          <Button className="w-full" variant={"default"}>
+            Details
+          </Button>
         </Link>
       </CardFooter>
     </Card>
