@@ -57,7 +57,7 @@ export default async function MuscleGroupPage(props: {
               {" > "}
             </span>
             <h1 className="text-lg font-bold leading-none">
-              {slug.charAt(0).toUpperCase() + slug.slice(1)}
+              {muscleGroupDetails.name}
             </h1>
           </div>
           <h2 className="text-xs text-muted-foreground">
@@ -91,18 +91,13 @@ export default async function MuscleGroupPage(props: {
               <div className="flex flex-col gap-3 text-lg text-muted-foreground leading-none col-span-1">
                 <p>Group</p>
                 <p>Body Region</p>
-                <p>Primary Function</p>
-                <p>Secondary Function</p>
                 <p>Number of muscles</p>
-                <p>Exercises</p>
               </div>
               <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
-                <p>{muscleGroupDetails.name}</p>
-                <p>{muscleGroupDetails.bodyRegion.replace("_", " ")}</p>
-                <p> - placeholder -</p>
-                <p> - placeholder -</p>
-                <p>{muscleGroupDetails.muscles.length}</p>
-                <p> - placeholder -</p>
+                <p>- {muscleGroupDetails.name}</p>
+                <p>- {muscleGroupDetails.bodyRegion.replace("_", " ")}</p>
+
+                <p>- {muscleGroupDetails.muscles.length}</p>
               </div>
             </CardContent>
           </Card>

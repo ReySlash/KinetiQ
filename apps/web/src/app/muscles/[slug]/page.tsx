@@ -1,6 +1,5 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Muscle } from "@/types/muscle-types";
-import Link from "next/link";
 import Image from "next/image";
 import {
   Card,
@@ -9,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { MuscleBreadcrumb } from "@/app/muscle-groups/components/muscle-breadcrumb";
 
 async function fetchData(url: string): Promise<Muscle> {
   const response = await fetch(url);
@@ -35,12 +35,10 @@ export default async function MuscleGroupPage(props: {
         <SidebarTrigger />
         <div className="flex flex-col">
           <div className="flex flex-row gap-2">
-            <Link
-              className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
-              href="/muscle-groups"
-            >
-              Muscle Groups
-            </Link>
+            <MuscleBreadcrumb
+              muscleGroup={muscleDetails.muscleGroup?.name}
+              muscleGroupSlug={muscleDetails.muscleGroup?.slug}
+            />
             <span className="text-lg leading-none text-muted-foreground">
               {" > "}
             </span>
@@ -84,38 +82,28 @@ export default async function MuscleGroupPage(props: {
                 <p>Exercises</p>
               </div>
               <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
-                <p>{muscleDetails.name}</p>
-                <p>{muscleDetails.muscleGroup.name}</p>
-                <p>{muscleDetails.bodyRegion.replace("_", " ")}</p>
-                <p> - placeholder -</p>
-                <p> - placeholder -</p>
+                <p>- {muscleDetails.name}</p>
+                <p>- {muscleDetails.muscleGroup?.name ?? "N/A"}</p>
+                <p>- {muscleDetails.bodyRegion.replace("_", " ")}</p>
+                <p>
+                  -{" "}
+                  {
+                    muscleDetails.functionAssignments.find(
+                      (fa) => fa.role === "PRIMARY",
+                    )?.muscleFunction.name
+                  }
+                </p>
+                <div>
+                  {muscleDetails.functionAssignments
+                    .filter((fa) => fa.role === "SECONDARY")
+                    .map((fa, id) => (
+                      <p key={id}>- {fa.muscleFunction.name}</p>
+                    ))}
+                </div>
                 <p>- placeholder -</p>
               </div>
             </CardContent>
           </Card>
-          {/* <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-bold leading-none mb-1">
-                Muscles in this group
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-lg text-muted-foreground leading-none mb-1">
-              {muscleDetails.muscles.map((muscle) => (
-                <div
-                  className="border-t p-3 flex items-center justify-between"
-                  key={muscle.id}
-                >
-                  <p>{muscle.name}</p>
-                  <Link
-                    className="bg-primary text-primary-foreground hover:bg-primary/80 text-center rounded-sm py-1 p-2"
-                    href={`/muscles/${muscle.slug}`}
-                  >
-                    Details
-                  </Link>
-                </div>
-              ))}
-            </CardContent>
-          </Card> */}
         </div>
       </section>
     </main>

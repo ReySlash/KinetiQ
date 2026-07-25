@@ -20,5 +20,11 @@ export type Muscle = {
   thumbnailStorageKey: string | null;
   imageAltText: string | null;
   sortOrder: number;
-  muscleGroup: MuscleGroup;
+  muscleGroup?: MuscleGroup;
+  functionAssignments: Array<{
+    role: string;
+    muscleFunction: {
+      name: string;
+    };
+  }>;
 };

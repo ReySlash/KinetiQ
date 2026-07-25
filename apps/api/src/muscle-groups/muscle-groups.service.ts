@@ -53,12 +53,19 @@ export class MuscleGroupsService {
               id: true,
               name: true,
               slug: true,
-              description: true,
-              bodyRegion: true,
               thumbnailUrl: true,
               thumbnailStorageKey: true,
               imageAltText: true,
-              muscleGroupId: true,
+              functionAssignments: {
+                select: {
+                  role: true,
+                  muscleFunction: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },

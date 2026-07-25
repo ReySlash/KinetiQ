@@ -5,48 +5,43 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
 type MuscleBreadcrumbProps = {
   muscleGroup?: string;
-  muscleSlug?: string;
+  muscleGroupSlug?: string;
 };
 
 export function MuscleBreadcrumb(props: MuscleBreadcrumbProps) {
-  const { muscleGroup, muscleSlug } = props;
+  const { muscleGroup, muscleGroupSlug } = props;
   return (
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink
             render={
-              <Link className="text-lg font-bold leading-none" href="/muscles">
+              <Link
+                className="text-lg font-bold leading-none"
+                href="/muscle-groups"
+              >
                 Muscle Groups
               </Link>
             }
           />
         </BreadcrumbItem>
-
+        <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink
             render={
               <Link
                 className="text-lg font-bold leading-none"
-                href={`/muscles/${muscleGroup}`}
+                href={muscleGroupSlug ? `/muscle-groups/${muscleGroupSlug}` : "/muscle-groups"}
               >
-                {muscleGroup}
+                {muscleGroup ?? "Muscle Groups"}
               </Link>
             }
           />
-        </BreadcrumbItem>
-
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage className="text-lg font-bold leading-none">
-            {muscleSlug}
-          </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
