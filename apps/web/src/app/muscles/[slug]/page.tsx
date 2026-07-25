@@ -29,6 +29,10 @@ export default async function MuscleGroupPage(props: {
     `http://localhost:3001/api/muscles/${slug}`,
   );
 
+  const secondaryFunctions: string[] = muscleDetails.functionAssignments
+    .filter((fa) => fa.role === "SECONDARY")
+    .map((fa) => fa.muscleFunction.name);
+
   return (
     <main className=" h-full w-full flex flex-col gap-2 p-1 md:p-2">
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
@@ -94,11 +98,11 @@ export default async function MuscleGroupPage(props: {
                   }
                 </p>
                 <div>
-                  {muscleDetails.functionAssignments
-                    .filter((fa) => fa.role === "SECONDARY")
-                    .map((fa, id) => (
-                      <p key={id}>- {fa.muscleFunction.name}</p>
-                    ))}
+                  {secondaryFunctions.length > 0
+                    ? secondaryFunctions.map((func, id) => (
+                        <p key={id}>- {func}</p>
+                      ))
+                    : "- N/A"}
                 </div>
                 <p>- placeholder -</p>
               </div>

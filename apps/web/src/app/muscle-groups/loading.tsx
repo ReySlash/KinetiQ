@@ -14,7 +14,7 @@ export default async function Loading() {
         </div>
       </header>
       <main className="h-full w-full p-2 md:p-3">
-        <section className="@container grid gap-2 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))]">
+        <section className="@container grid gap-2 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))]">
           <MuscleSkeletonCard />
         </section>
       </main>

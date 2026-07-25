@@ -12,13 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function MuscleSkeletonCard() {
   return (
     <>
-      {[...Array(20).keys()].map((key, index) => (
+      {[...Array(20).keys()].map((index) => (
         <Card
           key={index}
-          className="relative mx-auto min-w-full max-w-sm pt-0 h-fit w-full"
+          className="relative mx-auto min-w-full max-w-50 pt-0 max-h-100"
         >
-          <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
-          <Skeleton className="aspect-video h-30 w-full" />
+          <Skeleton className="aspect-video w-full" />
           <CardHeader className="h-auto">
             <CardAction>
               <Badge variant="secondary">

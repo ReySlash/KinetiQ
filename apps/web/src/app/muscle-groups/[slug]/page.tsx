@@ -96,7 +96,6 @@ export default async function MuscleGroupPage(props: {
               <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
                 <p>- {muscleGroupDetails.name}</p>
                 <p>- {muscleGroupDetails.bodyRegion.replace("_", " ")}</p>
-
                 <p>- {muscleGroupDetails.muscles.length}</p>
               </div>
             </CardContent>
