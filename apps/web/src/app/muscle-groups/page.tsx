@@ -20,8 +20,8 @@ export default async function MusclesPage() {
   );
 
   return (
-    <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
-      <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
+    <main className="flex h-dvh w-full flex-col gap-2 p-1 md:p-2">
+      <header className="shrink-0 flex h-14 items-center gap-3 border-b border-border/60 bg-background">
         <SidebarTrigger />
         <div className="flex flex-col">
           <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
@@ -31,18 +31,8 @@ export default async function MusclesPage() {
         </div>
       </header>
 
-      <section className="rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 h-full">
+      <section className="flex-1 min-h-0 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 overflow-auto">
         <MuscleGroupsTable muscleGroups={muscleGroups} />
-        {/* {muscleGroups.map((muscleGroup) => (
-          <MuscleGroupCard
-            key={muscleGroup.name}
-            bodyRegion={muscleGroup.bodyRegion}
-            name={muscleGroup.name}
-            slug={muscleGroup.slug}
-            imageUrl={muscleGroup.thumbnailUrl}
-            imageAltText={muscleGroup.imageAltText}
-          />
-        ))} */}
       </section>
     </main>
   );

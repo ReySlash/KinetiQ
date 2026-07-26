@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { CiMenuBurger } from "react-icons/ci";
 
 type MuscleGroupDetails = {
   id: string;
@@ -73,7 +75,9 @@ export default async function MuscleGroupPage(props: {
               muscleGroupDetails.thumbnailUrl ??
               "https://avatar.vercel.sh/shadcn1"
             }
-            alt={muscleGroupDetails.imageAltText ?? "Event cover"}
+            alt={
+              muscleGroupDetails.imageAltText ?? "Not image description found."
+            }
             className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
             fill
           />
@@ -96,7 +100,12 @@ export default async function MuscleGroupPage(props: {
               </div>
               <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
                 <p>- {muscleGroupDetails.name}</p>
-                <p>- {muscleGroupDetails.bodyRegion.replace("_", " ")}</p>
+                <p>
+                  -{" "}
+                  {muscleGroupDetails.bodyRegion
+                    .replace("_", " ")
+                    .toLowerCase()}
+                </p>
                 <p>- {muscleGroupDetails.muscles.length}</p>
               </div>
             </CardContent>
@@ -108,7 +117,40 @@ export default async function MuscleGroupPage(props: {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-lg text-muted-foreground leading-none mb-1">
-              {muscleGroupDetails.muscles.map((muscle) => (
+              <Table>
+                <TableBody>
+                  {muscleGroupDetails.muscles.map((muscle) => (
+                    <TableRow key={muscle.id}>
+                      <TableCell className="font-medium">
+                        <Image
+                          className="border"
+                          src={
+                            muscle.thumbnailUrl ??
+                            "https://avatar.vercel.sh/shadcn1"
+                          }
+                          alt={
+                            muscle.imageAltText ?? "Image description not found"
+                          }
+                          width={50}
+                          height={50}
+                        />
+                      </TableCell>
+                      <TableCell>{muscle.name}</TableCell>
+                      <TableCell className="text-right">
+                        <Link href={`/muscles/${muscle.slug}`}>
+                          <Button
+                            className="hover:cursor-pointer"
+                            variant={"outline"}
+                          >
+                            <CiMenuBurger />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {/* {muscleGroupDetails.muscles.map((muscle) => (
                 <div
                   className="border-t p-3 flex items-center justify-between"
                   key={muscle.id}
@@ -118,7 +160,7 @@ export default async function MuscleGroupPage(props: {
                     <Button variant={"default"}>Details</Button>
                   </Link>
                 </div>
-              ))}
+              ))} */}
             </CardContent>
           </Card>
         </div>
