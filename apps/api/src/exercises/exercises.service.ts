@@ -40,7 +40,6 @@ export class ExercisesService {
     try {
       const exercise = await this.prisma.exercise.findFirst({
         select: {
-          id: true,
           name: true,
           slug: true,
           description: true,

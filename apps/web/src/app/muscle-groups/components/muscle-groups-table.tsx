@@ -26,18 +26,24 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
   const { muscleGroups } = props;
 
   function getBodyRegion(muscleGroup: MuscleGroup) {
-    return Object.entries(
-      muscleGroup.muscles.reduce(
-        (acc, curr) => {
-          acc[curr.bodyRegion] = (acc[curr.bodyRegion] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      ),
-    )
-      .reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-      .replace("_", " ")
-      .toLowerCase();
+    try {
+      const bodyRegion = Object.entries(
+        muscleGroup.muscles.reduce(
+          (acc, curr) => {
+            acc[curr.bodyRegion] = (acc[curr.bodyRegion] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
+      )
+        .reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+        .replace("_", " ")
+        .toLowerCase();
+      return bodyRegion;
+    } catch (error) {
+      console.error(error);
+      return "N/A";
+    }
   }
 
   return (
@@ -57,7 +63,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
           <TableBody>
             {muscleGroups.length !== 0 ? (
               muscleGroups.map((muscleGroup) => (
-                <TableRow key={muscleGroup.name}>
+                <TableRow key={muscleGroup.slug}>
                   <TableCell className="font-medium">
                     <Image
                       className="border"
@@ -103,7 +109,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
         {/* Mobile Table */}
         {muscleGroups.map((muscleGroup) => (
           <Card
-            key={muscleGroup.name}
+            key={muscleGroup.slug}
             className="flex flex-col justify-center w-full px-4 py-1"
           >
             <CardContent className="flex flex-row items-center justify-between">

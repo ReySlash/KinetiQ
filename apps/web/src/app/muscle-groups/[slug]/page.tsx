@@ -1,5 +1,5 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Muscle } from "@/types/muscle-types";
+import { MuscleGroupDetails } from "@/types/muscle-types";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,18 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { CiMenuBurger } from "react-icons/ci";
-
-type MuscleGroupDetails = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  thumbnailUrl: string | null;
-  thumbnailStorageKey: string | null;
-  imageAltText: string | null;
-  bodyRegion: string;
-  muscles: Muscle[];
-};
 
 async function fetchData(url: string): Promise<MuscleGroupDetails> {
   const response = await fetch(url);
@@ -91,7 +79,7 @@ export default async function MuscleGroupPage(props: {
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <CardDescription className="col-span-2">
-                {muscleGroupDetails.description}
+                {muscleGroupDetails.description ?? "No description available."}
               </CardDescription>
               <div className="flex flex-col gap-3 text-lg text-muted-foreground leading-none col-span-1">
                 <p>Group</p>

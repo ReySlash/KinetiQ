@@ -32,6 +32,9 @@ export default async function MuscleGroupPage(props: {
   const secondaryFunctions: string[] = muscleDetails.functionAssignments
     .filter((fa) => fa.role === "SECONDARY")
     .map((fa) => fa.muscleFunction.name);
+  const primaryFunctions: string | undefined =
+    muscleDetails.functionAssignments.find((fa) => fa.role === "PRIMARY")
+      ?.muscleFunction.name;
 
   return (
     <main className=" h-full w-full flex flex-col gap-2 p-1 md:p-2">
@@ -89,14 +92,7 @@ export default async function MuscleGroupPage(props: {
                 <p>- {muscleDetails.name}</p>
                 <p>- {muscleDetails.muscleGroup?.name ?? "N/A"}</p>
                 <p>- {muscleDetails.bodyRegion.replace("_", " ")}</p>
-                <p>
-                  -{" "}
-                  {
-                    muscleDetails.functionAssignments.find(
-                      (fa) => fa.role === "PRIMARY",
-                    )?.muscleFunction.name
-                  }
-                </p>
+                <p>- {primaryFunctions ?? "N/A"}</p>
                 <div>
                   {secondaryFunctions.length > 0
                     ? secondaryFunctions.map((func, id) => (
