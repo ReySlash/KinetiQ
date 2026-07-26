@@ -1,6 +1,6 @@
-import { MuscleCard } from "@/app/muscle-groups/components/muscle-card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { MuscleGroup } from "@/types/muscle-types";
+import { MuscleGroupsTable } from "./components/muscle-groups-table";
 
 async function fetchData(url: string): Promise<MuscleGroup[]> {
   const response = await fetch(url);
@@ -30,17 +30,19 @@ export default async function MusclesPage() {
           </h2>
         </div>
       </header>
-      <section className="@container grid gap-2 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))]">
-        {muscleGroups.map((muscleGroup) => (
-          <MuscleCard
-            key={muscleGroup.id}
-            imageUrl={muscleGroup.thumbnailUrl}
-            imageAltText={muscleGroup.imageAltText}
-            bodyRegion={"Muscle Group"}
+
+      <section className="rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 h-full">
+        <MuscleGroupsTable muscleGroups={muscleGroups} />
+        {/* {muscleGroups.map((muscleGroup) => (
+          <MuscleGroupCard
+            key={muscleGroup.name}
+            bodyRegion={muscleGroup.bodyRegion}
             name={muscleGroup.name}
             slug={muscleGroup.slug}
+            imageUrl={muscleGroup.thumbnailUrl}
+            imageAltText={muscleGroup.imageAltText}
           />
-        ))}
+        ))} */}
       </section>
     </main>
   );

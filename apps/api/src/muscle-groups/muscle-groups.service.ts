@@ -12,7 +12,6 @@ export class MuscleGroupsService {
     try {
       const muscleGroups = await this.prisma.muscleGroup.findMany({
         select: {
-          id: true,
           name: true,
           slug: true,
           description: true,
@@ -20,8 +19,14 @@ export class MuscleGroupsService {
           thumbnailUrl: true,
           thumbnailStorageKey: true,
           imageAltText: true,
+          muscles: {
+            select: {
+              name: true,
+              bodyRegion: true,
+            },
+          },
         },
-        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       });
       return muscleGroups;
     } catch {

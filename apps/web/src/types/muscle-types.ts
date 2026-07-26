@@ -1,5 +1,4 @@
 export type MuscleGroup = {
-  id: string;
   name: string;
   slug: string;
   description: string;
@@ -8,6 +7,10 @@ export type MuscleGroup = {
   imageAltText: string | null;
   sortOrder: number;
   bodyRegion: string;
+  muscles: {
+    name: string;
+    bodyRegion: string;
+  }[];
 };
 
 export type Muscle = {
