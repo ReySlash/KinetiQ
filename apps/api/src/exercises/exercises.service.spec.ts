@@ -44,14 +44,54 @@ describe('ExercisesService', () => {
   });
 
   it('returns active exercises with a stable ordering and pagination', async () => {
-    findMany.mockResolvedValue([]);
+    findMany.mockResolvedValue([
+      {
+        name: 'Barbell Back Squat',
+        slug: 'barbell-back-squat',
+        thumbnailUrl: null,
+        thumbnailStorageKey: null,
+        imageAltText: null,
+        muscles: [
+          {
+            muscle: {
+              name: 'Quadriceps',
+              slug: 'quadriceps',
+            },
+          },
+          {
+            muscle: {
+              name: 'Glutes',
+              slug: 'glutes',
+            },
+          },
+        ],
+      },
+    ]);
 
     await expect(
       service.findAll({
         limit: 12,
         offset: 24,
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual([
+      {
+        name: 'Barbell Back Squat',
+        slug: 'barbell-back-squat',
+        thumbnailUrl: null,
+        thumbnailStorageKey: null,
+        imageAltText: null,
+        muscles: [
+          {
+            name: 'Quadriceps',
+            slug: 'quadriceps',
+          },
+          {
+            name: 'Glutes',
+            slug: 'glutes',
+          },
+        ],
+      },
+    ]);
 
     expect(findMany).toHaveBeenCalledWith({
       take: 12,
@@ -62,6 +102,16 @@ describe('ExercisesService', () => {
         thumbnailUrl: true,
         thumbnailStorageKey: true,
         imageAltText: true,
+        muscles: {
+          select: {
+            muscle: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
       },
       where: {
         isActive: true,
@@ -113,6 +163,20 @@ describe('ExercisesService', () => {
           },
         },
       ],
+      muscles: [
+        {
+          muscle: {
+            name: 'Quadriceps',
+            slug: 'quadriceps',
+          },
+        },
+        {
+          muscle: {
+            name: 'Glutes',
+            slug: 'glutes',
+          },
+        },
+      ],
     });
 
     await expect(service.findOne('barbell-back-squat')).resolves.toEqual({
@@ -139,6 +203,16 @@ describe('ExercisesService', () => {
       },
       capabilities: null,
       demands: null,
+      muscles: [
+        {
+          name: 'Quadriceps',
+          slug: 'quadriceps',
+        },
+        {
+          name: 'Glutes',
+          slug: 'glutes',
+        },
+      ],
       equipment: [
         {
           name: 'Barbell',
@@ -159,7 +233,6 @@ describe('ExercisesService', () => {
         isActive: true,
       },
       select: {
-        id: true,
         name: true,
         slug: true,
         description: true,
@@ -206,6 +279,16 @@ describe('ExercisesService', () => {
             gripDemand: true,
             axialLoadingPotential: true,
             editorialNotes: true,
+          },
+        },
+        muscles: {
+          select: {
+            muscle: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
           },
         },
         equipment: {

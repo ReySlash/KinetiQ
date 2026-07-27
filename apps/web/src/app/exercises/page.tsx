@@ -1,12 +1,13 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { MuscleGroup } from "@/types/muscle-types";
+import { Exercise } from "@/types/exercise-types";
+import { ExercisesTable } from "./components/exercises-table";
 
-async function fetchData(url: string): Promise<Exercises[]> {
+async function fetchData(url: string): Promise<Exercise[]> {
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(
-      `Failed to fetch muscles: ${response.status} ${response.statusText}`,
+      `Failed to fetch exercises: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -14,23 +15,23 @@ async function fetchData(url: string): Promise<Exercises[]> {
 }
 
 export default async function MusclesPage() {
-  const exercisesData = await fetchData(
-    "http://localhost:3001/api/muscle-groups",
-  );
+  const exercisesData = await fetchData("http://localhost:3001/api/exercises");
 
   return (
     <main className="flex h-dvh w-full flex-col gap-2 p-1 md:p-2">
       <header className="shrink-0 flex h-14 items-center gap-3 border-b border-border/60 bg-background">
         <SidebarTrigger />
         <div className="flex flex-col">
-          <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
+          <h1 className="text-lg font-bold leading-none">Exercises</h1>
           <h2 className="text-xs text-muted-foreground">
-            Explore each muscle group&apos;s function and anatomy.
+            Explore each exercise&apos;s musculature and details.
           </h2>
         </div>
       </header>
 
-      <section className="flex-1 min-h-0 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 overflow-auto"></section>
+      <section className="flex-1 min-h-0 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 overflow-auto">
+        <ExercisesTable exercises={exercisesData} />
+      </section>
     </main>
   );
 }

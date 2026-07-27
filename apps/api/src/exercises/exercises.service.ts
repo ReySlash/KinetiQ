@@ -22,6 +22,16 @@ export class ExercisesService {
           thumbnailUrl: true,
           thumbnailStorageKey: true,
           imageAltText: true,
+          muscles: {
+            select: {
+              muscle: {
+                select: {
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          },
         },
         where: {
           isActive: true,
@@ -30,7 +40,11 @@ export class ExercisesService {
           name: 'asc',
         },
       });
-      return exercises;
+
+      return exercises.map((exercise) => ({
+        ...exercise,
+        muscles: exercise.muscles.map(({ muscle }) => muscle),
+      }));
     } catch {
       throw new InternalServerErrorException('Failed to fetch exercises');
     }
@@ -89,6 +103,18 @@ export class ExercisesService {
               editorialNotes: true,
             },
           },
+          muscles: {
+            select: {
+              muscle: {
+                select: {
+                  name: true,
+                  slug: true,
+                  thumbnailUrl: true,
+                  imageAltText: true,
+                },
+              },
+            },
+          },
           equipment: {
             where: {
               equipment: {
@@ -116,6 +142,7 @@ export class ExercisesService {
       }
       return {
         ...exercise,
+        muscles: exercise.muscles.map(({ muscle }) => muscle),
         equipment: exercise.equipment.map(({ equipment }) => equipment),
       };
     } catch (error) {

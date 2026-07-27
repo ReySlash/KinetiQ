@@ -33,7 +33,7 @@ export default async function MuscleGroupPage(props: {
   );
 
   return (
-    <main className=" h-full w-full flex flex-col gap-2 p-1 md:p-2">
+    <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
         <SidebarTrigger />
         <div className="flex flex-col">
@@ -138,17 +138,6 @@ export default async function MuscleGroupPage(props: {
                   ))}
                 </TableBody>
               </Table>
-              {/* {muscleGroupDetails.muscles.map((muscle) => (
-                <div
-                  className="border-t p-3 flex items-center justify-between"
-                  key={muscle.id}
-                >
-                  <p>{muscle.name}</p>
-                  <Link href={`/muscles/${muscle.slug}`}>
-                    <Button variant={"default"}>Details</Button>
-                  </Link>
-                </div>
-              ))} */}
             </CardContent>
           </Card>
         </div>

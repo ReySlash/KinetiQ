@@ -27,7 +27,7 @@ export default async function Loading() {
             <TableHeader>
               <TableRow>
                 <TableHead></TableHead>
-                <TableHead>Muscle Group Name</TableHead>
+                <TableHead>Exercise Name</TableHead>
                 <TableHead>Body Region</TableHead>
                 <TableHead>Muscles</TableHead>
                 <TableHead className="text-right">Details</TableHead>
