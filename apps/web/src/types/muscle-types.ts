@@ -1,3 +1,5 @@
+import { ExerciseMuscleSummary } from "./exercise-types";
+
 export type BodyRegion =
   | "UPPER_BODY"
   | "LOWER_BODY"
@@ -64,6 +66,7 @@ export type Muscle = {
   thumbnailStorageKey: string | null;
   imageAltText: string | null;
   sortOrder: number;
+  exerciseMuscles: ExerciseMuscleSummary[];
   muscleGroup: {
     name: string;
     slug: string;

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import StyledLink from "@/components/styled-link";
 import {
   Card,
   CardContent,
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/table";
 import { MuscleGroup } from "@/types/muscle-types";
 import Image from "next/image";
-import Link from "next/link";
 import { CiMenuBurger } from "react-icons/ci";
 
 type MuscleGroupsTableProps = {
@@ -66,7 +65,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                 <TableRow key={muscleGroup.slug}>
                   <TableCell className="font-medium">
                     <Image
-                      className="border"
+                      className="border rounded-xl"
                       src={
                         muscleGroup.thumbnailUrl ??
                         "https://avatar.vercel.sh/shadcn1"
@@ -83,14 +82,12 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                   <TableCell>{getBodyRegion(muscleGroup)}</TableCell>
                   <TableCell>{muscleGroup.muscles.length}</TableCell>
                   <TableCell className="text-right">
-                    <Link href={`/muscle-groups/${muscleGroup.slug}`}>
-                      <Button
-                        className="hover:cursor-pointer"
-                        variant={"outline"}
-                      >
-                        <CiMenuBurger />
-                      </Button>
-                    </Link>
+                    <StyledLink
+                      href={`/muscle-groups/${muscleGroup.slug}`}
+                      variant="outline"
+                    >
+                      <CiMenuBurger />
+                    </StyledLink>
                   </TableCell>
                 </TableRow>
               ))
@@ -107,38 +104,45 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
 
       <div className="flex flex-col gap-2 md:hidden">
         {/* Mobile Table */}
-        {muscleGroups.map((muscleGroup) => (
-          <Card
-            key={muscleGroup.slug}
-            className="flex flex-col justify-center w-full px-4 py-1"
-          >
-            <CardContent className="flex flex-row items-center justify-between">
-              <Image
-                className="col-span-1"
-                src={
-                  muscleGroup.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn"
-                }
-                alt={muscleGroup.imageAltText ?? "Event cover"}
-                width={70}
-                height={70}
-              />
+        {muscleGroups.length !== 0 ? (
+          muscleGroups.map((muscleGroup) => (
+            <Card
+              key={muscleGroup.slug}
+              className="flex flex-col justify-center w-full px-4 py-1"
+            >
+              <CardContent className="flex flex-row items-center justify-between">
+                <Image
+                  className="col-span-1 rounded-xl"
+                  src={
+                    muscleGroup.thumbnailUrl ??
+                    "https://avatar.vercel.sh/shadcn"
+                  }
+                  alt={muscleGroup.imageAltText ?? "Event cover"}
+                  width={70}
+                  height={70}
+                />
 
-              <div>
-                <CardTitle>{muscleGroup.name}</CardTitle>
-                <CardDescription>{getBodyRegion(muscleGroup)}</CardDescription>
-                <CardDescription>
-                  {muscleGroup.muscles.length} muscles
-                </CardDescription>
-              </div>
-
-              <Link href={`/muscle-groups/${muscleGroup.slug}`}>
-                <Button className="hover:cursor-pointer" variant={"outline"}>
+                <div>
+                  <CardTitle>{muscleGroup.name}</CardTitle>
+                  <CardDescription>
+                    {getBodyRegion(muscleGroup)}
+                  </CardDescription>
+                  <CardDescription>
+                    {muscleGroup.muscles.length} muscles
+                  </CardDescription>
+                </div>
+                <StyledLink
+                  href={`/muscle-groups/${muscleGroup.slug}`}
+                  variant="outline"
+                >
                   <CiMenuBurger />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ))}
+                </StyledLink>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="text-center py-8">No muscle groups found</div>
+        )}
       </div>
     </>
   );

@@ -1,4 +1,5 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { buildUrl } from "@/lib/url";
 import { Exercise } from "@/types/exercise-types";
 import { ExercisesTable } from "./components/exercises-table";
 import { Paginator } from "./components/paginator";
@@ -25,17 +26,20 @@ export default async function ExercisesPage({
 }) {
   const queryParams = await searchParams;
 
-  const page =
+  const pageNumber =
     queryParams.page && Number(queryParams.page) > 0
       ? Number(queryParams.page)
       : 1;
-  const limit = queryParams.limit ? Number(queryParams.limit) : 19;
+  const limit = queryParams.limit ? Number(queryParams.limit) : 20;
+  const pageSize = 19;
 
-  const exercisesData = await fetchData(
-    `http://localhost:3001/api/exercises?offset=${(page - 1) * limit}&limit=${limit}`,
+  const exerciseData = await fetchData(
+    buildUrl(process.env.API_URL, "exercises", {
+      offset: (pageNumber - 1) * pageSize,
+      limit,
+    }),
   );
-
-  const isLastPage = exercisesData.length < limit;
+  const isLastPage = exerciseData.length <= pageSize;
 
   return (
     <main className="flex flex-col h-dvh w-full gap-2 p-1 md:p-2">
@@ -49,10 +53,10 @@ export default async function ExercisesPage({
         </div>
       </header>
 
-      <section className="flex-1 min-h-0 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 overflow-auto">
-        <ExercisesTable exercises={exercisesData} />
+      <section className="flex flex-col justify-between h-full min-h-0 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 overflow-auto">
+        <ExercisesTable exercises={exerciseData.slice(0, pageSize)} />
+        <Paginator pageNumber={pageNumber} isLastPage={isLastPage} />
       </section>
-      <Paginator pageNumber={page} isLastPage={isLastPage} />
     </main>
   );
 }

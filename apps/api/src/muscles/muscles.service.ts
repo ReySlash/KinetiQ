@@ -97,6 +97,18 @@ export class MusclesService {
           thumbnailStorageKey: true,
           imageAltText: true,
           sortOrder: true,
+          exerciseMuscles: {
+            select: {
+              exercise: {
+                select: {
+                  name: true,
+                  slug: true,
+                  thumbnailUrl: true,
+                  imageAltText: true,
+                },
+              },
+            },
+          },
           functionAssignments: {
             select: {
               role: true,
@@ -120,7 +132,10 @@ export class MusclesService {
       if (!muscle) {
         throw new NotFoundException('Muscle not found');
       }
-      return muscle;
+      return {
+        ...muscle,
+        exerciseMuscles: muscle.exerciseMuscles.map((em) => em.exercise),
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

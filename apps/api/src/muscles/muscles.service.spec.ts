@@ -209,6 +209,18 @@ describe('MusclesService', () => {
       thumbnailStorageKey: null,
       imageAltText: null,
       sortOrder: 1,
+      exerciseMuscles: [
+        {
+          exercise: {
+            name: 'Barbell Back Squat',
+            slug: 'barbell-back-squat',
+            thumbnailUrl: null,
+            imageAltText: null,
+          },
+        },
+      ],
+      functionAssignments: [],
+      muscleGroup: null,
     });
 
     await expect(service.findOne('biceps-brachii')).resolves.toEqual({
@@ -221,6 +233,16 @@ describe('MusclesService', () => {
       thumbnailStorageKey: null,
       imageAltText: null,
       sortOrder: 1,
+      exerciseMuscles: [
+        {
+          name: 'Barbell Back Squat',
+          slug: 'barbell-back-squat',
+          thumbnailUrl: null,
+          imageAltText: null,
+        },
+      ],
+      functionAssignments: [],
+      muscleGroup: null,
     });
 
     expect(findFirst).toHaveBeenCalledWith({
@@ -238,6 +260,36 @@ describe('MusclesService', () => {
         thumbnailStorageKey: true,
         imageAltText: true,
         sortOrder: true,
+        exerciseMuscles: {
+          select: {
+            exercise: {
+              select: {
+                name: true,
+                slug: true,
+                thumbnailUrl: true,
+                imageAltText: true,
+              },
+            },
+          },
+        },
+        functionAssignments: {
+          select: {
+            role: true,
+            muscleFunction: {
+              select: {
+                name: true,
+                slug: true,
+                description: true,
+              },
+            },
+          },
+        },
+        muscleGroup: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
       },
     });
   });
@@ -312,7 +364,7 @@ describe('MusclesService', () => {
 
     await expect(
       service.remove('a7bc0c6b-2f85-4c7d-9d6a-4b5af7d3f1f0'),
-    ).resolves.toBe('Muscle removed successfully');
+    ).resolves.toBe('Resource soft-deleted successfully');
 
     expect(update).toHaveBeenCalledWith({
       where: {

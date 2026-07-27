@@ -1,15 +1,11 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { buildUrl } from "@/lib/url";
 import { Muscle } from "@/types/muscle-types";
 import Image from "next/image";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { MuscleBreadcrumb } from "@/app/muscle-groups/components/muscle-breadcrumb";
 import MuscleOverviewCard from "./components/muscle-overview-card";
+import ExercisesMusclesCard from "./components/exercises-muscles-card";
 
 async function fetchData(url: string): Promise<Muscle> {
   const response = await fetch(url);
@@ -27,7 +23,7 @@ export default async function MuscleGroupPage(props: {
   const { slug } = await props.params;
 
   const muscleDetails = await fetchData(
-    `http://localhost:3001/api/muscles/${slug}`,
+    buildUrl(process.env.API_URL, `muscles/${slug}`),
   );
 
   return (
@@ -65,7 +61,12 @@ export default async function MuscleGroupPage(props: {
             />
           </CardContent>
         </Card>
-        <MuscleOverviewCard muscleDetails={muscleDetails} />
+        <div className="flex flex-col gap-2">
+          <MuscleOverviewCard muscleDetails={muscleDetails} />
+          {muscleDetails.exerciseMuscles.length > 0 && (
+            <ExercisesMusclesCard exercises={muscleDetails.exerciseMuscles} />
+          )}
+        </div>
       </section>
     </main>
   );

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { buildUrl } from "@/lib/url";
 import Link from "next/link";
 import Image from "next/image";
 import { ExerciseDetails } from "@/types/exercise-types";
@@ -24,7 +25,7 @@ export default async function ExerciseDetailsPage(props: {
   const { slug } = await props.params;
 
   const exerciseDetails = await fetchData(
-    `http://localhost:3001/api/exercises/${slug}`,
+    buildUrl(process.env.API_URL, `exercises/${slug}`),
   );
 
   return (

@@ -12,9 +12,9 @@ type PaginatorProps = {
 
 export function Paginator(props: PaginatorProps) {
   const { pageNumber, isLastPage } = props;
-  const baseUrl = "http://localhost:3000/exercises";
+  const baseUrl = "/exercises";
   return (
-    <Pagination>
+    <Pagination className="sticky bottom-0 z-30 bg-card w-fit rounded-xl">
       <PaginationContent>
         {pageNumber > 1 && (
           <>

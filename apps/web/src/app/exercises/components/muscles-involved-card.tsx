@@ -23,8 +23,8 @@ export default function MuscleSInvolvedCard({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Muscle name</TableHead>
+              <TableHead>Muscle</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead className="text-right">Details</TableHead>
             </TableRow>
           </TableHeader>

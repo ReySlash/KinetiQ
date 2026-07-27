@@ -68,6 +68,15 @@ export default function MuscleOverviewCard({
                   : "- N/A"}
               </TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell>Exercises</TableCell>
+              <TableCell className="text-muted-foreground flex flex-col gap-1">
+                -{" "}
+                {muscleDetails.exerciseMuscles.length > 0
+                  ? muscleDetails.exerciseMuscles.length
+                  : "N/A"}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </CardContent>

@@ -1,5 +1,6 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { MuscleGroupDetails } from "@/types/muscle-types";
+import { buildUrl } from "@/lib/url";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +24,7 @@ export default async function MuscleGroupDetailsPage(props: {
   const { slug } = await props.params;
 
   const muscleGroupDetails = await fetchData(
-    `http://localhost:3001/api/muscle-groups/${slug}`,
+    buildUrl(process.env.API_URL, `muscle-groups/${slug}`),
   );
 
   return (
