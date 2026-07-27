@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExerciseDetails } from "@/types/exercise-types";
 
@@ -37,31 +38,75 @@ export default function OverviewCard({
               </article>
             </section>
 
-            <section className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3  col-span-1">
-                <p>Exercise</p>
-                <p>Force Type</p>
-                <p>Movement Pattern</p>
-                <p>Muscles Involved</p>
-                <p>Kinetic chain</p>
-                <p>Is compound</p>
-                <p>Laterality</p>
-                <p>Contraction Mode</p>
-                <p>Body Position</p>
-                <p>Skill Level</p>
-              </div>
-              <div className="flex flex-col gap-3 col-span-1 text-muted-foreground">
-                <p>- {exerciseDetails.name}</p>
-                <p>- {exerciseDetails.forceType.toLowerCase()}</p>
-                <p>- {exerciseDetails.movementPattern?.name ?? "N/A"}</p>
-                <p>- {exerciseDetails.muscles?.length ?? "N/A"}</p>
-                <p>- {exerciseDetails.kineticChain.toLowerCase() ?? "N/A"}</p>
-                <p>- {exerciseDetails.isCompound ? "Yes" : "No"}</p>
-                <p>- {exerciseDetails.laterality.toLowerCase()}</p>
-                <p>- {exerciseDetails.contractionMode.toLowerCase()}</p>
-                <p>- {exerciseDetails.bodyPosition.toLocaleLowerCase()}</p>
-                <p>- {exerciseDetails.skillLevel.toLocaleLowerCase()}</p>
-              </div>
+            <section>
+              <Table className="table-fixed">
+                <colgroup>
+                  <col className="w-1/2" />
+                  <col className="w-1/2" />
+                </colgroup>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Exercise</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.name}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Force Type</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.forceType.toLocaleLowerCase()}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Movement Pattern</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.movementPattern?.name ?? "N/A"}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Muscles Involved</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.muscles?.length ?? "N/A"}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Kinetic chain</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.kineticChain.toLowerCase() ?? "N/A"}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Is compound</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.isCompound ? "Yes" : "No"}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Laterality</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.laterality.toLowerCase()}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Contraction Mode</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.contractionMode.toLowerCase()}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Body Position</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      -{exerciseDetails.bodyPosition.toLocaleLowerCase()}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Skill Level</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      - {exerciseDetails.skillLevel.toLocaleLowerCase()}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </section>
           </TabsContent>
           <TabsContent value="Instructions" className="space-y-3">

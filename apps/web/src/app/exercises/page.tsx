@@ -18,13 +18,13 @@ export default async function MusclesPage() {
   const exercisesData = await fetchData("http://localhost:3001/api/exercises");
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 p-1 md:p-2">
+    <main className="flex flex-col h-dvh w-full gap-2 p-1 md:p-2">
       <header className="shrink-0 flex h-14 items-center gap-3 border-b border-border/60 bg-background">
         <SidebarTrigger />
         <div className="flex flex-col">
           <h1 className="text-lg font-bold leading-none">Exercises</h1>
           <h2 className="text-xs text-muted-foreground">
-            Explore each exercise&apos;s musculature and details.
+            Explore our exercise&apos;s catalog.
           </h2>
         </div>
       </header>

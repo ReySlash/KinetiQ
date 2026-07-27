@@ -43,7 +43,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                 <TableRow key={exercise.slug}>
                   <TableCell className="font-medium">
                     <Image
-                      className="border"
+                      className="border rounded-xl"
                       src={
                         exercise.thumbnailUrl ??
                         "https://avatar.vercel.sh/shadcn1"
@@ -88,7 +88,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
             >
               <CardContent className="flex flex-row items-center justify-between">
                 <Image
-                  className="col-span-1"
+                  className="col-span-1 rounded-xl"
                   src={
                     exercise.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn"
                   }

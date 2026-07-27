@@ -17,7 +17,7 @@ export default async function Loading() {
         <div className="flex flex-col">
           <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
           <h2 className="text-xs text-muted-foreground">
-            Explore each muscle group&apos;s function and anatomy.
+            Explore our exercise&apos;s catalog.
           </h2>
         </div>
       </header>
