@@ -4,7 +4,7 @@ export class PaginationExercisesDto {
   @IsOptional()
   @IsNumber()
   @IsInt()
-  @Min(1)
+  @Min(0)
   @Max(20)
   limit?: number;
   @IsOptional()

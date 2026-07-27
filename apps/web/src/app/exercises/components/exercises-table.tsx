@@ -31,8 +31,8 @@ export function ExercisesTable(props: ExercisesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Exercise Name</TableHead>
+              <TableHead>Exercise</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Muscles Involved</TableHead>
               <TableHead className="text-right">Details</TableHead>
             </TableRow>

@@ -2,16 +2,10 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { MuscleGroupDetails } from "@/types/muscle-types";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { CiMenuBurger } from "react-icons/ci";
+import { Card, CardContent } from "@/components/ui/card";
+
+import MuscleGroupOverviewCard from "../muscle-group-overview-card";
+import MusclesIncludedTable from "../components/muscle-included-table";
 
 async function fetchData(url: string): Promise<MuscleGroupDetails> {
   const response = await fetch(url);
@@ -23,7 +17,7 @@ async function fetchData(url: string): Promise<MuscleGroupDetails> {
   return response.json();
 }
 
-export default async function MuscleGroupPage(props: {
+export default async function MuscleGroupDetailsPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await props.params;
@@ -56,90 +50,27 @@ export default async function MuscleGroupPage(props: {
           </h2>
         </div>
       </header>
-      <section className="@container grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3">
-        <Card className="sm:col-span-2 lg:col-span-1 relative w-full aspect-square max-h-[85vh]">
-          <Image
-            src={
-              muscleGroupDetails.thumbnailUrl ??
-              "https://avatar.vercel.sh/shadcn1"
-            }
-            alt={
-              muscleGroupDetails.imageAltText ?? "Not image description found."
-            }
-            className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
-            fill
-          />
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl">
+        <Card className="p-2 col-span-1 w-full aspect-square">
+          <CardContent className="relative h-full aspect-square">
+            <Image
+              src={
+                muscleGroupDetails.thumbnailUrl ??
+                "https://avatar.vercel.sh/shadcn1"
+              }
+              alt={
+                muscleGroupDetails.imageAltText ??
+                "Not image description found."
+              }
+              className="z-20 object-cover rounded-3xl"
+              fill
+            />
+          </CardContent>
         </Card>
         <div className="flex flex-col gap-2">
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="text-lg font-bold leading-none mb-1">
-                About
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <CardDescription className="col-span-2">
-                {muscleGroupDetails.description ?? "No description available."}
-              </CardDescription>
-              <div className="flex flex-col gap-3 text-lg text-muted-foreground leading-none col-span-1">
-                <p>Group</p>
-                <p>Body Region</p>
-                <p>Number of muscles</p>
-              </div>
-              <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
-                <p>- {muscleGroupDetails.name}</p>
-                <p>
-                  -{" "}
-                  {muscleGroupDetails.bodyRegion
-                    .replace("_", " ")
-                    .toLowerCase()}
-                </p>
-                <p>- {muscleGroupDetails.muscles.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-bold leading-none mb-1">
-                Muscles in this group
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-lg text-muted-foreground leading-none mb-1">
-              <Table>
-                <TableBody>
-                  {muscleGroupDetails.muscles.map((muscle) => (
-                    <TableRow key={muscle.id}>
-                      <TableCell className="font-medium">
-                        <Image
-                          className="border"
-                          src={
-                            muscle.thumbnailUrl ??
-                            "https://avatar.vercel.sh/shadcn1"
-                          }
-                          alt={
-                            muscle.imageAltText ?? "Image description not found"
-                          }
-                          width={50}
-                          height={50}
-                        />
-                      </TableCell>
-                      <TableCell>{muscle.name}</TableCell>
-                      <TableCell className="text-right">
-                        <Link href={`/muscles/${muscle.slug}`}>
-                          <Button
-                            className="hover:cursor-pointer"
-                            variant={"outline"}
-                          >
-                            <CiMenuBurger />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
+
+          <MusclesIncludedTable muscleGroupDetails={muscleGroupDetails} />
         </div>
       </section>
     </main>

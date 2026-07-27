@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MuscleBreadcrumb } from "@/app/muscle-groups/components/muscle-breadcrumb";
+import MuscleOverviewCard from "./components/muscle-overview-card";
 
 async function fetchData(url: string): Promise<Muscle> {
   const response = await fetch(url);
@@ -28,13 +29,6 @@ export default async function MuscleGroupPage(props: {
   const muscleDetails = await fetchData(
     `http://localhost:3001/api/muscles/${slug}`,
   );
-
-  const secondaryFunctions: string[] = muscleDetails.functionAssignments
-    .filter((fa) => fa.role === "SECONDARY")
-    .map((fa) => fa.muscleFunction.name);
-  const primaryFunctions: string | undefined =
-    muscleDetails.functionAssignments.find((fa) => fa.role === "PRIMARY")
-      ?.muscleFunction.name;
 
   return (
     <main className=" h-full w-full flex flex-col gap-2 p-1 md:p-2">
@@ -58,53 +52,20 @@ export default async function MuscleGroupPage(props: {
           </h2>
         </div>
       </header>
-      <section className="@container grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3">
-        <Card className="sm:col-span-2 lg:col-span-1 relative w-full aspect-square max-h-[85vh]">
-          <Image
-            src={
-              muscleDetails.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn1"
-            }
-            alt={muscleDetails.imageAltText ?? "Event cover"}
-            className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
-            fill
-          />
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl">
+        <Card className="p-2 col-span-1 w-full aspect-square">
+          <CardContent className="relative h-full aspect-square">
+            <Image
+              src={
+                muscleDetails.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn1"
+              }
+              alt={muscleDetails.imageAltText ?? "Event cover"}
+              className="z-20 object-cover rounded-3xl"
+              fill
+            />
+          </CardContent>
         </Card>
-        <div className="flex flex-col gap-2">
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="text-lg font-bold leading-none mb-1">
-                About
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <CardDescription className="col-span-2">
-                {muscleDetails.description}
-              </CardDescription>
-              <div className="flex flex-col gap-3 text-lg text-muted-foreground leading-none col-span-1">
-                <p>Muscle Name</p>
-                <p>Muscle Group</p>
-                <p>Body Region</p>
-                <p>Primary Function</p>
-                <p>Secondary Function</p>
-                <p>Exercises</p>
-              </div>
-              <div className="flex flex-col gap-3 text-lg leading-none text-muted-foreground col-span-1">
-                <p>- {muscleDetails.name}</p>
-                <p>- {muscleDetails.muscleGroup?.name ?? "N/A"}</p>
-                <p>- {muscleDetails.bodyRegion.replace("_", " ")}</p>
-                <p>- {primaryFunctions ?? "N/A"}</p>
-                <div>
-                  {secondaryFunctions.length > 0
-                    ? secondaryFunctions.map((func, id) => (
-                        <p key={id}>- {func}</p>
-                      ))
-                    : "- N/A"}
-                </div>
-                <p>- placeholder -</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <MuscleOverviewCard muscleDetails={muscleDetails} />
       </section>
     </main>
   );

@@ -3,15 +3,16 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PaginationDto } from '../muscles/dto/pagination-muscle.dto';
+
 import { PrismaService } from '../prisma/prisma.service';
+import { PaginationExercisesDto } from './dto/pagination-exercises.dto';
 
 @Injectable()
 export class ExercisesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(paginationDto: PaginationDto) {
-    const { limit = 20, offset = 0 } = paginationDto;
+  async findAll(paginationExercisesDto: PaginationExercisesDto) {
+    const { limit = 20, offset = 0 } = paginationExercisesDto;
     try {
       const exercises = await this.prisma.exercise.findMany({
         take: limit,

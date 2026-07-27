@@ -53,8 +53,8 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Muscle Group Name</TableHead>
+              <TableHead>Muscle Group</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Body Region</TableHead>
               <TableHead>Muscles</TableHead>
               <TableHead className="text-right">Details</TableHead>

@@ -18,7 +18,7 @@ async function fetchData(url: string): Promise<ExerciseDetails> {
   return response.json();
 }
 
-export default async function ExerciseDetailsPlaceholderPage(props: {
+export default async function ExerciseDetailsPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await props.params;

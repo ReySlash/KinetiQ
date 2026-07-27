@@ -1,14 +1,14 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ExercisesService } from './exercises.service';
-import { PaginationDto } from '../muscles/dto/pagination-muscle.dto';
+import { PaginationExercisesDto } from './dto/pagination-exercises.dto';
 
 @Controller('exercises')
 export class ExercisesController {
   constructor(private readonly exercisesService: ExercisesService) {}
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.exercisesService.findAll(paginationDto);
+  findAll(@Query() PaginationExercisesDto: PaginationExercisesDto) {
+    return this.exercisesService.findAll(PaginationExercisesDto);
   }
 
   @Get(':slug')
