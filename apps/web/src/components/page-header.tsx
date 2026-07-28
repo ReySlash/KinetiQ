@@ -13,8 +13,8 @@ export function PageHeader(props: PageHeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-14 items-center gap-3 border-b border-border/60 bg-background",
-        sticky ? "sticky top-0 z-100" : "shrink-0",
+        "flex h-14 w-full shrink-0 items-center gap-3 border-b border-border/60 bg-background",
+        sticky && "sticky top-0 z-30",
       )}
     >
       <SidebarTrigger />

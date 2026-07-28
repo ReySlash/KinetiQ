@@ -27,11 +27,8 @@ export default async function MuscleGroupPage(props: {
   );
 
   return (
-    <main className=" h-full w-full flex flex-col gap-2 p-1 md:p-2">
-      <PageHeader
-        sticky
-        subtitle="Explore each muscle group&apos;s function and anatomy."
-      >
+    <main className="h-dvh w-full flex flex-col gap-2 overflow-hidden p-1 md:p-2">
+      <PageHeader subtitle="Explore each muscle group&apos;s function and anatomy.">
         <MuscleBreadcrumb
           muscleGroup={muscleDetails.muscleGroup?.name}
           muscleGroupSlug={muscleDetails.muscleGroup?.slug}
@@ -41,24 +38,27 @@ export default async function MuscleGroupPage(props: {
         </span>
         <h1 className="text-lg font-bold leading-none">{muscleDetails.name}</h1>
       </PageHeader>
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl">
-        <Card className="p-2 col-span-1 w-full aspect-square">
-          <CardContent className="relative h-full aspect-square">
-            <Image
-              src={
-                muscleDetails.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn1"
-              }
-              alt={muscleDetails.imageAltText ?? "Event cover"}
-              className="z-20 object-cover rounded-3xl"
-              fill
-            />
-          </CardContent>
-        </Card>
-        <div className="flex flex-col gap-2">
-          <MuscleOverviewCard muscleDetails={muscleDetails} />
-          {muscleDetails.exerciseMuscles.length > 0 && (
-            <ExercisesMusclesCard exercises={muscleDetails.exerciseMuscles} />
-          )}
+      <section className="min-h-0 flex-1 overflow-y-auto">
+        <div className="grid grid-cols-1 gap-2 justify-center rounded-3xl lg:grid-cols-2">
+          <Card className="p-2 col-span-1 w-full aspect-square">
+            <CardContent className="relative h-full aspect-square">
+              <Image
+                src={
+                  muscleDetails.thumbnailUrl ??
+                  "https://avatar.vercel.sh/shadcn1"
+                }
+                alt={muscleDetails.imageAltText ?? "Event cover"}
+                className="z-20 object-cover rounded-3xl"
+                fill
+              />
+            </CardContent>
+          </Card>
+          <div className="flex flex-col gap-2">
+            <MuscleOverviewCard muscleDetails={muscleDetails} />
+            {muscleDetails.exerciseMuscles.length > 0 && (
+              <ExercisesMusclesCard exercises={muscleDetails.exerciseMuscles} />
+            )}
+          </div>
         </div>
       </section>
     </main>

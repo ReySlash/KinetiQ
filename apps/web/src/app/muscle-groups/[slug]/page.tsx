@@ -26,11 +26,8 @@ export default async function MuscleGroupDetailsPage(props: {
   );
 
   return (
-    <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
-      <PageHeader
-        sticky
-        subtitle="Explore each muscle group&apos;s function and anatomy."
-      >
+    <main className="h-dvh w-full flex flex-col gap-2 overflow-hidden p-1 md:p-2">
+      <PageHeader subtitle="Explore each muscle group&apos;s function and anatomy.">
         <Link
           className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
           href="/muscle-groups"
@@ -45,29 +42,31 @@ export default async function MuscleGroupDetailsPage(props: {
         </h1>
       </PageHeader>
 
-      {/* Desktop View */}
-      <section className="hidden lg:flex flex-row gap-2 h-full justify-center rounded-3xl">
-        <div className="flex flex-col gap-2 w-1/2">
+      <section className="min-h-0 flex-1 overflow-y-auto">
+        {/* Desktop View */}
+        <div className="hidden flex-row gap-2 rounded-3xl lg:flex">
+          <div className="flex w-1/2 flex-col gap-2">
+            <HeroCard
+              thumbnailUrl={muscleGroupDetails.thumbnailUrl}
+              imageAltText={muscleGroupDetails.imageAltText}
+            />
+          </div>
+          <div className="flex w-1/2 flex-col gap-2">
+            <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
+            <MuscleSCard muscles={muscleGroupDetails.muscles} />
+          </div>
+        </div>
+
+        {/* Mobile View */}
+        <div className="flex flex-col gap-2 rounded-3xl lg:hidden">
           <HeroCard
             thumbnailUrl={muscleGroupDetails.thumbnailUrl}
             imageAltText={muscleGroupDetails.imageAltText}
           />
-        </div>
-        <div className="flex flex-col gap-2 w-1/2">
+
           <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
           <MuscleSCard muscles={muscleGroupDetails.muscles} />
         </div>
-      </section>
-
-      {/* Mobile View */}
-      <section className="flex flex-col lg:hidden gap-2 h-full justify-center rounded-3xl">
-        <HeroCard
-          thumbnailUrl={muscleGroupDetails.thumbnailUrl}
-          imageAltText={muscleGroupDetails.imageAltText}
-        />
-
-        <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
-        <MuscleSCard muscles={muscleGroupDetails.muscles} />
       </section>
     </main>
   );

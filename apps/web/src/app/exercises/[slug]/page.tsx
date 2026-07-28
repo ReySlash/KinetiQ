@@ -29,11 +29,8 @@ export default async function ExerciseDetailsPage(props: {
   );
 
   return (
-    <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
-      <PageHeader
-        sticky
-        subtitle="Explore our exercise&apos;s catalog."
-      >
+    <main className="h-dvh w-full flex flex-col gap-2 overflow-hidden p-1 md:p-2">
+      <PageHeader subtitle="Explore our exercise&apos;s catalog.">
         <Link
           className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
           href="/exercises"
@@ -48,14 +45,42 @@ export default async function ExerciseDetailsPage(props: {
         </h1>
       </PageHeader>
 
-      {/* Desktop View */}
-      <section className="hidden lg:flex flex-row gap-2 h-full justify-center rounded-3xl">
-        <div className="flex flex-col gap-2 w-1/2">
+      <section className="min-h-0 flex-1 overflow-y-auto">
+        {/* Desktop View */}
+        <div className="hidden flex-row gap-2 rounded-3xl lg:flex">
+          <div className="flex w-1/2 flex-col gap-2">
+            <HeroCard
+              thumbnailUrl={exerciseDetails.thumbnailUrl}
+              imageAltText={exerciseDetails.imageAltText}
+            />
+
+            <StatsCard
+              capabilities={
+                exerciseDetails.capabilities
+                  ? Object.values(exerciseDetails.capabilities)
+                  : []
+              }
+              demands={
+                exerciseDetails.demands
+                  ? Object.values(exerciseDetails.demands)
+                  : []
+              }
+            />
+          </div>
+          <div className="flex w-1/2 flex-col gap-2">
+            <OverviewCard exerciseDetails={exerciseDetails} />
+            <MuscleSCard muscles={exerciseDetails.muscles} />
+          </div>
+        </div>
+
+        {/* Mobile View */}
+        <div className="flex flex-col gap-2 rounded-3xl lg:hidden">
           <HeroCard
             thumbnailUrl={exerciseDetails.thumbnailUrl}
             imageAltText={exerciseDetails.imageAltText}
           />
 
+          <OverviewCard exerciseDetails={exerciseDetails} />
           <StatsCard
             capabilities={
               exerciseDetails.capabilities
@@ -68,35 +93,9 @@ export default async function ExerciseDetailsPage(props: {
                 : []
             }
           />
-        </div>
-        <div className="flex flex-col gap-2 w-1/2">
-          <OverviewCard exerciseDetails={exerciseDetails} />
+
           <MuscleSCard muscles={exerciseDetails.muscles} />
         </div>
-      </section>
-
-      {/* Mobile View */}
-      <section className="flex flex-col lg:hidden gap-2 h-full justify-center rounded-3xl">
-        <HeroCard
-          thumbnailUrl={exerciseDetails.thumbnailUrl}
-          imageAltText={exerciseDetails.imageAltText}
-        />
-
-        <OverviewCard exerciseDetails={exerciseDetails} />
-        <StatsCard
-          capabilities={
-            exerciseDetails.capabilities
-              ? Object.values(exerciseDetails.capabilities)
-              : []
-          }
-          demands={
-            exerciseDetails.demands
-              ? Object.values(exerciseDetails.demands)
-              : []
-          }
-        />
-
-        <MuscleSCard muscles={exerciseDetails.muscles} />
       </section>
     </main>
   );
