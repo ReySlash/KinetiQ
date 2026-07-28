@@ -8,28 +8,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MuscleGroupDetails } from "@/types/muscle-types";
+import { ExerciseMuscleSummary } from "@/types/exercise-types";
 import Image from "next/image";
 import { CiMenuBurger } from "react-icons/ci";
 
-export default function MusclesIncludedTable({
-  muscleGroupDetails,
-}: {
-  muscleGroupDetails: MuscleGroupDetails;
-}) {
+type MuscleSCardProps = {
+  muscles: ExerciseMuscleSummary[];
+};
+
+export default function MuscleSCard(props: MuscleSCardProps) {
+  const { muscles } = props;
   return (
-    <Card className="col-span-1 w-full">
+    <Card className="w-full">
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Muscles</TableHead>
+              <TableHead>Muscle</TableHead>
               <TableHead>Name</TableHead>
               <TableHead className="text-right">Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {muscleGroupDetails.muscles.map((m) => (
+            {muscles.map((m) => (
               <TableRow key={m.slug}>
                 <TableCell>
                   <Image
@@ -40,7 +41,9 @@ export default function MusclesIncludedTable({
                     height={70}
                   />
                 </TableCell>
-                <TableCell>{m.name}</TableCell>
+                <TableCell className="text-wrap whitespace-normal">
+                  {m.name}
+                </TableCell>
                 <TableCell className="text-right">
                   <StyledLink href={`/muscles/${m.slug}`} variant={"outline"}>
                     <CiMenuBurger />

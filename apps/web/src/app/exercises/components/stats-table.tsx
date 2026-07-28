@@ -20,14 +20,14 @@ export default function StatsTable(props: CapDemandTableProp) {
       <TableHeader>
         <TableRow>
           <TableHead>{type}</TableHead>
-          <TableHead>Value</TableHead>
+          <TableHead className="text-right">Value</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {values?.slice(0, values.length - 1).map((val, index) => (
           <TableRow key={headers[index] + val?.toString()}>
             <TableCell>{headers[index]}</TableCell>
-            <TableCell>{val}</TableCell>
+            <TableCell className="text-right">{val}</TableCell>
           </TableRow>
         ))}
       </TableBody>

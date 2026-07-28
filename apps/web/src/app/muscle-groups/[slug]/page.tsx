@@ -2,11 +2,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { MuscleGroupDetails } from "@/types/muscle-types";
 import { buildUrl } from "@/lib/url";
 import Link from "next/link";
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-
 import MuscleGroupOverviewCard from "../muscle-group-overview-card";
-import MusclesIncludedTable from "../components/muscle-included-table";
+import HeroCard from "@/components/hero-card";
+import MuscleSCard from "@/components/muscles-card";
 
 async function fetchData(url: string): Promise<MuscleGroupDetails> {
   const response = await fetch(url);
@@ -51,28 +49,30 @@ export default async function MuscleGroupDetailsPage(props: {
           </h2>
         </div>
       </header>
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl">
-        <Card className="p-2 col-span-1 w-full aspect-square">
-          <CardContent className="relative h-full aspect-square">
-            <Image
-              src={
-                muscleGroupDetails.thumbnailUrl ??
-                "https://avatar.vercel.sh/shadcn1"
-              }
-              alt={
-                muscleGroupDetails.imageAltText ??
-                "Not image description found."
-              }
-              className="z-20 object-cover rounded-3xl"
-              fill
-            />
-          </CardContent>
-        </Card>
-        <div className="flex flex-col gap-2">
-          <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
 
-          <MusclesIncludedTable muscleGroupDetails={muscleGroupDetails} />
+      {/* Desktop View */}
+      <section className="hidden lg:flex flex-row gap-2 h-full justify-center rounded-3xl">
+        <div className="flex flex-col gap-2 w-1/2">
+          <HeroCard
+            thumbnailUrl={muscleGroupDetails.thumbnailUrl}
+            imageAltText={muscleGroupDetails.imageAltText}
+          />
         </div>
+        <div className="flex flex-col gap-2 w-1/2">
+          <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
+          <MuscleSCard muscles={muscleGroupDetails.muscles} />
+        </div>
+      </section>
+
+      {/* Mobile View */}
+      <section className="flex flex-col lg:hidden gap-2 h-full justify-center rounded-3xl">
+        <HeroCard
+          thumbnailUrl={muscleGroupDetails.thumbnailUrl}
+          imageAltText={muscleGroupDetails.imageAltText}
+        />
+
+        <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />
+        <MuscleSCard muscles={muscleGroupDetails.muscles} />
       </section>
     </main>
   );

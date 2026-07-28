@@ -5,14 +5,18 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { PaginationExercisesDto } from './dto/pagination-exercises.dto';
+import { FindExercisesQueryDto } from './dto/find-exercises-query.dto';
 
 @Injectable()
 export class ExercisesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(paginationExercisesDto: PaginationExercisesDto) {
-    const { limit = 20, offset = 0 } = paginationExercisesDto;
+  async findAll(findExercisesQueryDto: FindExercisesQueryDto) {
+    const {
+      limit = 20,
+      offset = 0,
+      // search
+    } = findExercisesQueryDto;
     try {
       const exercises = await this.prisma.exercise.findMany({
         take: limit,

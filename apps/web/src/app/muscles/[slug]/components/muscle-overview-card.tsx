@@ -1,3 +1,4 @@
+import OverviewTable from "@/components/overview-table";
 import {
   Card,
   CardContent,
@@ -5,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Muscle } from "@/types/muscle-types";
 
 export default function MuscleOverviewCard({
@@ -21,6 +21,21 @@ export default function MuscleOverviewCard({
     .filter((fa) => fa.role === "SECONDARY")
     .map((fa) => fa.muscleFunction.name);
 
+  const headers = [
+    "Muscle Name",
+    "Muscle Group",
+    "Body Region",
+    "Primary Function",
+    "Secondary Functions",
+  ];
+  const values = [
+    muscleDetails.name,
+    muscleDetails.muscleGroup?.name ?? "N/A",
+    muscleDetails.bodyRegion.replace("_", " ").toLowerCase(),
+    primaryFunctions ?? "N/A",
+    secondaryFunctions.join(", ") || "N/A",
+  ];
+
   return (
     <Card className="h-fit">
       <CardHeader>
@@ -32,53 +47,8 @@ export default function MuscleOverviewCard({
         <CardDescription className="col-span-2">
           {muscleDetails.description ?? "No description available."}
         </CardDescription>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell>Muscle Name</TableCell>
-              <TableCell className="text-muted-foreground">
-                - {muscleDetails.name}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Muscle Group</TableCell>
-              <TableCell className="text-muted-foreground">
-                - {muscleDetails.muscleGroup?.name ?? "N/A"}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Body Region</TableCell>
-              <TableCell className="text-muted-foreground">
-                - {muscleDetails.bodyRegion.replace("_", " ").toLowerCase()}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Primary Function</TableCell>
-              <TableCell className="text-muted-foreground">
-                <p>- {primaryFunctions ?? "N/A"}</p>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Secondary Functions</TableCell>
-              <TableCell className="text-muted-foreground flex flex-col gap-1">
-                {secondaryFunctions.length > 0
-                  ? secondaryFunctions.map((func, id) => (
-                      <p key={id}>- {func}</p>
-                    ))
-                  : "- N/A"}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Exercises</TableCell>
-              <TableCell className="text-muted-foreground flex flex-col gap-1">
-                -{" "}
-                {muscleDetails.exerciseMuscles.length > 0
-                  ? muscleDetails.exerciseMuscles.length
-                  : "N/A"}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+
+        <OverviewTable headers={headers} values={values} />
       </CardContent>
     </Card>
   );
