@@ -1,3 +1,4 @@
+import { Transform, type TransformFnParams } from 'class-transformer';
 import {
   IsInt,
   IsNumber,
@@ -8,7 +9,16 @@ import {
   MinLength,
 } from 'class-validator';
 
+function trimStringValue({ value }: TransformFnParams): unknown {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  return value;
+}
+
 export class FindExercisesQueryDto {
+  @Transform(trimStringValue)
   @IsOptional()
   @IsString()
   @MinLength(3)

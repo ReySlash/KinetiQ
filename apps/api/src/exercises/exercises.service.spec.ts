@@ -122,6 +122,100 @@ describe('ExercisesService', () => {
     });
   });
 
+  it('searches exercises by exercise and muscle names and slugs', async () => {
+    findMany.mockResolvedValue([
+      {
+        name: 'Barbell Back Squat',
+        slug: 'barbell-back-squat',
+        thumbnailUrl: null,
+        thumbnailStorageKey: null,
+        imageAltText: null,
+        muscles: [],
+      },
+    ]);
+
+    await expect(
+      service.findAll({
+        limit: 10,
+        offset: 0,
+        search: 'quad',
+      }),
+    ).resolves.toEqual([
+      {
+        name: 'Barbell Back Squat',
+        slug: 'barbell-back-squat',
+        thumbnailUrl: null,
+        thumbnailStorageKey: null,
+        imageAltText: null,
+        muscles: [],
+      },
+    ]);
+
+    expect(findMany).toHaveBeenCalledWith({
+      take: 10,
+      skip: 0,
+      select: {
+        name: true,
+        slug: true,
+        thumbnailUrl: true,
+        thumbnailStorageKey: true,
+        imageAltText: true,
+        muscles: {
+          select: {
+            muscle: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        isActive: true,
+        OR: [
+          {
+            name: {
+              contains: 'quad',
+              mode: 'insensitive',
+            },
+          },
+          {
+            slug: {
+              contains: 'quad',
+              mode: 'insensitive',
+            },
+          },
+          {
+            muscles: {
+              some: {
+                muscle: {
+                  OR: [
+                    {
+                      name: {
+                        contains: 'quad',
+                        mode: 'insensitive',
+                      },
+                    },
+                    {
+                      slug: {
+                        contains: 'quad',
+                        mode: 'insensitive',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  });
+
   it('returns an active exercise by slug with flattened equipment details', async () => {
     findFirst.mockResolvedValue({
       id: 'exercise-1',
@@ -168,12 +262,16 @@ describe('ExercisesService', () => {
           muscle: {
             name: 'Quadriceps',
             slug: 'quadriceps',
+            thumbnailUrl: null,
+            imageAltText: null,
           },
         },
         {
           muscle: {
             name: 'Glutes',
             slug: 'glutes',
+            thumbnailUrl: null,
+            imageAltText: null,
           },
         },
       ],
@@ -207,10 +305,14 @@ describe('ExercisesService', () => {
         {
           name: 'Quadriceps',
           slug: 'quadriceps',
+          thumbnailUrl: null,
+          imageAltText: null,
         },
         {
           name: 'Glutes',
           slug: 'glutes',
+          thumbnailUrl: null,
+          imageAltText: null,
         },
       ],
       equipment: [
@@ -287,6 +389,8 @@ describe('ExercisesService', () => {
               select: {
                 name: true,
                 slug: true,
+                thumbnailUrl: true,
+                imageAltText: true,
               },
             },
           },

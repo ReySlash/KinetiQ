@@ -6,50 +6,27 @@ import {
 
 import { PrismaService } from '../prisma/prisma.service';
 import { FindExercisesQueryDto } from './dto/find-exercises-query.dto';
+import {
+  buildExercisesFindAllQuery,
+  mapExercisesFindAllRows,
+} from './helpers/find-all-exercises-query';
 
 @Injectable()
 export class ExercisesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(findExercisesQueryDto: FindExercisesQueryDto) {
-    const {
-      limit = 20,
-      offset = 0,
-      // search
-    } = findExercisesQueryDto;
+    const { limit = 20, offset = 0, search } = findExercisesQueryDto;
     try {
-      const exercises = await this.prisma.exercise.findMany({
-        take: limit,
-        skip: offset,
-        select: {
-          name: true,
-          slug: true,
-          thumbnailUrl: true,
-          thumbnailStorageKey: true,
-          imageAltText: true,
-          muscles: {
-            select: {
-              muscle: {
-                select: {
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          },
-        },
-        where: {
-          isActive: true,
-        },
-        orderBy: {
-          name: 'asc',
-        },
-      });
+      const exercises = await this.prisma.exercise.findMany(
+        buildExercisesFindAllQuery({
+          take: limit,
+          skip: offset,
+          search,
+        }),
+      );
 
-      return exercises.map((exercise) => ({
-        ...exercise,
-        muscles: exercise.muscles.map(({ muscle }) => muscle),
-      }));
+      return mapExercisesFindAllRows(exercises);
     } catch {
       throw new InternalServerErrorException('Failed to fetch exercises');
     }
