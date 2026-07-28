@@ -50,6 +50,10 @@ describe('MuscleGroupsService', () => {
         name: true,
         slug: true,
         description: true,
+        thumbnailUrl: true,
+        thumbnailStorageKey: true,
+        imageAltText: true,
+        bodyRegion: true,
         muscles: {
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
           where: {
@@ -59,12 +63,19 @@ describe('MuscleGroupsService', () => {
             id: true,
             name: true,
             slug: true,
-            description: true,
-            bodyRegion: true,
             thumbnailUrl: true,
             thumbnailStorageKey: true,
             imageAltText: true,
-            muscleGroupId: true,
+            functionAssignments: {
+              select: {
+                role: true,
+                muscleFunction: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

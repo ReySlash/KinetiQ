@@ -11,6 +11,11 @@ import { PaginationDto } from './dto/pagination-muscle.dto';
 import { UpdateMuscleDto } from './dto/update-muscle.dto';
 import { buildMuscleUpdateData } from './mappers/update-muscle.mapper';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
+import { buildMusclesFindAllQuery } from './helpers/find-all-muscles-query';
+import {
+  buildMuscleFindOneQuery,
+  mapMuscleFindOneRow,
+} from './helpers/find-one-muscle-query';
 
 @Injectable()
 export class MusclesService {
@@ -50,30 +55,9 @@ export class MusclesService {
     const { limit = 20, offset = 0 } = paginationDto;
 
     try {
-      const muscles = await this.prisma.muscle.findMany({
-        where: {
-          isActive: true,
-        },
-        orderBy: [
-          { sortOrder: 'asc' },
-          { name: 'asc' },
-          { createdAt: 'asc' },
-          { id: 'asc' },
-        ],
-        take: limit,
-        skip: offset,
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          bodyRegion: true,
-          thumbnailUrl: true,
-          thumbnailStorageKey: true,
-          imageAltText: true,
-          sortOrder: true,
-        },
-      });
+      const muscles = await this.prisma.muscle.findMany(
+        buildMusclesFindAllQuery(limit, offset),
+      );
       return muscles;
     } catch {
       throw new InternalServerErrorException('Failed to fetch muscles');
@@ -82,60 +66,13 @@ export class MusclesService {
 
   async findOne(slug: string) {
     try {
-      const muscle = await this.prisma.muscle.findFirst({
-        where: {
-          slug,
-          isActive: true,
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          bodyRegion: true,
-          thumbnailUrl: true,
-          thumbnailStorageKey: true,
-          imageAltText: true,
-          sortOrder: true,
-          exerciseMuscles: {
-            select: {
-              exercise: {
-                select: {
-                  name: true,
-                  slug: true,
-                  thumbnailUrl: true,
-                  imageAltText: true,
-                },
-              },
-            },
-          },
-          functionAssignments: {
-            select: {
-              role: true,
-              muscleFunction: {
-                select: {
-                  name: true,
-                  slug: true,
-                  description: true,
-                },
-              },
-            },
-          },
-          muscleGroup: {
-            select: {
-              name: true,
-              slug: true,
-            },
-          },
-        },
-      });
+      const muscle = await this.prisma.muscle.findFirst(
+        buildMuscleFindOneQuery(slug),
+      );
       if (!muscle) {
         throw new NotFoundException('Muscle not found');
       }
-      return {
-        ...muscle,
-        exerciseMuscles: muscle.exerciseMuscles.map((em) => em.exercise),
-      };
+      return mapMuscleFindOneRow(muscle);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
