@@ -10,6 +10,10 @@ import {
   buildExercisesFindAllQuery,
   mapExercisesFindAllRows,
 } from './helpers/find-all-exercises-query';
+import {
+  buildExercisesFindOneQuery,
+  mapExerciseFindOneRow,
+} from './helpers/find-one-exercises-query';
 
 @Injectable()
 export class ExercisesService {
@@ -34,99 +38,13 @@ export class ExercisesService {
 
   async findOne(slug: string) {
     try {
-      const exercise = await this.prisma.exercise.findFirst({
-        select: {
-          name: true,
-          slug: true,
-          description: true,
-          instructions: true,
-          commonMistakes: true,
-          forceType: true,
-          kineticChain: true,
-          isCompound: true,
-          laterality: true,
-          contractionMode: true,
-          bodyPosition: true,
-          skillLevel: true,
-          thumbnailUrl: true,
-          thumbnailStorageKey: true,
-          imageAltText: true,
-
-          movementPattern: {
-            select: {
-              name: true,
-              slug: true,
-              description: true,
-            },
-          },
-          capabilities: {
-            select: {
-              hypertrophyPotential: true,
-              maximalStrengthPotential: true,
-              powerDevelopmentPotential: true,
-              muscularEndurancePotential: true,
-              stabilityDevelopmentPotential: true,
-              typicalLoadability: true,
-              stretchPositionLoading: true,
-              shortenedPositionLoading: true,
-              editorialNotes: true,
-            },
-          },
-          demands: {
-            select: {
-              technicalDemand: true,
-              setupComplexity: true,
-              stabilityDemand: true,
-              systemicFatiguePotential: true,
-              localFatiguePotential: true,
-              recoveryCostPotential: true,
-              gripDemand: true,
-              axialLoadingPotential: true,
-              editorialNotes: true,
-            },
-          },
-          muscles: {
-            select: {
-              muscle: {
-                select: {
-                  name: true,
-                  slug: true,
-                  thumbnailUrl: true,
-                  imageAltText: true,
-                },
-              },
-            },
-          },
-          equipment: {
-            where: {
-              equipment: {
-                isActive: true,
-              },
-            },
-            select: {
-              equipment: {
-                select: {
-                  name: true,
-                  slug: true,
-                  description: true,
-                },
-              },
-            },
-          },
-        },
-        where: {
-          slug,
-          isActive: true,
-        },
-      });
+      const exercise = await this.prisma.exercise.findFirst(
+        buildExercisesFindOneQuery(slug),
+      );
       if (!exercise) {
         throw new NotFoundException('Exercise not found');
       }
-      return {
-        ...exercise,
-        muscles: exercise.muscles.map(({ muscle }) => muscle),
-        equipment: exercise.equipment.map(({ equipment }) => equipment),
-      };
+      return mapExerciseFindOneRow(exercise);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
