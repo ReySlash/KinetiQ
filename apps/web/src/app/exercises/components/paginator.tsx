@@ -5,27 +5,25 @@ import {
   PaginationEllipsis,
   PaginationItem,
 } from "@/components/ui/pagination";
+import {
+  buildExercisesCatalogHref,
+  type ExercisesCatalogQuery,
+} from "./filters/exercise-filters";
+
 type PaginatorProps = {
   pageNumber: number;
   isLastPage: boolean;
-  search?: string;
+  query: ExercisesCatalogQuery;
 };
 
 export function Paginator(props: PaginatorProps) {
-  const { pageNumber, isLastPage, search } = props;
-  const baseUrl = "/exercises";
+  const { pageNumber, isLastPage, query } = props;
 
   function buildHref(nextPage: number) {
-    const params = new URLSearchParams();
-
-    if (search) {
-      params.set("search", search);
-    }
-
-    params.set("page", String(nextPage));
-
-    const query = params.toString();
-    return query ? `${baseUrl}?${query}` : baseUrl;
+    return buildExercisesCatalogHref({
+      ...query,
+      page: nextPage,
+    });
   }
 
   return (
