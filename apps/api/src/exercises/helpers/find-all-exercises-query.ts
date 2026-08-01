@@ -1,4 +1,9 @@
 import { Prisma } from '../../../generated/prisma/client';
+import {
+  ForceType,
+  Laterality,
+  SkillLevel,
+} from '../../../generated/prisma/client';
 
 const exerciseFindAllSelect = {
   name: true,
@@ -26,19 +31,41 @@ type BuildExercisesFindAllQueryParams = {
   take: number;
   skip: number;
   search?: string;
+  forceType?: ForceType;
+  laterality?: Laterality;
+  skillLevel?: SkillLevel;
 };
 
-function buildExercisesWhere(search?: string): Prisma.ExerciseWhereInput {
+function buildExercisesWhere(
+  search?: string,
+  forceType?: ForceType,
+  laterality?: Laterality,
+  skillLevel?: SkillLevel,
+): Prisma.ExerciseWhereInput {
   const normalizedSearch = search?.trim();
 
+  const where: Prisma.ExerciseWhereInput = {
+    isActive: true,
+  };
+
+  if (forceType) {
+    where.forceType = forceType;
+  }
+
+  if (laterality) {
+    where.laterality = laterality;
+  }
+
+  if (skillLevel) {
+    where.skillLevel = skillLevel;
+  }
+
   if (!normalizedSearch) {
-    return {
-      isActive: true,
-    };
+    return where;
   }
 
   return {
-    isActive: true,
+    ...where,
     OR: [
       {
         name: {
@@ -82,12 +109,15 @@ export function buildExercisesFindAllQuery({
   take,
   skip,
   search,
+  forceType,
+  laterality,
+  skillLevel,
 }: BuildExercisesFindAllQueryParams) {
   return {
     take,
     skip,
     select: exerciseFindAllSelect,
-    where: buildExercisesWhere(search),
+    where: buildExercisesWhere(search, forceType, laterality, skillLevel),
     orderBy: {
       name: 'asc',
     },

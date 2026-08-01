@@ -7,16 +7,14 @@ import { NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ExercisesService } from './exercises.service';
 
-type ExerciseDelegate = InstanceType<typeof PrismaService>['exercise'];
-
 describe('ExercisesService', () => {
   let service: ExercisesService;
-  let findMany: jest.MockedFunction<ExerciseDelegate['findMany']>;
-  let findFirst: jest.MockedFunction<ExerciseDelegate['findFirst']>;
+  let findMany: jest.Mock<Promise<unknown>, [unknown]>;
+  let findFirst: jest.Mock<Promise<unknown>, [unknown]>;
 
   beforeEach(async () => {
-    findMany = jest.fn();
-    findFirst = jest.fn();
+    findMany = jest.fn<Promise<unknown>, [unknown]>();
+    findFirst = jest.fn<Promise<unknown>, [unknown]>();
 
     const prismaServiceMock = {
       exercise: {
@@ -200,6 +198,106 @@ describe('ExercisesService', () => {
                     {
                       slug: {
                         contains: 'quad',
+                        mode: 'insensitive',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  });
+
+  it('filters exercises by force type, laterality, and skill level', async () => {
+    findMany.mockResolvedValue([
+      {
+        name: 'Barbell Back Squat',
+        slug: 'barbell-back-squat',
+        thumbnailUrl: null,
+        thumbnailStorageKey: null,
+        imageAltText: null,
+        muscles: [],
+      },
+    ]);
+
+    await expect(
+      service.findAll({
+        limit: 8,
+        offset: 16,
+        search: 'press',
+        forceType: 'PUSH',
+        laterality: 'BILATERAL',
+        skillLevel: 'INTERMEDIATE',
+      }),
+    ).resolves.toEqual([
+      {
+        name: 'Barbell Back Squat',
+        slug: 'barbell-back-squat',
+        thumbnailUrl: null,
+        thumbnailStorageKey: null,
+        imageAltText: null,
+        muscles: [],
+      },
+    ]);
+
+    expect(findMany).toHaveBeenCalledWith({
+      take: 8,
+      skip: 16,
+      select: {
+        name: true,
+        slug: true,
+        thumbnailUrl: true,
+        thumbnailStorageKey: true,
+        imageAltText: true,
+        muscles: {
+          select: {
+            muscle: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        isActive: true,
+        forceType: 'PUSH',
+        laterality: 'BILATERAL',
+        skillLevel: 'INTERMEDIATE',
+        OR: [
+          {
+            name: {
+              contains: 'press',
+              mode: 'insensitive',
+            },
+          },
+          {
+            slug: {
+              contains: 'press',
+              mode: 'insensitive',
+            },
+          },
+          {
+            muscles: {
+              some: {
+                muscle: {
+                  OR: [
+                    {
+                      name: {
+                        contains: 'press',
+                        mode: 'insensitive',
+                      },
+                    },
+                    {
+                      slug: {
+                        contains: 'press',
                         mode: 'insensitive',
                       },
                     },

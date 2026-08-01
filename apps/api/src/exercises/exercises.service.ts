@@ -20,13 +20,23 @@ export class ExercisesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(findExercisesQueryDto: FindExercisesQueryDto) {
-    const { limit = 20, offset = 0, search } = findExercisesQueryDto;
+    const {
+      limit = 20,
+      offset = 0,
+      search,
+      forceType,
+      laterality,
+      skillLevel,
+    } = findExercisesQueryDto;
     try {
       const exercises = await this.prisma.exercise.findMany(
         buildExercisesFindAllQuery({
           take: limit,
           skip: offset,
           search,
+          forceType,
+          laterality,
+          skillLevel,
         }),
       );
 

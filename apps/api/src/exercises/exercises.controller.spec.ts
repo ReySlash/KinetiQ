@@ -44,12 +44,23 @@ describe('ExercisesController', () => {
     ];
     exercisesServiceMock.findAll.mockResolvedValue(exercises);
 
-    await expect(controller.findAll({ limit: 10, offset: 20 })).resolves.toEqual(
-      exercises,
-    );
+    await expect(
+      controller.findAll({
+        limit: 10,
+        offset: 20,
+        search: 'press',
+        forceType: 'PUSH',
+        laterality: 'BILATERAL',
+        skillLevel: 'INTERMEDIATE',
+      }),
+    ).resolves.toEqual(exercises);
     expect(exercisesServiceMock.findAll).toHaveBeenCalledWith({
       limit: 10,
       offset: 20,
+      search: 'press',
+      forceType: 'PUSH',
+      laterality: 'BILATERAL',
+      skillLevel: 'INTERMEDIATE',
     });
   });
 

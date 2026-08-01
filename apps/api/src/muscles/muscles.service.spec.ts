@@ -9,20 +9,31 @@ import type { MuscleModel } from '../../generated/prisma/models/Muscle';
 import { PrismaService } from '../prisma/prisma.service';
 import { MusclesService } from './muscles.service';
 
-type MuscleDelegate = InstanceType<typeof PrismaService>['muscle'];
-
 describe('MusclesService', () => {
   let service: MusclesService;
-  let create: jest.MockedFunction<MuscleDelegate['create']>;
-  let findMany: jest.MockedFunction<MuscleDelegate['findMany']>;
-  let findFirst: jest.MockedFunction<MuscleDelegate['findFirst']>;
-  let update: jest.MockedFunction<MuscleDelegate['update']>;
+  let create: jest.Mock<Promise<unknown>, [unknown]>;
+  let findMany: jest.Mock<Promise<unknown>, [unknown]>;
+  let findFirst: jest.Mock<Promise<unknown>, [unknown]>;
+  let update: jest.Mock<Promise<unknown>, [unknown]>;
+
+  type MuscleCreateArgs = {
+    data: {
+      id: string;
+      name: string;
+      slug: string;
+      description: string;
+      bodyRegion: string;
+      muscleGroupId?: string;
+      parentId?: string | null;
+      sortOrder?: number;
+    };
+  };
 
   beforeEach(async () => {
-    create = jest.fn();
-    findMany = jest.fn();
-    findFirst = jest.fn();
-    update = jest.fn();
+    create = jest.fn<Promise<unknown>, [unknown]>();
+    findMany = jest.fn<Promise<unknown>, [unknown]>();
+    findFirst = jest.fn<Promise<unknown>, [unknown]>();
+    update = jest.fn<Promise<unknown>, [unknown]>();
     const prismaServiceMock = {
       muscle: {
         create,
@@ -83,17 +94,18 @@ describe('MusclesService', () => {
     });
 
     expect(create).toHaveBeenCalledTimes(1);
-    expect(create.mock.calls[0]?.[0].data.name).toBe('Biceps Brachii');
-    expect(create.mock.calls[0]?.[0].data.slug).toBe('biceps-brachii');
-    expect(create.mock.calls[0]?.[0].data.description).toBe(
+    const createArgs = create.mock.calls[0]?.[0] as MuscleCreateArgs;
+    expect(createArgs.data.name).toBe('Biceps Brachii');
+    expect(createArgs.data.slug).toBe('biceps-brachii');
+    expect(createArgs.data.description).toBe(
       'Primary elbow flexor of the upper arm.',
     );
-    expect(create.mock.calls[0]?.[0].data.bodyRegion).toBe('UPPER_BODY');
-    expect(create.mock.calls[0]?.[0].data.muscleGroupId).toBe(
+    expect(createArgs.data.bodyRegion).toBe('UPPER_BODY');
+    expect(createArgs.data.muscleGroupId).toBe(
       'd0c0e5fa-9f8d-4a34-8d0e-9f45ab7d2e12',
     );
-    expect(create.mock.calls[0]?.[0].data.sortOrder).toBe(3);
-    expect(create.mock.calls[0]?.[0].data.id).toMatch(
+    expect(createArgs.data.sortOrder).toBe(3);
+    expect(createArgs.data.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
     expect(result).toEqual({
