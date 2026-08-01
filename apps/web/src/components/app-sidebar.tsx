@@ -26,10 +26,15 @@ import { ThemeToggle } from "./theme-toggle";
 
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="rounded-lg border border-sidebar-border/70 bg-sidebar-accent/30 px-3 py-2">
-          <h3 className="text-lg font-semibold tracking-tight">KinetiQ</h3>
+        <div className="flex h-9 items-center overflow-hidden rounded-lg border border-sidebar-border/70 bg-sidebar-accent/30 px-3 py-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+          <h3 className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:text-base">
+            <span aria-hidden="true" className="hidden group-data-[collapsible=icon]:inline">
+              K
+            </span>
+            <span className="group-data-[collapsible=icon]:sr-only">KinetiQ</span>
+          </h3>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -48,7 +53,7 @@ export function AppSidebar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="flex w-full items-center gap-2 rounded-full justify-start"
+                    className="flex w-full items-center justify-start gap-2 rounded-full group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center"
                   >
                     <Avatar>
                       <AvatarImage
@@ -57,7 +62,9 @@ export function AppSidebar() {
                       />
                       <AvatarFallback>CN</AvatarFallback>
                     </Avatar>
-                    <p>Username</p>
+                    <p className="truncate group-data-[collapsible=icon]:sr-only">
+                      Username
+                    </p>
                   </Button>
                 }
               />

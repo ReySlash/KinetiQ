@@ -1,4 +1,3 @@
-import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import Link from "next/link";
 import { RxDashboard } from "react-icons/rx";
 import { IoMdFitness } from "react-icons/io";
@@ -6,7 +5,11 @@ import { GiStrong } from "react-icons/gi";
 import { IoFitness } from "react-icons/io5";
 import { BsClipboard2DataFill } from "react-icons/bs";
 import { FaChartBar, FaChartLine, FaCalendarAlt } from "react-icons/fa";
-import { cn } from "@/lib/utils";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
 const items = [
   {
@@ -54,21 +57,20 @@ const items = [
 export function SideNav() {
   return (
     <nav aria-label="Primary">
-      <div className="grid gap-1">
+      <SidebarMenu>
         {items.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              navigationMenuTriggerStyle(),
-              "flex flex-row items-center justify-start text-left gap-1",
-            )}
-          >
-            <Icon />
-            {label}
-          </Link>
+          <SidebarMenuItem key={href}>
+            <SidebarMenuButton
+              tooltip={label}
+              render={<Link href={href} aria-label={label} />}
+              className="h-9"
+            >
+              <Icon aria-hidden="true" />
+              <span>{label}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         ))}
-      </div>
+      </SidebarMenu>
     </nav>
   );
 }
