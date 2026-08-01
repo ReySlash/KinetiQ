@@ -7,7 +7,7 @@ export default async function ExerciseDetailsPage() {
   return (
     <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
-        <SidebarTrigger />
+        <SidebarTrigger className="md:hidden" />
         <div className="flex flex-col">
           <div className="flex flex-row gap-2">
             <Link

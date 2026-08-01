@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
-        <SidebarTrigger />
+        <SidebarTrigger className="md:hidden" />
         <div className="flex flex-col">
           <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
           <h2 className="text-xs text-muted-foreground">

@@ -17,8 +17,8 @@ export function PageHeader(props: PageHeaderProps) {
         sticky && "sticky top-0 z-30",
       )}
     >
-      <SidebarTrigger />
-      <div className="flex flex-col">
+      <SidebarTrigger className="md:hidden" />
+      <div className="flex flex-col p-2">
         <div className="flex flex-row gap-2">{children}</div>
         <h2 className="text-xs text-muted-foreground">{subtitle}</h2>
       </div>

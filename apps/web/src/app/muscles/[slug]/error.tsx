@@ -17,7 +17,7 @@ export default function Error({
   return (
     <>
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60 px-4">
-        <SidebarTrigger />
+        <SidebarTrigger className="md:hidden" />
         <div className="flex flex-col">
           <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
           <h2 className="text-xs text-muted-foreground">

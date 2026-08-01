@@ -7,6 +7,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { SideNav } from "./side-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,12 +29,10 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex h-9 items-center overflow-hidden rounded-lg border border-sidebar-border/70 bg-sidebar-accent/30 px-3 py-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
-          <h3 className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:text-base">
-            <span aria-hidden="true" className="hidden group-data-[collapsible=icon]:inline">
-              K
-            </span>
-            <span className="group-data-[collapsible=icon]:sr-only">KinetiQ</span>
+        <div className="flex h-9 items-center gap-2 overflow-hidden rounded-lg border border-sidebar-border/70 bg-sidebar-accent/30 px-2 py-2 group-data-[collapsible=icon]:justify-center">
+          <SidebarTrigger className="shrink-0" />
+          <h3 className="truncate text-lg font-semibold tracking-tight group-data-[collapsible=icon]:sr-only">
+            KinetiQ
           </h3>
         </div>
       </SidebarHeader>
