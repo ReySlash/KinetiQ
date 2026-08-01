@@ -1,23 +1,14 @@
 "use client";
 import {
   ANY_VALUE,
-  type ExercisesFilterKey,
   type ExercisesQueryParamKey,
   type ForceTypeFilterValue,
-  forceTypeOptions,
-  getFilterLabel,
   type LateralityFilterValue,
-  lateralityOptions,
   type SkillLevelFilterValue,
-  skillLevelOptions,
 } from "./exercise-filters";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
-import { useMemo, useState, useTransition } from "react";
-import {
-  type ActiveFilterChip,
-  ActiveFilterChips,
-} from "./active-filter-chips";
+import { useState, useTransition } from "react";
 import { SearchForm } from "./search-form";
 import { FilterPopover } from "./filter-popover";
 
@@ -25,6 +16,7 @@ type FormSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 type FormSubmitEvent = Parameters<FormSubmitHandler>[0];
 
 type FiltersToolbarControlsProps = {
+  currentQueryString: string;
   currentSearch: string;
   currentForceType: ForceTypeFilterValue;
   currentLaterality: LateralityFilterValue;
@@ -35,6 +27,7 @@ export default function FiltersToolbarControls(
   props: FiltersToolbarControlsProps,
 ) {
   const {
+    currentQueryString,
     currentSearch,
     currentForceType,
     currentLaterality,
@@ -43,7 +36,6 @@ export default function FiltersToolbarControls(
 
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState(currentSearch);
@@ -53,38 +45,10 @@ export default function FiltersToolbarControls(
   const [searchError, setSearchError] = useState<string | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const activeChips = useMemo(
-    () =>
-      [
-        currentSearch.trim().length > 0
-          ? { key: "search" as const, label: `Search: ${currentSearch.trim()}` }
-          : null,
-        currentForceType !== ANY_VALUE
-          ? {
-              key: "forceType" as const,
-              label: `Force type: ${getFilterLabel(currentForceType, forceTypeOptions)}`,
-            }
-          : null,
-        currentLaterality !== ANY_VALUE
-          ? {
-              key: "laterality" as const,
-              label: `Laterality: ${getFilterLabel(currentLaterality, lateralityOptions)}`,
-            }
-          : null,
-        currentSkillLevel !== ANY_VALUE
-          ? {
-              key: "skillLevel" as const,
-              label: `Skill level: ${getFilterLabel(currentSkillLevel, skillLevelOptions)}`,
-            }
-          : null,
-      ].filter((chip): chip is ActiveFilterChip => chip !== null),
-    [currentForceType, currentLaterality, currentSearch, currentSkillLevel],
-  );
-
   function pushQuery(
     updates: Partial<Record<ExercisesQueryParamKey, string | undefined>>,
   ) {
-    const nextParams = new URLSearchParams(searchParams.toString());
+    const nextParams = new URLSearchParams(currentQueryString);
 
     for (const [key, value] of Object.entries(updates)) {
       if (!value) {
@@ -155,44 +119,6 @@ export default function FiltersToolbarControls(
     setPopoverOpen(false);
   }
 
-  function handleClearChip(key: ExercisesFilterKey) {
-    if (key === "search") {
-      setSearch("");
-      setSearchError(null);
-      pushQuery({ search: undefined });
-      return;
-    }
-
-    if (key === "forceType") {
-      setForceType(ANY_VALUE);
-      pushQuery({ forceType: undefined });
-      return;
-    }
-
-    if (key === "laterality") {
-      setLaterality(ANY_VALUE);
-      pushQuery({ laterality: undefined });
-      return;
-    }
-
-    setSkillLevel(ANY_VALUE);
-    pushQuery({ skillLevel: undefined });
-  }
-
-  function handleClearAll() {
-    setSearch("");
-    setForceType(ANY_VALUE);
-    setLaterality(ANY_VALUE);
-    setSkillLevel(ANY_VALUE);
-    setSearchError(null);
-    pushQuery({
-      search: undefined,
-      forceType: undefined,
-      laterality: undefined,
-      skillLevel: undefined,
-    });
-  }
-
   return (
     <div className="flex flex-col gap-3 border-b border-border/70 p-2 md:p-3">
       <div className="flex gap-2 flex-row justify-start">
@@ -204,7 +130,11 @@ export default function FiltersToolbarControls(
           onSubmit={handleSearchSubmit}
         />
         <FilterPopover
-          activeFiltersCount={activeChips.length}
+          activeFiltersCount={
+            [currentForceType, currentLaterality, currentSkillLevel].filter(
+              (value) => value !== ANY_VALUE,
+            ).length
+          }
           forceType={forceType}
           laterality={laterality}
           skillLevel={skillLevel}
@@ -218,12 +148,6 @@ export default function FiltersToolbarControls(
           onSubmit={handleApplyFilters}
         />
       </div>
-
-      <ActiveFilterChips
-        chips={activeChips}
-        onClearChip={handleClearChip}
-        onClearAll={handleClearAll}
-      />
     </div>
   );
 }

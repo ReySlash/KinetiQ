@@ -7,9 +7,10 @@ import {
   forceTypeOptions,
   lateralityOptions,
   normalizeFilterValue,
+  normalizeSearchValue,
   skillLevelOptions,
 } from "./exercise-filters";
-import FiltersToolbarControls from "./filters-tool-bar-controls";
+import FiltersToolbarControls from "./filters-toolbar-controls";
 
 function getSingleQueryValue(
   searchParams: ReturnType<typeof useSearchParams>,
@@ -20,7 +21,8 @@ function getSingleQueryValue(
 
 export function FiltersToolbar() {
   const searchParams = useSearchParams();
-  const currentSearch = getSingleQueryValue(searchParams, "search");
+  const currentSearch =
+    normalizeSearchValue(getSingleQueryValue(searchParams, "search")) ?? "";
   const currentForceType = normalizeFilterValue(
     getSingleQueryValue(searchParams, "forceType"),
     forceTypeOptions,
@@ -37,6 +39,7 @@ export function FiltersToolbar() {
   return (
     <FiltersToolbarControls
       key={searchParams.toString()}
+      currentQueryString={searchParams.toString()}
       currentForceType={currentForceType}
       currentLaterality={currentLaterality}
       currentSearch={currentSearch}
