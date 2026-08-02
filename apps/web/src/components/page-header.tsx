@@ -13,14 +13,14 @@ export function PageHeader(props: PageHeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-14 w-full shrink-0 items-center gap-3 border-b border-border/60 bg-background",
+        "flex h-16 w-full shrink-0 items-center gap-3 border-b border-border/60 bg-background/80 backdrop-blur-xl",
         sticky && "sticky top-0 z-30",
       )}
     >
       <SidebarTrigger className="md:hidden" />
-      <div className="flex flex-col p-2">
+      <div className="flex flex-col">
         <div className="flex flex-row gap-2">{children}</div>
-        <h2 className="text-xs text-muted-foreground">{subtitle}</h2>
+        <h2 className="text-xs text-muted-foreground/80">{subtitle}</h2>
       </div>
     </header>
   );

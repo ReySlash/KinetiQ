@@ -1,6 +1,7 @@
 export default function RoutinesPage() {
   return (
-    <section className="rounded-3xl border border-border/70 bg-card/80 p-8 shadow-sm">
+    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
+      <section className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm md:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
         Routines
       </p>
@@ -10,6 +11,7 @@ export default function RoutinesPage() {
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
         This route is wired and ready for the routines implementation.
       </p>
-    </section>
+      </section>
+    </main>
   );
 }

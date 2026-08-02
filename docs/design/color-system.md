@@ -22,11 +22,11 @@ Neutral Gray
 
 Background
 
-Near Black
+Near-black navy / blue-violet
 
 Surface
 
-Dark Gray
+Cool dark gray with a blue-violet cast
 
 Foreground
 
@@ -96,6 +96,10 @@ Muted Gray-Orange
 Inactive Muscle
 
 Dark Gray
+
+The cool background is the foundation of the dark-first experience. Orange is
+an accent reserved for actions, active states, progress, and meaningful
+highlights; it should not tint the application background or large surfaces.
 
 Bones
 

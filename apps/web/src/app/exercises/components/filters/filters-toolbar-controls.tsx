@@ -120,8 +120,8 @@ export default function FiltersToolbarControls(
   }
 
   return (
-    <div className="flex flex-col gap-3 border-b border-border/70 p-2 md:p-3">
-      <div className="flex gap-2 flex-row justify-start">
+    <div className="flex flex-col gap-3 border-b border-border/70 bg-background/30 p-3 md:p-4">
+      <div className="flex flex-row justify-start gap-2">
         <SearchForm
           search={search}
           searchError={searchError}

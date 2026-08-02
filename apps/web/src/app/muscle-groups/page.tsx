@@ -20,8 +20,8 @@ export default async function MusclesPage() {
     buildUrl(process.env.API_URL, "muscle-groups"),
   );
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 p-1 md:p-2">
-      <PageHeader subtitle="Explore each muscle group&apos;s function and anatomy.">
+    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
+      <PageHeader subtitle="Explore each muscle group's function and anatomy.">
         <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
       </PageHeader>
 

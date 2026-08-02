@@ -29,7 +29,7 @@ export default async function ExerciseDetailsPage(props: {
   );
 
   return (
-    <main className="h-dvh w-full flex flex-col gap-2 overflow-hidden p-1 md:p-2">
+    <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore our exercise&apos;s catalog.">
         <Link
           className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"

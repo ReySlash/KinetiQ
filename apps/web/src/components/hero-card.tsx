@@ -9,12 +9,12 @@ type HeroCardProps = {
 export default function HeroCard(props: HeroCardProps) {
   const { thumbnailUrl, imageAltText } = props;
   return (
-    <Card className="p-2 w-full aspect-square">
+    <Card className="aspect-square w-full border-border/70 bg-card/80 p-2">
       <CardContent className="p-2">
         <Image
           src={thumbnailUrl ?? "https://avatar.vercel.sh/shadcn1"}
           alt={imageAltText ?? "Not image description found."}
-          className="z-20 object-cover rounded-3xl"
+          className="z-20 rounded-2xl object-cover"
           width={3000}
           height={3000}
         />

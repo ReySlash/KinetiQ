@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { RxDashboard } from "react-icons/rx";
 import { IoMdFitness } from "react-icons/io";
 import { GiStrong } from "react-icons/gi";
@@ -55,21 +58,34 @@ const items = [
 ] as const;
 
 export function SideNav() {
+  const pathname = usePathname();
+
   return (
     <nav aria-label="Primary">
       <SidebarMenu>
-        {items.map(({ href, label, icon: Icon }) => (
-          <SidebarMenuItem key={href}>
-            <SidebarMenuButton
-              tooltip={label}
-              render={<Link href={href} aria-label={label} />}
-              className="h-9"
-            >
-              <Icon aria-hidden="true" />
-              <span>{label}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {items.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname === href || pathname.startsWith(`${href}/`);
+
+          return (
+            <SidebarMenuItem key={href}>
+              <SidebarMenuButton
+                isActive={isActive}
+                tooltip={label}
+                render={
+                  <Link
+                    href={href}
+                    aria-label={label}
+                    aria-current={isActive ? "page" : undefined}
+                  />
+                }
+                className="h-10 rounded-xl text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground data-active:bg-primary/20 data-active:font-medium data-active:text-primary"
+              >
+                <Icon aria-hidden="true" />
+                <span>{label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </nav>
   );

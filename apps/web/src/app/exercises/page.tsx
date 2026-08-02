@@ -30,7 +30,8 @@ export default async function ExercisesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const queryParams = await searchParams;
-  const filters: ExercisesCatalogQuery = parseExercisesCatalogQuery(queryParams);
+  const filters: ExercisesCatalogQuery =
+    parseExercisesCatalogQuery(queryParams);
 
   const pageNumber =
     queryParams.page && Number(queryParams.page) > 0
@@ -52,14 +53,14 @@ export default async function ExercisesPage({
   const visibleExercises = exerciseData.slice(0, pageSize);
 
   return (
-    <main className="flex flex-col h-dvh w-full gap-2 p-1 md:p-2">
+    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore our exercise's catalog.">
         <h1 className="text-lg font-bold leading-none">Exercises</h1>
       </PageHeader>
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-sm">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-sm">
         <FiltersToolbar />
-        <div className="min-h-0 flex-1 overflow-auto p-2 md:p-3">
+        <div className="min-h-0 flex-1 overflow-auto p-3 md:p-4">
           <ExercisesTable exercises={visibleExercises} />
         </div>
         <div className="shrink-0 border-t border-border/70 px-2 py-2 md:px-3">
