@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18.4-alpine3.24
+        env:
+          POSTGRES_DB: kinetiq
+          POSTGRES_USER: kinetiq
+          POSTGRES_PASSWORD: kinetiq
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U kinetiq -d kinetiq"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://kinetiq:kinetiq@localhost:5432/kinetiq?schema=public
+      NODE_ENV: test
+      PORT: 3000
+      WEB_ORIGIN: http://localhost:3001
+      API_URL: http://localhost:3000/api/
+      BETTER_AUTH_SECRET: test-only-better-auth-secret-32-characters
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply database migrations
+        run: pnpm --filter api prisma:migrate:deploy
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build API
+        run: pnpm --filter api build
+
+      - name: Start API for web build
+        run: |
+          pnpm --filter api start:prod > /tmp/kinetiq-api.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:3000/api/health > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/kinetiq-api.log
+          exit 1
+
+      - name: Build web
+        run: pnpm --filter web build

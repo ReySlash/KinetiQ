@@ -12,6 +12,8 @@
     "lint": "pnpm -r lint",
     "lint:web": "pnpm --filter web lint",
     "lint:api": "pnpm --filter api lint",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "test": "pnpm --filter api test",
     "test:api": "pnpm --filter api test",
     "test:api:e2e": "pnpm --filter api test:e2e",

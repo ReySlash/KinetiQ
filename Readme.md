@@ -81,6 +81,23 @@ Exercise ratings are editorial classifications, not precise scientific measureme
 
 ## Current Status
 
-This repository is in the planning and foundation stage. The initial Next.js and NestJS app shells are present, with the monorepo foundation still being built out incrementally.
+The repository has a working foundation and a partial reference-library implementation. PostgreSQL runs through Docker Compose for local development; the API has Prisma migrations, validated configuration, Better Auth wiring, public muscle/exercise endpoints, and a database readiness endpoint; the web app has responsive reference-library pages and the shared application shell.
 
-Next recommended implementation task: add local Docker services, Prisma/PostgreSQL setup, environment validation, and baseline CI checks.
+The next product slice is authentication UX and user-owned routines. Training plans, workout sessions, analytics, progression, recovery, and coach workflows remain deferred according to the implementation plan.
+
+### Local verification
+
+```bash
+pnpm install
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+docker compose up -d postgres
+pnpm --filter api prisma:migrate:dev
+pnpm --filter api prisma:seed
+pnpm dev:api
+pnpm dev:web
+```
+
+The API is available at `http://localhost:3000/api`, readiness is checked at `/api/health`, and development Swagger is available at `/api/docs`. Application containers are intentionally not part of the development Compose file; the API and web run directly from the workspace for fast iteration.
+
+Run the repository checks with `pnpm check`.

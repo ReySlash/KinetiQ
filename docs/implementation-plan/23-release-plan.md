@@ -104,14 +104,13 @@ At plan creation all releases are `PLANNED`. Update this table when work begins;
 
 | Release | Status | Depends on |
 | --- | --- | --- |
-| R0 Foundation | Planned | — |
-| R1 Muscles | Planned | R0 |
-| R2 Exercise identity | Planned | R1 |
-| R3 Muscle assignments | Planned | R2 |
-| R4 Profiles | Planned | R3 |
+| R0 Foundation | In progress — runtime, CI, and operational documentation are implemented; clean-environment verification remains | — |
+| R1 Muscles | Implemented in code; acceptance and clean-database verification remain | R0 |
+| R2 Exercise identity | Implemented in code; admin/shared-environment security gate remains | R1 |
+| R3 Muscle assignments | Implemented in code; acceptance verification remains | R2 |
+| R4 Profiles | Implemented in code; acceptance verification remains | R3 |
 | R5 Media | Planned | R2, storage decision |
-| R6 Auth/admin hardening | Planned | R0; gates shared R2–R5 |
+| R6 Auth/admin hardening | In progress — Better Auth backend wiring exists; web flows and full HTTP authorization matrix remain | R0; gates shared R2–R5 |
 | R7–R8 Routines | Planned | R2, R6 |
 | R9 Production MVP | Planned | R0–R8 |
 | R10+ Later phases | Deferred | R9 and preceding data layers |
-
