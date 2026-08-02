@@ -60,10 +60,10 @@ export default async function ExercisesPage({
 
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-sm">
         <FiltersToolbar />
-        <div className="min-h-0 flex-1 overflow-auto p-3 md:p-4">
+        <div className="min-h-0 flex-1 overflow-auto p-2">
           <ExercisesTable exercises={visibleExercises} />
         </div>
-        <div className="shrink-0 border-t border-border/70 px-2 py-2 md:px-3">
+        <div className="shrink-0 border-t border-border/70 px-2 py-1 md:px-3">
           <Paginator
             pageNumber={pageNumber}
             isLastPage={isLastPage}
