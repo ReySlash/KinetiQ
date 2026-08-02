@@ -7,6 +7,8 @@ export interface EnvironmentVariables {
   DATABASE_URL: string;
   BETTER_AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
 }
 
 const validNodeEnvs = new Set<NodeEnv>(['development', 'test', 'production']);
@@ -71,6 +73,14 @@ export function validateEnv(
     typeof config.BETTER_AUTH_URL === 'string'
       ? config.BETTER_AUTH_URL
       : undefined;
+  const resendApiKey =
+    typeof config.RESEND_API_KEY === 'string'
+      ? config.RESEND_API_KEY
+      : undefined;
+  const resendFromEmail =
+    typeof config.RESEND_FROM_EMAIL === 'string'
+      ? config.RESEND_FROM_EMAIL
+      : undefined;
 
   return {
     NODE_ENV: parseNodeEnv(nodeEnv),
@@ -83,5 +93,7 @@ export function validateEnv(
       })(),
     BETTER_AUTH_SECRET: betterAuthSecret,
     BETTER_AUTH_URL: parseOptionalUrl('BETTER_AUTH_URL', betterAuthUrl),
+    RESEND_API_KEY: resendApiKey,
+    RESEND_FROM_EMAIL: resendFromEmail,
   };
 }

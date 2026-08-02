@@ -27,3 +27,16 @@ export function buildUrl(
 
   return url.toString();
 }
+
+export function buildApiUrl(
+  path: string,
+  queryParams?: Record<string, QueryValue>,
+): string {
+  const apiOrigin = process.env.NEXT_PUBLIC_API_URL;
+
+  if (!apiOrigin) {
+    throw new Error("NEXT_PUBLIC_API_URL is required.");
+  }
+
+  return buildUrl(`${apiOrigin.replace(/\/$/, "")}/api`, path, queryParams);
+}

@@ -1,4 +1,4 @@
-import { buildUrl } from "@/lib/url";
+import { buildApiUrl } from "@/lib/url";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ExerciseDetails } from "@/types/exercise-types";
@@ -6,8 +6,10 @@ import { ExerciseDetails } from "@/types/exercise-types";
 import StatsCard from "../components/stats-card";
 import OverviewCard from "../components/overview-card";
 
-import HeroCard from "../../../components/hero-card";
+import HeroCard from "../../../../components/hero-card";
 import MuscleSCard from "@/components/muscles-card";
+
+export const dynamic = "force-dynamic";
 
 async function fetchData(url: string): Promise<ExerciseDetails> {
   const response = await fetch(url);
@@ -25,7 +27,7 @@ export default async function ExerciseDetailsPage(props: {
   const { slug } = await props.params;
 
   const exerciseDetails = await fetchData(
-    buildUrl(process.env.API_URL, `exercises/${slug}`),
+    buildApiUrl(`exercises/${slug}`),
   );
 
   return (

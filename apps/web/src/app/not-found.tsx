@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Card,
   CardContent,
@@ -12,9 +11,8 @@ import {
 
 export default function NotFound() {
   return (
-    <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
+    <main className="lex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
       <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
-        <SidebarTrigger className="md:hidden" />
         <div className="flex flex-col">
           <h1 className="text-lg font-bold leading-none">404 - Not Found</h1>
         </div>

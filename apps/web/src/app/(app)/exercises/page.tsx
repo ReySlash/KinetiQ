@@ -1,4 +1,4 @@
-import { buildUrl } from "@/lib/url";
+import { buildApiUrl } from "@/lib/url";
 import { Exercise } from "@/types/exercise-types";
 import { PageHeader } from "@/components/page-header";
 import { ExercisesTable } from "./components/exercises-table";
@@ -8,6 +8,8 @@ import {
 } from "./components/filters/exercise-filters";
 import { FiltersToolbar } from "./components/filters/filters-toolbar";
 import { Paginator } from "./components/paginator";
+
+export const dynamic = "force-dynamic";
 
 async function fetchData(url: string): Promise<Exercise[]> {
   const response = await fetch(url);
@@ -40,7 +42,7 @@ export default async function ExercisesPage({
   const pageSize = 19;
 
   const exerciseData = await fetchData(
-    buildUrl(process.env.API_URL, "exercises", {
+    buildApiUrl("exercises", {
       offset: (pageNumber - 1) * pageSize,
       limit: pageSize + 1,
       search: filters.search,

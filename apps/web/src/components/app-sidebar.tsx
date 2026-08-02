@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -10,22 +14,37 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { SideNav } from "./side-nav";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { User2 } from "lucide-react";
-import { FaDollarSign } from "react-icons/fa6";
-import { IoSettingsSharp } from "react-icons/io5";
 import { ThemeToggle } from "./theme-toggle";
+import Link from "next/link";
+import { User2 } from "lucide-react";
+import { authApi, type AuthSession } from "@/lib/auth-api";
 
 export function AppSidebar() {
+  const router = useRouter();
+  const [session, setSession] = useState<AuthSession | null>(null);
+
+  useEffect(() => {
+    void authApi
+      .getSession()
+      .then(setSession)
+      .catch(() => setSession(null));
+  }, []);
+
+  async function handleSignOut() {
+    await authApi.signOut();
+    setSession(null);
+    router.replace("/sign-in");
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -55,40 +74,31 @@ export function AppSidebar() {
                     className="flex w-full items-center justify-start gap-2 rounded-xl group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center"
                   >
                     <Avatar>
-                      <AvatarImage
-                        src="https://github.com/shadcn.png"
-                        alt="shadcn"
-                      />
-                      <AvatarFallback>CN</AvatarFallback>
+                      <AvatarFallback>
+                        {session?.user.name.slice(0, 2).toUpperCase() ?? "?"}
+                      </AvatarFallback>
                     </Avatar>
                     <p className="truncate group-data-[collapsible=icon]:sr-only">
-                      Username
+                      {session?.user.name ?? "Account"}
                     </p>
                   </Button>
                 }
               />
               <DropdownMenuContent className="w-32">
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <User2 />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <FaDollarSign />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <IoSettingsSharp />
-                    Settings
-                  </DropdownMenuItem>
+                  {session ? (
+                    <DropdownMenuItem onClick={() => void handleSignOut()}>
+                      <User2 />
+                      Sign out
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem render={<Link href="/sign-in" />}>
+                      <User2 />
+                      Sign in
+                    </DropdownMenuItem>
+                  )}
 
                   <ThemeToggle />
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem variant="destructive">
-                    Log out
-                  </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>

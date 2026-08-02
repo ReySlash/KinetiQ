@@ -1,11 +1,13 @@
-import { buildUrl } from "@/lib/url";
+import { buildApiUrl } from "@/lib/url";
 import { Muscle } from "@/types/muscle-types";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { MuscleBreadcrumb } from "@/app/muscle-groups/components/muscle-breadcrumb";
+import { MuscleBreadcrumb } from "@/app/(app)/muscle-groups/components/muscle-breadcrumb";
 import { PageHeader } from "@/components/page-header";
 import MuscleOverviewCard from "./components/muscle-overview-card";
 import ExercisesMusclesCard from "./components/exercises-muscles-card";
+
+export const dynamic = "force-dynamic";
 
 async function fetchData(url: string): Promise<Muscle> {
   const response = await fetch(url);
@@ -23,7 +25,7 @@ export default async function MuscleGroupPage(props: {
   const { slug } = await props.params;
 
   const muscleDetails = await fetchData(
-    buildUrl(process.env.API_URL, `muscles/${slug}`),
+    buildApiUrl(`muscles/${slug}`),
   );
 
   return (

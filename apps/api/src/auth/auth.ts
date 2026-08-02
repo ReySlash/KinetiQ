@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import type { ConfigService } from '@nestjs/config';
@@ -25,11 +26,13 @@ function escapeHtml(value: string): string {
   );
 }
 
-async function sendVerificationEmail(
+async function sendEmail(
   apiKey: string,
   from: string,
   recipient: string,
-  verificationUrl: string,
+  subject: string,
+  html: string,
+  text: string,
 ): Promise<void> {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -40,9 +43,9 @@ async function sendVerificationEmail(
     body: JSON.stringify({
       from,
       to: [recipient],
-      subject: 'Verify your KinetiQ email address',
-      html: `<p>Welcome to KinetiQ.</p><p><a href="${escapeHtml(verificationUrl)}">Verify your email address</a></p><p>This link expires in one hour.</p>`,
-      text: `Welcome to KinetiQ. Verify your email address: ${verificationUrl}\n\nThis link expires in one hour.`,
+      subject,
+      html,
+      text,
     }),
   });
 
@@ -86,7 +89,7 @@ export function createAuth(
     ),
     advanced: {
       database: {
-        generateId: 'uuid',
+        generateId: () => randomUUID(),
       },
     },
     user: {
@@ -103,6 +106,22 @@ export function createAuth(
       enabled: true,
       disableSignUp: false,
       requireEmailVerification: true,
+      sendResetPassword: ({ user, url }) => {
+        if (!config.resendApiKey || !config.resendFromEmail) {
+          throw new Error(
+            'RESEND_API_KEY and RESEND_FROM_EMAIL are required to send password reset emails.',
+          );
+        }
+
+        return sendEmail(
+          config.resendApiKey,
+          config.resendFromEmail,
+          user.email,
+          'Reset your KinetiQ password',
+          `<p>We received a request to reset your KinetiQ password.</p><p><a href="${escapeHtml(url)}">Reset your password</a></p><p>This link expires in one hour.</p>`,
+          `Reset your KinetiQ password: ${url}\n\nThis link expires in one hour.`,
+        );
+      },
     },
     emailVerification: {
       sendOnSignUp: true,
@@ -115,14 +134,14 @@ export function createAuth(
           );
         }
 
-        void sendVerificationEmail(
+        return sendEmail(
           config.resendApiKey,
           config.resendFromEmail,
           user.email,
-          url,
-        ).catch(() => undefined);
-
-        return Promise.resolve();
+          'Verify your KinetiQ email address',
+          `<p>Welcome to KinetiQ.</p><p><a href="${escapeHtml(url)}">Verify your email address</a></p><p>This link expires in one hour.</p>`,
+          `Welcome to KinetiQ. Verify your email address: ${url}\n\nThis link expires in one hour.`,
+        );
       },
     },
   });
