@@ -71,98 +71,167 @@ enum RoutineVisibility {
   PRIVATE
 }
 
+enum PlatformRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String       @id @db.Uuid
+  name          String
+  email         String       @unique
+  emailVerified Boolean      @default(false)
+  image         String?
+  role          PlatformRole @default(USER)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime     @updatedAt @db.Timestamptz(3)
+  sessions      Session[]
+  accounts      Account[]
+  routines      Routine[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @db.Uuid
+  expiresAt DateTime @db.Timestamptz(3)
+  token     String   @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime  @updatedAt @db.Timestamptz(3)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([identifier])
+  @@map("verification")
+}
+
 model MuscleGroup {
-  id          String   @id @db.Uuid
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  bodyRegion  BodyRegion
+  id                  String     @id @db.Uuid
+  name                String     @unique
+  slug                String     @unique
+  description         String?
+  bodyRegion          BodyRegion
   thumbnailUrl        String?
   thumbnailStorageKey String?
   imageAltText        String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
-  muscles     Muscle[]
+  sortOrder           Int        @default(0)
+  createdAt           DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime   @updatedAt @db.Timestamptz(3)
+  muscles             Muscle[]
 }
 
 model Muscle {
-  id                 String   @id @db.Uuid
-  name               String   @unique
-  slug               String   @unique
-  description        String
-  bodyRegion         BodyRegion // (e.g., UPPER_BODY, LOWER_BODY)
-  muscleGroupId      String?  @db.Uuid
-  parentId           String?  @db.Uuid
-  thumbnailUrl       String?
+  id                  String                     @id @db.Uuid
+  name                String                     @unique
+  slug                String                     @unique
+  description         String
+  bodyRegion          BodyRegion // (e.g., UPPER_BODY, LOWER_BODY)
+  muscleGroupId       String?                    @db.Uuid
+  parentId            String?                    @db.Uuid
+  thumbnailUrl        String?
   thumbnailStorageKey String?
-  imageAltText       String?
-  isActive           Boolean  @default(true)
-  sortOrder          Int      @default(0)
-  createdAt          DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt          DateTime @updatedAt @db.Timestamptz(3)
-  muscleGroup        MuscleGroup? @relation(fields: [muscleGroupId], references: [id], onDelete: Restrict)
-  parent             Muscle?  @relation("MuscleHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children           Muscle[] @relation("MuscleHierarchy")
-  exerciseMuscles    ExerciseMuscle[] // Many-to-many relationship with exercises
+  imageAltText        String?
+  isActive            Boolean                    @default(true)
+  sortOrder           Int                        @default(0)
+  createdAt           DateTime                   @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime                   @updatedAt @db.Timestamptz(3)
+  muscleGroup         MuscleGroup?               @relation(fields: [muscleGroupId], references: [id], onDelete: Restrict)
+  parent              Muscle?                    @relation("MuscleHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children            Muscle[]                   @relation("MuscleHierarchy")
+  exerciseMuscles     ExerciseMuscle[] // Many-to-many relationship with exercises
+  functionAssignments MuscleFunctionAssignment[]
+
   @@index([bodyRegion, isActive])
   @@index([muscleGroupId, isActive])
   @@index([parentId])
-  functionAssignments MuscleFunctionAssignment[]
 }
 
 model Equipment {
-  id          String   @id @db.Uuid
-  name        String   @unique
-  slug        String   @unique
+  id          String              @id @db.Uuid
+  name        String              @unique
+  slug        String              @unique
   description String?
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  isActive    Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime            @updatedAt @db.Timestamptz(3)
   exercises   ExerciseEquipment[]
 }
 
 model MovementPattern {
-  id          String   @id @db.Uuid
-  name        String   @unique
-  slug        String   @unique
+  id          String     @id @db.Uuid
+  name        String     @unique
+  slug        String     @unique
   description String?
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  isActive    Boolean    @default(true)
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
   exercises   Exercise[]
 }
 
 model Exercise {
-  id                    String   @id @db.Uuid
-  name                  String   @unique
-  slug                  String   @unique
-  description           String
-  instructions          String
-  commonMistakes        String?
-  movementPatternId     String?  @db.Uuid
-  forceType             ForceType // ENUM (e.g., PUSH, PULL)
-  kineticChain          KineticChain // ENUM (e.g., open, closed, mixed)
-  isCompound            Boolean
-  laterality            Laterality // ENUM (e.g., unilateral, bilateral)
-  contractionMode       ContractionMode // ENUM (e.g., dinamyc, isometric, mixed)
-  bodyPosition          BodyPosition // ENUM (e.g., standing, sitting)
-  skillLevel            SkillLevel // ENUM (e.g., beginner, intermediate, advanced)
-  thumbnailUrl          String?
-  thumbnailStorageKey   String?
-  imageAltText          String?
-  isActive              Boolean  @default(true)
-  archivedAt            DateTime? @db.Timestamptz(3)
-  createdAt             DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt             DateTime @updatedAt @db.Timestamptz(3)
-  movementPattern       MovementPattern? @relation(fields: [movementPatternId], references: [id], onDelete: Restrict)  
-  muscles               ExerciseMuscle[] // MODEL (Many-to-Many)
-  capabilities          ExerciseCapabilityProfile? // MODEL (One-to-One)
-  demands               ExerciseDemandProfile? // MODEL (One-to-One)
-  equipment             ExerciseEquipment[] // MODEL (Many-to-Many)
-  routineExercises       RoutineExercise[] // MODEL (Many-to-Many)
+  id                  String                     @id @db.Uuid
+  name                String                     @unique
+  slug                String                     @unique
+  description         String
+  instructions        String
+  commonMistakes      String?
+  movementPatternId   String?                    @db.Uuid
+  forceType           ForceType // ENUM (e.g., PUSH, PULL)
+  kineticChain        KineticChain // ENUM (e.g., open, closed, mixed)
+  isCompound          Boolean
+  laterality          Laterality // ENUM (e.g., unilateral, bilateral)
+  contractionMode     ContractionMode // ENUM (e.g., dinamyc, isometric, mixed)
+  bodyPosition        BodyPosition // ENUM (e.g., standing, sitting)
+  skillLevel          SkillLevel // ENUM (e.g., beginner, intermediate, advanced)
+  thumbnailUrl        String?
+  thumbnailStorageKey String?
+  imageAltText        String?
+  isActive            Boolean                    @default(true)
+  archivedAt          DateTime?                  @db.Timestamptz(3)
+  createdAt           DateTime                   @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime                   @updatedAt @db.Timestamptz(3)
+  movementPattern     MovementPattern?           @relation(fields: [movementPatternId], references: [id], onDelete: Restrict)
+  muscles             ExerciseMuscle[] // MODEL (Many-to-Many)
+  capabilities        ExerciseCapabilityProfile? // MODEL (One-to-One)
+  demands             ExerciseDemandProfile? // MODEL (One-to-One)
+  equipment           ExerciseEquipment[] // MODEL (Many-to-Many)
+  routineExercises    RoutineExercise[] // MODEL (Many-to-Many)
 
   @@index([isActive, name])
   @@index([movementPatternId, isActive])
@@ -170,9 +239,9 @@ model Exercise {
 }
 
 model ExerciseEquipment {
-  exerciseId String   @db.Uuid
-  equipmentId String   @db.Uuid
-  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  exerciseId  String    @db.Uuid
+  equipmentId String    @db.Uuid
+  exercise    Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
 
   @@id([exerciseId, equipmentId])
@@ -180,15 +249,15 @@ model ExerciseEquipment {
 }
 
 model ExerciseMuscle {
-  exerciseId        String   @db.Uuid
-  muscleId          String   @db.Uuid
-  role              MuscleRole // ENUM (e.g., primary, secondary, stabilizer)
-  involvementScore  Int
-  notes             String?
-  createdAt         DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime @updatedAt @db.Timestamptz(3)
-  exercise          Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  muscle            Muscle   @relation(fields: [muscleId], references: [id], onDelete: Restrict)
+  exerciseId       String     @db.Uuid
+  muscleId         String     @db.Uuid
+  role             MuscleRole // ENUM (e.g., primary, secondary, stabilizer)
+  involvementScore Int
+  notes            String?
+  createdAt        DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime   @updatedAt @db.Timestamptz(3)
+  exercise         Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  muscle           Muscle     @relation(fields: [muscleId], references: [id], onDelete: Restrict)
 
   @@id([exerciseId, muscleId])
   @@index([muscleId, role])
@@ -196,25 +265,25 @@ model ExerciseMuscle {
 }
 
 model ExerciseCapabilityProfile {
-  exerciseId                 String   @id @db.Uuid
-  hypertrophyPotential       Int
-  maximalStrengthPotential   Int
-  powerDevelopmentPotential  Int
-  muscularEndurancePotential Int
+  exerciseId                    String   @id @db.Uuid
+  hypertrophyPotential          Int
+  maximalStrengthPotential      Int
+  powerDevelopmentPotential     Int
+  muscularEndurancePotential    Int
   stabilityDevelopmentPotential Int
-  typicalLoadability         Int
-  stretchPositionLoading     Int
-  shortenedPositionLoading   Int
-  editorialNotes             String?
-  createdAt                  DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt                  DateTime @updatedAt @db.Timestamptz(3)
-  exercise                   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  typicalLoadability            Int
+  stretchPositionLoading        Int
+  shortenedPositionLoading      Int
+  editorialNotes                String?
+  createdAt                     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt                     DateTime @updatedAt @db.Timestamptz(3)
+  exercise                      Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 }
 
 model ExerciseDemandProfile {
-  exerciseId                String   @id @db.Uuid
-  technicalDemand           Int
-  setupComplexity           Int
+  exerciseId               String   @id @db.Uuid
+  technicalDemand          Int
+  setupComplexity          Int
   stabilityDemand          Int
   systemicFatiguePotential Int
   localFatiguePotential    Int
@@ -230,11 +299,12 @@ model ExerciseDemandProfile {
 model Routine {
   id          String            @id @db.Uuid
   ownerId     String            @db.Uuid
-  name        String            
+  name        String
   description String?
   visibility  RoutineVisibility @default(PRIVATE)
   createdAt   DateTime          @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime          @updatedAt @db.Timestamptz(3)
+  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   exercises   RoutineExercise[]
 
   @@index([ownerId, updatedAt])
@@ -263,7 +333,6 @@ model RoutineExercise {
   @@index([exerciseId])
 }
 
-
 // ###########################################################################################################################
 // ########################### ADDING MUSCLE FUNCTIONS ######################################################################
 // ###########################################################################################################################
@@ -286,13 +355,13 @@ model MuscleFunction {
 }
 
 model MuscleFunctionAssignment {
-  muscleId         String             @db.Uuid
-  functionId       String             @db.Uuid
-  role             MuscleFunctionRole
+  muscleId          String             @db.Uuid
+  functionId        String             @db.Uuid
+  role              MuscleFunctionRole
   contributionScore Int?
-  notes            String?
-  createdAt        DateTime           @default(now()) @db.Timestamptz(3)
-  updatedAt        DateTime           @updatedAt @db.Timestamptz(3)
+  notes             String?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(3)
 
   muscle         Muscle         @relation(fields: [muscleId], references: [id], onDelete: Cascade)
   muscleFunction MuscleFunction @relation(fields: [functionId], references: [id], onDelete: Restrict)
