@@ -11,15 +11,18 @@ describe('ExercisesService', () => {
   let service: ExercisesService;
   let findMany: jest.Mock<Promise<unknown>, [unknown]>;
   let findFirst: jest.Mock<Promise<unknown>, [unknown]>;
+  let update: jest.Mock<Promise<unknown>, [unknown]>;
 
   beforeEach(async () => {
     findMany = jest.fn<Promise<unknown>, [unknown]>();
     findFirst = jest.fn<Promise<unknown>, [unknown]>();
+    update = jest.fn<Promise<unknown>, [unknown]>();
 
     const prismaServiceMock = {
       exercise: {
         findMany,
         findFirst,
+        update,
       },
     };
 
@@ -519,5 +522,27 @@ describe('ExercisesService', () => {
     await expect(service.findOne('missing-slug')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('archives an exercise without deleting its record', async () => {
+    const archivedAt = new Date('2026-08-02T12:00:00.000Z');
+    update.mockResolvedValue({
+      id: 'exercise-id',
+      archivedAt,
+    });
+
+    await expect(service.archive('exercise-id')).resolves.toEqual({
+      id: 'exercise-id',
+      archivedAt,
+      message: 'Exercise archived successfully',
+    });
+    expect(update.mock.calls[0]?.[0]).toMatchObject({
+      where: { id: 'exercise-id' },
+      data: { isActive: false },
+      select: {
+        id: true,
+        archivedAt: true,
+      },
+    });
   });
 });

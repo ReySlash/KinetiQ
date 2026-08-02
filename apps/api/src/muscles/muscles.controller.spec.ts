@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { MusclesController } from './muscles.controller';
 import { MusclesService } from './muscles.service';
@@ -21,5 +23,11 @@ describe('MusclesController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('allows anonymous access', () => {
+    expect(Reflect.getMetadata('testAllowAnonymous', MusclesController)).toBe(
+      true,
+    );
   });
 });
