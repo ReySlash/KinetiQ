@@ -203,7 +203,7 @@ export function RoutineBuilder({
       </header>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="mx-auto flex w-full max-w-5xl flex-col gap-5 pb-8"
+        className="mx-auto flex w-full max-w-5xl flex-col gap-2 pb-8"
       >
         <Card>
           <CardHeader>
@@ -253,7 +253,7 @@ export function RoutineBuilder({
               Complete the prescription for each exercise before saving.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-3">
             {fields.fields.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-8 text-center">
                 <BookOpen className="size-6 text-primary" />

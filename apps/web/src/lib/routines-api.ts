@@ -62,3 +62,15 @@ export function updateRoutine(id: string, input: RoutineCreateInput) {
     body: JSON.stringify(input),
   });
 }
+
+export function deleteRoutine(id: string) {
+  return request<{ message: string }>(`routines/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function duplicateRoutine(id: string) {
+  return request<{ message: string }>(`routines/${id}/duplicate`, {
+    method: "POST",
+  });
+}

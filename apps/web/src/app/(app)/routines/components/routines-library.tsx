@@ -1,8 +1,10 @@
 import { Dumbbell, Plus } from "lucide-react";
+import { CiMenuBurger } from "react-icons/ci";
 
 import StyledLink from "@/components/styled-link";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -56,6 +58,15 @@ export function RoutinesLibrary({ routines }: { routines: RoutineListItem[] }) {
               >
                 <CardHeader>
                   <CardTitle>{routine.name}</CardTitle>
+                  <CardAction>
+                    <StyledLink
+                      href={`/routines/${routine.id}`}
+                      variant="outline"
+                    >
+                      <CiMenuBurger />
+                      <span className="sr-only">Open routine details</span>
+                    </StyledLink>
+                  </CardAction>
                   <CardDescription className="line-clamp-2 min-h-10">
                     {routine.description || "No description yet."}
                   </CardDescription>
