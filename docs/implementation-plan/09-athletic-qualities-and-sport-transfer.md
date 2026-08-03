@@ -72,7 +72,7 @@ model ExerciseSportRelevance {
 
 ## Later API and frontend
 
-General qualities may be embedded in exercise detail/admin edits and filtered explicitly. Sport mappings should use admin subresources such as `PUT /api/v1/admin/exercises/:exerciseId/sports/:sportId`, because their review lifecycle may differ from the core exercise aggregate. Public sport pages should not launch until coverage is sufficient to avoid biased comparisons.
+General qualities may be embedded in exercise detail/admin edits and filtered explicitly. Sport mappings should use admin subresources such as `PUT /api/admin/exercises/:exerciseId/sports/:sportId`, because their review lifecycle may differ from the core exercise aggregate. Public sport pages should not launch until coverage is sufficient to avoid biased comparisons.
 
 Add form sections only when the corresponding release ships. Present score labels, notes, confidence, and last-reviewed metadata. Never combine qualities into a single colored “athletic score.”
 

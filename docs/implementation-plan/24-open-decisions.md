@@ -9,7 +9,7 @@ Record choices that materially affect implementation. Resolve a decision just be
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Application shape | Next.js web + NestJS modular-monolith API + one PostgreSQL database | Realistic for one developer; clear boundaries without distributed overhead |
-| API style | REST `/api/v1` with Swagger/OpenAPI | Required stack, simple resource workflows, generated client opportunity |
+| API style | REST `/api` with Swagger/OpenAPI; versioning deferred | Required stack, simple resource workflows, generated client opportunity |
 | Contract sharing | Generate client types; do not share Prisma models/server DTO implementations | Prevent server leakage and tight coupling |
 | Score scale | Integer 0–5 with global labels plus per-field definitions | Consistent editorial comparisons |
 | Exercise composition | Identity, muscle join, capability profile, demand profile separate | Prevent large mixed table and preserve semantics |

@@ -11,6 +11,7 @@ import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { createAuth } from './auth/auth';
 import { PrismaService } from './prisma/prisma.service';
 import { HealthModule } from './health/health.module';
+import { RoutinesModule } from './routines/routines.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { HealthModule } from './health/health.module';
     MuscleGroupsModule,
     ExercisesModule,
     HealthModule,
+    RoutinesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -77,14 +77,16 @@ Use a surrogate ID so the same exercise may appear twice. Store dense zero-based
 
 ## API endpoints
 
-- `POST /api/v1/routines`
-- `GET /api/v1/routines?q=&sort=updatedAt:desc&page=&pageSize=`
-- `GET /api/v1/routines/:id`
-- `PATCH /api/v1/routines/:id`
-- `DELETE /api/v1/routines/:id`
-- `POST /api/v1/routines/:id/duplicate`
+- `POST /api/routines`
+- `GET /api/routines?q=&sort=updatedAt:desc&limit=&offset=`
+- `GET /api/routines/:id`
+- `PATCH /api/routines/:id`
+- `DELETE /api/routines/:id`
+- `POST /api/routines/:id/duplicate`
 
-Create/update receive the routine and complete ordered child array; write in one transaction. For MVP, delete may be hard delete because no sessions/plans exist. Before those phases ship, change to restrictive/archive semantics where referenced. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with the new resource.
+Create/update receive the routine and complete ordered child array; write in one transaction. For MVP, delete may be hard delete because no sessions/plans exist. Before those phases ship, change to restrictive/archive semantics where referenced. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with a success message. Create, update, duplicate, and delete mutations return feedback only; clients use the read endpoints when they need the resource representation.
+
+Routine list responses follow the exercise-library read pattern: `limit` defaults to 20, `offset` defaults to 0, and the endpoint returns a plain array without a separate total-count query. List rows use a lightweight projection and include an `exerciseCount`; detail rows include the full ordered prescription data.
 
 ## Ownership and authorization
 
@@ -113,7 +115,7 @@ Use accessible drag-and-drop only if it includes keyboard controls and move-up/d
 - Service: transactional child replacement, duplicate creates independent IDs, name truncation, archived exercise rule
 - Prisma: `(routineId, order)` uniqueness, cascade children, restricted exercise delete, owner indexes
 - Authorization: anonymous 401; user B cannot list/read/update/delete/duplicate user A’s routines; indistinguishable 404
-- API E2E: full lifecycle, rollback on invalid child, canonical order, pagination
+- API E2E: full lifecycle, rollback on invalid child, canonical order, limit/offset reads
 - Frontend: field arrays, duplicate exercises allowed, error focus, reorder keyboard path, loading/empty/error, optimistic rollback
 - Playwright: two isolated users prove ownership; create/duplicate/edit/delete flow
 
@@ -132,4 +134,3 @@ An authenticated user completes every lifecycle action on only their records; pr
 ## Future extensions and open questions
 
 Add estimated duration, RPE, per-set targets, supersets/circuits, progression rules, tags, public sharing, imports, and versions later. Before training plans, decide delete/archive behavior. Before sessions, define snapshot rules. MVP’s accepted choices are private-only visibility, dense integer ordering, and duplicate exercise occurrences allowed.
-

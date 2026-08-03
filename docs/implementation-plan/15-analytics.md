@@ -39,9 +39,9 @@ Create an `AnalyticsService` that queries owned completed sessions through read 
 
 API examples:
 
-- `GET /api/v1/analytics/overview?from=&to=&timezone=`
-- `GET /api/v1/analytics/exercises/:exerciseId?from=&to=`
-- `GET /api/v1/analytics/muscles?from=&to=&method=role-count-v1` (later)
+- `GET /api/analytics/overview?from=&to=&timezone=`
+- `GET /api/analytics/exercises/:exerciseId?from=&to=`
+- `GET /api/analytics/muscles?from=&to=&method=role-count-v1` (later)
 
 Use bounded default/max date ranges. Include `calculation` metadata and `dataCompleteness` flags in responses.
 

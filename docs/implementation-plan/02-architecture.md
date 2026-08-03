@@ -30,7 +30,7 @@ Use pnpm workspaces and Turborepo only if task caching becomes useful; pnpm scri
 Browser
   │ HTTPS
   ▼
-Nginx ───── /api/v1/* ───► NestJS API ───► Prisma ───► PostgreSQL
+Nginx ───── /api/* ───► NestJS API ───► Prisma ───► PostgreSQL
   │                           │
   └──── all other paths ─► Next.js        └──────────► StorageService
                                                        ├─ local dev files
@@ -99,7 +99,7 @@ Stateless web/API containers can later scale horizontally if sessions and media 
 - Architecture checks prevent the web app importing Prisma/server modules.
 - API boots against a clean migrated database.
 - Web/API production builds run in containers as non-root users.
-- A request through Nginx reaches both the web and `/api/v1/health/ready`.
+- A request through Nginx reaches both the web and `/api/health/ready`.
 - Configuration startup fails clearly when a required variable is absent.
 - OpenAPI output is generated and checked for unexpected changes.
 

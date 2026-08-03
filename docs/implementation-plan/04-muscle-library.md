@@ -64,10 +64,10 @@ PostgreSQL should use a case-insensitive unique index on `lower(name)` if exact 
 
 ## API endpoints
 
-- `GET /api/v1/muscles?q=&bodyRegion=&muscleGroup=&parentId=&includeChildren=&page=&pageSize=`
-- `GET /api/v1/muscles/:idOrSlug`
+- `GET /api/muscles?q=&bodyRegion=&muscleGroup=&parentId=&includeChildren=&page=&pageSize=`
+- `GET /api/muscles/:idOrSlug`
 
-Default responses include active records only. Exercise admin forms may use `GET /api/v1/muscles?view=selector&pageSize=100`; avoid creating a second endpoint until payload size justifies it. Seed maintenance runs through CLI/deployment, not public CRUD. A future internal admin module may expose protected mutations.
+Default responses include active records only. Exercise admin forms may use `GET /api/muscles?view=selector&pageSize=100`; avoid creating a second endpoint until payload size justifies it. Seed maintenance runs through CLI/deployment, not public CRUD. A future internal admin module may expose protected mutations.
 
 List items contain ID, name, slug, body region, group, parent summary, and thumbnail presentation URL. Detail adds description and immediate children; do not return an unbounded recursive tree.
 

@@ -14,8 +14,8 @@ Use size/time rotation at the host log driver or ship to a managed service. Set 
 
 ## Health and readiness
 
-- API `/api/v1/health/live`: process/event loop alive; no dependency calls.
-- API `/api/v1/health/ready`: database connectivity and completed critical startup state with short timeout.
+- API `/api/health/live`: process/event loop alive; no dependency calls.
+- API `/api/health/ready`: database connectivity and completed critical startup state with short timeout.
 - Web health: server can render/respond.
 - Nginx/Compose use readiness to route/restart appropriately.
 

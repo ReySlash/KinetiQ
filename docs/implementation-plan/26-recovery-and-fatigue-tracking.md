@@ -36,7 +36,7 @@ Use a dedicated check-in scale with its own meaning, not automatically the exerc
 
 ## API and frontend
 
-Owned CRUD may use `POST/GET/PATCH /api/v1/recovery-check-ins` with date-range bounds. UI includes a quick mobile check-in, history calendar/list, question definitions, optionality/privacy text, and an “insufficient data” state. Charts must not imply causation between a score and performance.
+Owned CRUD may use `POST/GET/PATCH /api/recovery-check-ins` with date-range bounds. UI includes a quick mobile check-in, history calendar/list, question definitions, optionality/privacy text, and an “insufficient data” state. Charts must not imply causation between a score and performance.
 
 ## Authorization and privacy
 

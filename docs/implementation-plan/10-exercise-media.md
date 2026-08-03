@@ -65,7 +65,7 @@ If step 3 fails, no database record is created. If step 4 fails, mark/delete the
 
 ## API endpoints
 
-For MVP, either accept multipart at `POST /api/v1/admin/exercises/:id/thumbnail` or use `POST /admin/media/uploads` then attach. Recommendation: the exercise-specific endpoint is smaller and enforces ownership/context. `DELETE /api/v1/admin/exercises/:id/thumbnail` removes metadata and schedules object deletion. Exercise create can occur first with a placeholder, then upload; the record is complete because thumbnail is optional.
+For MVP, either accept multipart at `POST /api/admin/exercises/:id/thumbnail` or use `POST /admin/media/uploads` then attach. Recommendation: the exercise-specific endpoint is smaller and enforces ownership/context. `DELETE /api/admin/exercises/:id/thumbnail` removes metadata and schedules object deletion. Exercise create can occur first with a placeholder, then upload; the record is complete because thumbnail is optional.
 
 Later add signed flow endpoints: create intent, upload directly, finalize with checksum/object metadata, and expire abandoned intents.
 

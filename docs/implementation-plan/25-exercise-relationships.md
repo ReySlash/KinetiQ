@@ -54,7 +54,7 @@ Both foreign keys reference `Exercise` with `onDelete: Restrict` once published 
 
 ## API and frontend
 
-Public exercise details may embed grouped relationship summaries or expose `GET /api/v1/exercises/:id/relationships?type=`. Admin routes can manage relationships as a section of exercise editing or dedicated subresources. Recommendation: dedicated `POST/PATCH/DELETE /api/v1/admin/exercise-relationships` endpoints because inverse/cycle rules span two exercises and should not complicate the core exercise transaction.
+Public exercise details may embed grouped relationship summaries or expose `GET /api/exercises/:id/relationships?type=`. Admin routes can manage relationships as a section of exercise editing or dedicated subresources. Recommendation: dedicated `POST/PATCH/DELETE /api/admin/exercise-relationships` endpoints because inverse/cycle rules span two exercises and should not complicate the core exercise transaction.
 
 Public UI groups alternatives by human-readable purpose. Admin UI searches a target, prevents self/duplicates, shows inferred inverse, detects cycle warnings, and requires notes for directional recommendations. Routine replacement is a later command that copies compatible prescription fields and asks the user to confirm.
 

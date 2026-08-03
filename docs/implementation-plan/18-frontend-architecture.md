@@ -63,7 +63,7 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 
 Public details and initial lists can fetch from the API in server components with explicit revalidation. Interactive filters hydrate or fetch through query hooks. Avoid fetching the same resource independently on server and client without dehydrating or accepting the duplicate request. Authenticated routine pages can be client fetched initially because cookie forwarding and user-specific caching are clearer; add server prefetch only when UX warrants it.
 
-Use the API origin server-side and same-origin `/api/v1` browser-side. Never expose internal container hostnames in client bundles.
+Use the API origin server-side and same-origin `/api` browser-side. Never expose internal container hostnames in client bundles.
 
 ## Forms
 

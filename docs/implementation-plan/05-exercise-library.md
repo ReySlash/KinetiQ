@@ -83,12 +83,12 @@ Routine prescriptions reference an exercise but do not change it. Later session 
 
 ## API design
 
-- `GET /api/v1/exercises?q=&equipment=&movementPattern=&muscle=&skillLevel=&capability=&minScore=&sort=&page=&pageSize=`
-- `GET /api/v1/exercises/:idOrSlug`
-- `POST /api/v1/admin/exercises`
-- `PATCH /api/v1/admin/exercises/:id`
-- `DELETE /api/v1/admin/exercises/:id` (archive by default once referenced)
-- Optional `POST /api/v1/admin/exercises/:id/restore`
+- `GET /api/exercises?q=&equipment=&movementPattern=&muscle=&skillLevel=&capability=&minScore=&sort=&page=&pageSize=`
+- `GET /api/exercises/:idOrSlug`
+- `POST /api/admin/exercises`
+- `PATCH /api/admin/exercises/:id`
+- `DELETE /api/admin/exercises/:id` (archive by default once referenced)
+- Optional `POST /api/admin/exercises/:id/restore`
 
 Use `POST` for complete creation and `PATCH` for an aggregate edit with documented replacement semantics for included child arrays. Do not expose separate public profile mutation endpoints in MVP; they complicate partial consistency. Lists return summaries and profile highlights; details return the composed record. Default sort is name ascending; supported sorts are allowlisted.
 

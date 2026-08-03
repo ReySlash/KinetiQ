@@ -6,26 +6,26 @@ Expose a predictable REST API from NestJS with validated DTOs, ownership-aware s
 
 ## Base paths and versioning
 
-Use `/api/v1` externally. Nginx proxies that prefix to NestJS without changing observable links. Version only breaking contract changes; add optional fields/endpoints within v1. Do not put implementation module names in routes.
+Use `/api` externally for the current API. Nginx proxies that prefix to NestJS without changing observable links. API versioning is deferred until a breaking contract requires it; do not put implementation module names in routes.
 
 Recommended early routes:
 
 ```text
-GET    /api/v1/muscles
-GET    /api/v1/muscles/:idOrSlug
-GET    /api/v1/exercises
-GET    /api/v1/exercises/:idOrSlug
-POST   /api/v1/admin/exercises
-PATCH  /api/v1/admin/exercises/:id
-DELETE /api/v1/admin/exercises/:id
-POST   /api/v1/admin/exercises/:id/thumbnail
-DELETE /api/v1/admin/exercises/:id/thumbnail
-POST   /api/v1/routines
-GET    /api/v1/routines
-GET    /api/v1/routines/:id
-PATCH  /api/v1/routines/:id
-DELETE /api/v1/routines/:id
-POST   /api/v1/routines/:id/duplicate
+GET    /api/muscles
+GET    /api/muscles/:idOrSlug
+GET    /api/exercises
+GET    /api/exercises/:idOrSlug
+POST   /api/admin/exercises
+PATCH  /api/admin/exercises/:id
+DELETE /api/admin/exercises/:id
+POST   /api/admin/exercises/:id/thumbnail
+DELETE /api/admin/exercises/:id/thumbnail
+POST   /api/routines
+GET    /api/routines
+GET    /api/routines/:id
+PATCH  /api/routines/:id
+DELETE /api/routines/:id
+POST   /api/routines/:id/duplicate
 ```
 
 The `/admin` prefix makes curation intent and documentation clear, but role guards remain mandatory. Public reads and admin writes can share application services. Routine routes need no `/users/:userId` because identity comes from the session.
@@ -55,6 +55,8 @@ For MVP, use page-based pagination: `page` defaults 1, `pageSize` defaults 20, m
 
 Offset pagination is simple and sufficient for the curated catalog and routine list. Move high-churn history to cursor pagination later.
 
+Exception: the authenticated routine list follows the existing exercise-library contract and uses `limit`/`offset` with a plain array response, avoiding a separate count query.
+
 Use `q` for trimmed search with a maximum of 100 characters. Filters use documented names and repeat/comma semantics; recommendation: repeat query parameters for multi-values. Sorting is an allowlisted `sort=field:asc|desc`, never raw SQL/Prisma field pass-through. Apply stable ID/name tie-breakers.
 
 ## Error response
@@ -67,7 +69,7 @@ Adopt an RFC 9457-style problem object:
   "title": "Validation failed",
   "status": 422,
   "detail": "One or more fields are invalid.",
-  "instance": "/api/v1/admin/exercises",
+  "instance": "/api/admin/exercises",
   "requestId": "...",
   "code": "VALIDATION_ERROR",
   "errors": [{ "field": "muscles[1].muscleId", "message": "Duplicate muscle." }]
@@ -99,4 +101,3 @@ Each endpoint has happy, validation, auth, not-found, conflict, and dependency-f
 ## Future extensions and open questions
 
 Cursor pagination, conditional requests, idempotency storage, public API tokens, and webhooks are later. Decide the production docs URL/domain and generated client tool during foundation. Recommendation: generate TypeScript types/client from OpenAPI into `packages/api-client`, avoiding manually shared server types.
-

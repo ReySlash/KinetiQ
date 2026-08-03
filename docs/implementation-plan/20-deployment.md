@@ -50,7 +50,7 @@ Recommendation: use managed PostgreSQL when an affordable nearby provider offers
 
 ## Nginx and HTTPS
 
-Nginx redirects HTTP to HTTPS, proxies `/api/v1` and Better Auth paths consistently to API, proxies remaining requests to web, forwards request ID and standard proxy headers, applies request/upload limits, timeouts, security headers, and rate limits where useful. Trust forwarded headers only from Nginx/private networks.
+Nginx redirects HTTP to HTTPS, proxies `/api` and Better Auth paths consistently to API, proxies remaining requests to web, forwards request ID and standard proxy headers, applies request/upload limits, timeouts, security headers, and rate limits where useful. Trust forwarded headers only from Nginx/private networks.
 
 Certbot obtains/renews certificates using the Nginx or webroot flow. Test automated renewal and reload. Keep port 80 available for ACME/redirect. Add HSTS only after HTTPS/domain behavior is proven.
 
@@ -78,7 +78,7 @@ Application rollback redeploys the previous immutable image if schema remains ba
 
 ## Health checks and smoke tests
 
-`/api/v1/health/live` checks process liveness; `/ready` checks database and critical initialization with tight timeouts. Web has a simple health route. Compose health checks do not call external object storage on every probe. Deployment smoke covers public exercise list, auth page, an authenticated minimal API call, and storage presentation if enabled.
+`/api/health/live` checks process liveness; `/ready` checks database and critical initialization with tight timeouts. Web has a simple health route. Compose health checks do not call external object storage on every probe. Deployment smoke covers public exercise list, auth page, an authenticated minimal API call, and storage presentation if enabled.
 
 ## Image storage
 
