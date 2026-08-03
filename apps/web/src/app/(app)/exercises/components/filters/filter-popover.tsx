@@ -58,7 +58,7 @@ export function FilterPopover(props: FilterPopoverProps) {
       <PopoverTrigger
         type="button"
         className={cn(
-          buttonVariants({ variant: "outline" }),
+          buttonVariants({ variant: "outline", size: "lg" }),
           "gap-2 self-start",
         )}
       >

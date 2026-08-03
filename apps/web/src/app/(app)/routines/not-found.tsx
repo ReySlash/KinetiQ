@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
+import StyledLink from "@/components/styled-link";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Card,
@@ -28,9 +26,7 @@ export default function NotFound() {
             </CardDescription>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Link href={"/"}>
-              <Button variant={"default"}>Go back home</Button>
-            </Link>
+            <StyledLink href="/">Go back home</StyledLink>
           </CardFooter>
         </Card>
       </section>

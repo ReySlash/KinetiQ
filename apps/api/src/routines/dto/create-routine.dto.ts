@@ -7,7 +7,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   Max,
   MaxLength,
   Matches,
@@ -46,9 +45,11 @@ class MaxRepsValidator implements ValidatorConstraintInterface {
 }
 
 export class CreateRoutineExerciseDto {
-  @ApiProperty({ format: 'uuid' })
-  @IsUUID()
-  exerciseId!: string;
+  @ApiProperty({ example: 'bench-press' })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(120)
+  exerciseSlug!: string;
 
   @ApiProperty({ minimum: 1, maximum: 20, example: 3 })
   @IsInt()

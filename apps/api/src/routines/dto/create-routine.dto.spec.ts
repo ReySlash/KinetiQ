@@ -4,7 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { CreateRoutineDto } from './create-routine.dto';
 
-const exerciseId = '423e4567-e89b-12d3-a456-426614174000';
+const exerciseSlug = 'bench-press';
 
 async function validateRoutine(input: unknown) {
   const dto = plainToInstance(CreateRoutineDto, input);
@@ -29,7 +29,7 @@ describe('CreateRoutineDto', () => {
       name: 'Upper Body',
       exercises: [
         {
-          exerciseId,
+          exerciseSlug,
           sets: 3,
           minReps: 12,
           maxReps: 8,

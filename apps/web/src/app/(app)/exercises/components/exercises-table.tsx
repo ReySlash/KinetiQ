@@ -16,6 +16,7 @@ import {
 import { Exercise } from "@/types/exercise-types";
 import Image from "next/image";
 import { CiMenuBurger } from "react-icons/ci";
+import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
 
 type ExercisesTableProps = {
   exercises: Exercise[];
@@ -34,7 +35,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
               <TableHead>Exercise</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Muscles Involved</TableHead>
-              <TableHead className="text-right">Details</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,13 +58,20 @@ export function ExercisesTable(props: ExercisesTableProps) {
                   </TableCell>
                   <TableCell>{exercise.name}</TableCell>
                   <TableCell>{exercise.muscles.length}</TableCell>
-                  <TableCell className="text-right">
-                    <StyledLink
-                      href={`/exercises/${exercise.slug}`}
-                      variant={"outline"}
-                    >
-                      <CiMenuBurger />
-                    </StyledLink>
+                  <TableCell>
+                    <div className="min-h-full flex justify-end gap-2">
+                      <AddToRoutineDialog
+                        exerciseSlug={exercise.slug}
+                        exerciseName={exercise.name}
+                        triggerVariant="outline"
+                      />
+                      <StyledLink
+                        href={`/exercises/${exercise.slug}`}
+                        variant={"outline"}
+                      >
+                        <CiMenuBurger />
+                      </StyledLink>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -84,9 +92,9 @@ export function ExercisesTable(props: ExercisesTableProps) {
           exercises.map((exercise) => (
             <Card
               key={exercise.slug}
-              className="flex flex-col justify-center w-full px-1 py-1"
+              className="flex flex-col justify-center w-full py-1"
             >
-              <CardContent className="flex flex-row items-center justify-between">
+              <CardContent className="flex flex-row items-center justify-between px-1">
                 <Image
                   className="col-span-1 rounded-xl"
                   src={
@@ -97,19 +105,26 @@ export function ExercisesTable(props: ExercisesTableProps) {
                   height={70}
                 />
 
-                <div>
+                <div className="text-wrap text-center">
                   <CardTitle>{exercise.name}</CardTitle>
                   <CardDescription>
                     {exercise.muscles.length} muscles involved
                   </CardDescription>
                 </div>
 
-                <StyledLink
-                  href={`/exercises/${exercise.slug}`}
-                  variant={"outline"}
-                >
-                  <CiMenuBurger />
-                </StyledLink>
+                <div className="flex gap-1">
+                  <AddToRoutineDialog
+                    exerciseSlug={exercise.slug}
+                    exerciseName={exercise.name}
+                    triggerVariant="outline"
+                  />
+                  <StyledLink
+                    href={`/exercises/${exercise.slug}`}
+                    variant={"outline"}
+                  >
+                    <CiMenuBurger />
+                  </StyledLink>
+                </div>
               </CardContent>
             </Card>
           ))

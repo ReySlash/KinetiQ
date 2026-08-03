@@ -36,7 +36,7 @@ export class RoutinesService {
       await this.prisma.$transaction(async (transaction) => {
         await this.assertActiveExercises(
           transaction,
-          dto.exercises.map(({ exerciseId }) => exerciseId),
+          dto.exercises.map(({ exerciseSlug }) => exerciseSlug),
         );
         await transaction.routine.create({
           data: {
@@ -110,7 +110,7 @@ export class RoutinesService {
         if (dto.exercises) {
           await this.assertActiveExercises(
             transaction,
-            dto.exercises.map(({ exerciseId }) => exerciseId),
+            dto.exercises.map(({ exerciseSlug }) => exerciseSlug),
           );
         }
 
@@ -168,7 +168,7 @@ export class RoutinesService {
             exercises: {
               orderBy: { order: 'asc' },
               select: {
-                exerciseId: true,
+                exerciseSlug: true,
                 order: true,
                 sets: true,
                 minReps: true,
@@ -198,7 +198,7 @@ export class RoutinesService {
             exercises: {
               create: source.exercises.map((exercise) => ({
                 id: randomUUID(),
-                exerciseId: exercise.exerciseId,
+                exerciseSlug: exercise.exerciseSlug,
                 order: exercise.order,
                 sets: exercise.sets,
                 minReps: exercise.minReps,
@@ -221,21 +221,21 @@ export class RoutinesService {
 
   private async assertActiveExercises(
     client: Pick<Prisma.TransactionClient, 'exercise'>,
-    exerciseIds: string[],
+    exerciseSlugs: string[],
   ): Promise<void> {
-    const uniqueIds = [...new Set(exerciseIds)];
-    if (uniqueIds.length === 0) return;
+    const uniqueSlugs = [...new Set(exerciseSlugs)];
+    if (uniqueSlugs.length === 0) return;
 
     const exercises = await client.exercise.findMany({
-      where: { id: { in: uniqueIds } },
-      select: { id: true, isActive: true },
+      where: { slug: { in: uniqueSlugs } },
+      select: { slug: true, isActive: true },
     });
-    const activeIds = new Set(
+    const activeSlugs = new Set(
       exercises
         .filter((exercise) => exercise.isActive)
-        .map((exercise) => exercise.id),
+        .map((exercise) => exercise.slug),
     );
-    if (activeIds.size !== uniqueIds.length) {
+    if (activeSlugs.size !== uniqueSlugs.length) {
       throw new UnprocessableEntityException(
         'Every routine exercise must reference an active exercise.',
       );
@@ -245,7 +245,7 @@ export class RoutinesService {
   private buildExerciseCreateData(exercises: CreateRoutineExerciseDto[]) {
     return exercises.map((exercise, order) => ({
       id: randomUUID(),
-      exerciseId: exercise.exerciseId,
+      exerciseSlug: exercise.exerciseSlug,
       order,
       sets: exercise.sets,
       minReps: exercise.minReps,

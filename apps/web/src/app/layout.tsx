@@ -3,6 +3,7 @@ import "./globals.css";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { QueryProvider } from "@/components/query-provider";
 
 export const metadata: Metadata = {
   title: "KinetiQ",
@@ -25,7 +26,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            {children}
+            <QueryProvider>{children}</QueryProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>

@@ -51,7 +51,7 @@ export function AppSidebar() {
         <div className="flex h-10 items-center gap-2 overflow-hidden rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 px-2 py-2 transition-colors group-data-[collapsible=icon]:justify-center">
           <SidebarTrigger className="shrink-0" />
           <h3 className="truncate text-lg font-semibold tracking-tight group-data-[collapsible=icon]:sr-only">
-            <span className="text-primary">Kineti</span>Q
+            <span className="text-primary">Kinet</span>iQ
           </h3>
         </div>
       </SidebarHeader>

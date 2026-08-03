@@ -1,17 +1,32 @@
-export default function RoutinesPage() {
+import { RoutinesLibrary } from "./components/routines-library";
+import { PageHeader } from "@/components/page-header";
+import { fetchRoutines } from "@/lib/routines-server";
+
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Routines | KinetiQ",
+  description: "Build and manage your private workout routines.",
+};
+
+type SearchParams = { [key: string]: string | string[] | undefined };
+
+export default async function RoutinesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q.trim() : undefined;
+  const sort = typeof params.sort === "string" ? params.sort : undefined;
+  const routines = await fetchRoutines({ q, sort });
+
   return (
     <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
-      <section className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm md:p-8">
-      <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
-        Routines
-      </p>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-        Routines placeholder
-      </h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-        This route is wired and ready for the routines implementation.
-      </p>
-      </section>
+      <PageHeader subtitle="Reusable workout templates for your training.">
+        <h1 className="text-lg font-bold leading-none">Routines</h1>
+      </PageHeader>
+      <RoutinesLibrary routines={routines} />
     </main>
   );
 }

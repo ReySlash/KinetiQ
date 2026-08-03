@@ -16,11 +16,11 @@ const owner: AuthenticatedPrincipal = {
   sessionId: '223e4567-e89b-12d3-a456-426614174000',
 };
 const routineId = '323e4567-e89b-12d3-a456-426614174000';
-const exerciseId = '423e4567-e89b-12d3-a456-426614174000';
+const exerciseSlug = 'bench-press';
 
 function buildExercise() {
   return {
-    exerciseId,
+    exerciseSlug,
     sets: 3,
     minReps: 8,
     maxReps: 12,
@@ -51,7 +51,7 @@ function buildRoutineRow(name = 'Upper Body') {
     exercises: [
       {
         id: '523e4567-e89b-12d3-a456-426614174000',
-        exerciseId,
+        exerciseSlug,
         order: 0,
         sets: 3,
         minReps: 8,
@@ -61,7 +61,7 @@ function buildRoutineRow(name = 'Upper Body') {
         tempo: '3-1-X-0',
         notes: 'Controlled reps',
         exercise: {
-          id: exerciseId,
+          slug: exerciseSlug,
           name: 'Bench Press',
           slug: 'bench-press',
           isActive: true,
@@ -101,7 +101,7 @@ describe('RoutinesService', () => {
       exercise: {
         findMany: jest
           .fn()
-          .mockResolvedValue([{ id: exerciseId, isActive: true }]),
+          .mockResolvedValue([{ slug: exerciseSlug, isActive: true }]),
       },
     };
 
@@ -135,8 +135,8 @@ describe('RoutinesService', () => {
   it('creates an owner-scoped aggregate and normalizes its strings', async () => {
     const result = await service.create(owner, buildDto());
     expect(transaction.exercise.findMany).toHaveBeenCalledWith({
-      where: { id: { in: [exerciseId] } },
-      select: { id: true, isActive: true },
+      where: { slug: { in: [exerciseSlug] } },
+      select: { slug: true, isActive: true },
     });
     const createArgs = (
       transaction.routine.create as jest.Mock<unknown, [unknown]>
@@ -241,7 +241,7 @@ describe('RoutinesService', () => {
         visibility: 'PRIVATE',
         exercises: [
           {
-            exerciseId,
+            exerciseSlug,
             order: 0,
             sets: 3,
             minReps: 8,
@@ -271,7 +271,7 @@ describe('RoutinesService', () => {
         exercises: {
           create: [
             {
-              exerciseId,
+              exerciseSlug,
               order: 0,
               sets: 3,
               minReps: 8,

@@ -11,7 +11,7 @@ export const routineFindOneSelect = {
     orderBy: { order: 'asc' },
     select: {
       id: true,
-      exerciseId: true,
+      exerciseSlug: true,
       order: true,
       sets: true,
       minReps: true,

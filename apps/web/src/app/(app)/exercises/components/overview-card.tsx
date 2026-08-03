@@ -2,11 +2,14 @@ import OverviewTable from "@/components/overview-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExerciseDetails } from "@/types/exercise-types";
+import type { ReactNode } from "react";
 
 export default function OverviewCard({
   exerciseDetails,
+  actions,
 }: {
   exerciseDetails: ExerciseDetails;
+  actions?: ReactNode;
 }) {
   const headers = [
     "Exercise",
@@ -91,6 +94,11 @@ export default function OverviewCard({
             </section>
           </TabsContent>
         </Tabs>
+        {actions ? (
+          <div className="mt-4 flex justify-center border-t border-border/70 pt-4 sm:justify-end">
+            {actions}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

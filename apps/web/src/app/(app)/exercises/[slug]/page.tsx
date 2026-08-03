@@ -8,6 +8,7 @@ import OverviewCard from "../components/overview-card";
 
 import HeroCard from "../../../../components/hero-card";
 import MuscleSCard from "@/components/muscles-card";
+import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +27,11 @@ export default async function ExerciseDetailsPage(props: {
 }) {
   const { slug } = await props.params;
 
-  const exerciseDetails = await fetchData(
-    buildApiUrl(`exercises/${slug}`),
-  );
+  const exerciseDetails = await fetchData(buildApiUrl(`exercises/${slug}`));
 
   return (
     <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 md:px-2 md:pb-2 md:pt-0">
-      <PageHeader subtitle="Explore our exercise&apos;s catalog.">
+      <PageHeader subtitle="Explore our exercise's catalog.">
         <Link
           className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
           href="/exercises"
@@ -47,8 +46,9 @@ export default async function ExerciseDetailsPage(props: {
         </h1>
       </PageHeader>
 
-      <section className="min-h-0 flex-1 overflow-y-auto">
+      <section className="min-h-0 flex-1 overflow-y-auto space-y-2 rounded-2xl">
         {/* Desktop View */}
+
         <div className="hidden flex-row gap-2 rounded-3xl lg:flex">
           <div className="flex w-1/2 flex-col gap-2">
             <HeroCard
@@ -70,7 +70,16 @@ export default async function ExerciseDetailsPage(props: {
             />
           </div>
           <div className="flex w-1/2 flex-col gap-2">
-            <OverviewCard exerciseDetails={exerciseDetails} />
+            <OverviewCard
+              exerciseDetails={exerciseDetails}
+              actions={
+                <AddToRoutineDialog
+                  exerciseSlug={exerciseDetails.slug}
+                  exerciseName={exerciseDetails.name}
+                  triggerSize="sm"
+                />
+              }
+            />
             <MuscleSCard muscles={exerciseDetails.muscles} />
           </div>
         </div>
@@ -82,7 +91,15 @@ export default async function ExerciseDetailsPage(props: {
             imageAltText={exerciseDetails.imageAltText}
           />
 
-          <OverviewCard exerciseDetails={exerciseDetails} />
+          <OverviewCard
+            exerciseDetails={exerciseDetails}
+            actions={
+              <AddToRoutineDialog
+                exerciseSlug={exerciseDetails.slug}
+                exerciseName={exerciseDetails.name}
+              />
+            }
+          />
           <StatsCard
             capabilities={
               exerciseDetails.capabilities

@@ -46,6 +46,7 @@ type OutlinedStyledLinkProps = {
   size?: VariantProps<typeof styledLinkVariants>["size"];
   className?: string;
   children?: React.ReactNode;
+  onClick?: React.ComponentProps<typeof Link>["onClick"];
 };
 
 export default function StyledLink(props: OutlinedStyledLinkProps) {
@@ -55,11 +56,13 @@ export default function StyledLink(props: OutlinedStyledLinkProps) {
     size = "default",
     className,
     children,
+    onClick,
   } = props;
 
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={cn(styledLinkVariants({ variant, size }), className)}
     >
       {children}

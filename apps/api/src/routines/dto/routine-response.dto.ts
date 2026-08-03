@@ -50,8 +50,8 @@ export class RoutineExerciseResponseDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ format: 'uuid' })
-  exerciseId!: string;
+  @ApiProperty({ example: 'bench-press' })
+  exerciseSlug!: string;
 
   @ApiProperty({ example: 0 })
   order!: number;

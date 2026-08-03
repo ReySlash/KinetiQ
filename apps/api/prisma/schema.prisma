@@ -314,7 +314,7 @@ model Routine {
 model RoutineExercise {
   id          String   @id @db.Uuid
   routineId   String   @db.Uuid
-  exerciseId  String   @db.Uuid
+  exerciseSlug String
   order       Int
   sets        Int
   minReps     Int
@@ -326,11 +326,11 @@ model RoutineExercise {
   createdAt   DateTime @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @db.Timestamptz(3)
   routine     Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
-  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+  exercise    Exercise @relation(fields: [exerciseSlug], references: [slug], onDelete: Restrict)
 
   @@unique([routineId, order])
   @@index([routineId])
-  @@index([exerciseId])
+  @@index([exerciseSlug])
 }
 
 // ###########################################################################################################################
