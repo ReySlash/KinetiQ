@@ -4,9 +4,13 @@ import type { RoutineDetail, RoutineListItem } from "@/types/routine-types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
+export type RoutinesFetchResult =
+  | { status: "authenticated"; routines: RoutineListItem[] }
+  | { status: "unauthenticated" };
+
 export async function fetchRoutines(
   query: { q?: string; sort?: string },
-): Promise<RoutineListItem[]> {
+): Promise<RoutinesFetchResult> {
   const params = new URLSearchParams({ limit: "100", offset: "0" });
   if (query.q) params.set("q", query.q);
   if (query.sort) params.set("sort", query.sort);
@@ -17,11 +21,18 @@ export async function fetchRoutines(
     cache: "no-store",
   });
 
+  if (response.status === 401) {
+    return { status: "unauthenticated" };
+  }
+
   if (!response.ok) {
     throw new Error(`Failed to fetch routines: ${response.status}`);
   }
 
-  return response.json() as Promise<RoutineListItem[]>;
+  return {
+    status: "authenticated",
+    routines: (await response.json()) as RoutineListItem[],
+  };
 }
 
 export async function fetchRoutine(id: string): Promise<RoutineDetail | null> {
