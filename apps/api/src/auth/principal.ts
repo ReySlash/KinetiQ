@@ -64,9 +64,25 @@ export function resolveAuthenticatedPrincipal(
   };
 }
 
+export function resolveOptionalPrincipal(
+  session: BetterAuthSession | null | undefined,
+): AuthenticatedPrincipal | null {
+  return session ? resolveAuthenticatedPrincipal(session) : null;
+}
+
 export const CurrentPrincipal = createParamDecorator(
   (_data: unknown, context: ExecutionContext): AuthenticatedPrincipal => {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     return resolveAuthenticatedPrincipal(request.session);
+  },
+);
+
+export const CurrentOptionalPrincipal = createParamDecorator(
+  (
+    _data: unknown,
+    context: ExecutionContext,
+  ): AuthenticatedPrincipal | null => {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    return resolveOptionalPrincipal(request.session);
   },
 );

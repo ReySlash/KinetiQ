@@ -2,7 +2,7 @@ jest.mock('../prisma/prisma.service', () => ({
   PrismaService: class PrismaService {},
 }));
 
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/principal';
@@ -16,6 +16,7 @@ const owner: AuthenticatedPrincipal = {
   sessionId: '223e4567-e89b-12d3-a456-426614174000',
 };
 const routineId = '323e4567-e89b-12d3-a456-426614174000';
+const routineSlug = 'upper-body-323e4567';
 const exerciseSlug = 'bench-press';
 
 function buildExercise() {
@@ -42,6 +43,7 @@ function buildDto(): CreateRoutineDto {
 function buildRoutineRow(name = 'Upper Body') {
   return {
     id: routineId,
+    slug: routineSlug,
     ownerId: owner.userId,
     name,
     description: 'Pressing day',
@@ -61,7 +63,6 @@ function buildRoutineRow(name = 'Upper Body') {
         tempo: '3-1-X-0',
         notes: 'Controlled reps',
         exercise: {
-          slug: exerciseSlug,
           name: 'Bench Press',
           slug: 'bench-press',
           isActive: true,
@@ -150,6 +151,9 @@ describe('RoutinesService', () => {
         description: 'Pressing day',
       },
     });
+    expect(createArgs.data.slug).toEqual(
+      expect.stringMatching(/^upper-body-[0-9a-f]{8}$/),
+    );
     expect(result).toEqual({ message: 'Routine created successfully' });
   });
 
@@ -157,6 +161,7 @@ describe('RoutinesService', () => {
     prismaMock.routine.findMany.mockResolvedValue([
       {
         id: routineId,
+        slug: routineSlug,
         name: 'Upper Body',
         description: 'Pressing day',
         visibility: 'PRIVATE',
@@ -170,6 +175,7 @@ describe('RoutinesService', () => {
       sort: 'name:asc',
       limit: 10,
       offset: 10,
+      scope: 'my' as const,
     });
 
     const result = await service.findAll(owner, query);
@@ -194,15 +200,54 @@ describe('RoutinesService', () => {
     ]);
   });
 
+  it('lists global routines without an authenticated principal', async () => {
+    prismaMock.routine.findMany.mockResolvedValue([]);
+    const query = Object.assign(new FindRoutinesQueryDto(), {
+      scope: 'global' as const,
+    });
+
+    await expect(service.findAll(null, query)).resolves.toEqual([]);
+    expect(prismaMock.routine.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { visibility: 'GLOBAL' } }),
+    );
+  });
+
+  it('requires authentication for the my-routines scope', async () => {
+    await expect(
+      service.findAll(null, new FindRoutinesQueryDto()),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
   it('conceals another owner’s routine as not found', async () => {
     prismaMock.routine.findFirst.mockResolvedValue(null);
 
-    await expect(service.findOne(owner, routineId)).rejects.toBeInstanceOf(
+    await expect(service.findOne(owner, routineSlug)).rejects.toBeInstanceOf(
       NotFoundException,
     );
     expect(prismaMock.routine.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: routineId, ownerId: owner.userId },
+        where: {
+          slug: routineSlug,
+          OR: [{ visibility: 'GLOBAL' }, { ownerId: owner.userId }],
+        },
+      }),
+    );
+  });
+
+  it('allows anonymous reads of global routines', async () => {
+    prismaMock.routine.findFirst.mockResolvedValue({
+      ...buildRoutineRow('Push'),
+      slug: 'push',
+      visibility: 'GLOBAL',
+    });
+
+    await expect(service.findOne(null, 'push')).resolves.toMatchObject({
+      slug: 'push',
+      visibility: 'GLOBAL',
+    });
+    expect(prismaMock.routine.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { slug: 'push', visibility: 'GLOBAL' },
       }),
     );
   });
@@ -210,13 +255,17 @@ describe('RoutinesService', () => {
   it('replaces children transactionally while preserving owner scope', async () => {
     transaction.routine.findFirst.mockResolvedValue({ id: routineId });
 
-    await service.update(owner, routineId, {
+    await service.update(owner, routineSlug, {
       name: 'Updated',
       exercises: [buildExercise(), { ...buildExercise(), order: 99 }],
     });
 
     expect(transaction.routine.findFirst).toHaveBeenCalledWith({
-      where: { id: routineId, ownerId: owner.userId },
+      where: {
+        slug: routineSlug,
+        ownerId: owner.userId,
+        visibility: 'PRIVATE',
+      },
       select: { id: true },
     });
     expect(transaction.routineExercise.deleteMany).toHaveBeenCalledWith({
@@ -238,7 +287,6 @@ describe('RoutinesService', () => {
       .mockResolvedValueOnce({
         name: 'Upper Body',
         description: 'Pressing day',
-        visibility: 'PRIVATE',
         exercises: [
           {
             exerciseSlug,
@@ -255,7 +303,7 @@ describe('RoutinesService', () => {
       })
       .mockResolvedValueOnce(null);
 
-    await expect(service.duplicate(owner, routineId)).resolves.toEqual({
+    await expect(service.duplicate(owner, routineSlug)).resolves.toEqual({
       message: 'Routine duplicated successfully',
     });
 
@@ -268,6 +316,7 @@ describe('RoutinesService', () => {
       data: {
         ownerId: owner.userId,
         name: 'Upper Body (Copy)',
+        visibility: 'PRIVATE',
         exercises: {
           create: [
             {
@@ -285,16 +334,55 @@ describe('RoutinesService', () => {
         },
       },
     });
+    expect(duplicateArgs.data.slug).toEqual(
+      expect.stringMatching(/^upper-body-copy-[0-9a-f]{8}$/),
+    );
+  });
+
+  it('copies a global routine into a private owned routine', async () => {
+    transaction.routine.findFirst
+      .mockResolvedValueOnce({
+        name: 'Push',
+        description: 'Global push routine',
+        exercises: [{ ...buildExercise(), order: 0 }],
+      })
+      .mockResolvedValueOnce(null);
+
+    await service.duplicate(owner, 'push');
+
+    expect(transaction.routine.findFirst).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        where: {
+          slug: 'push',
+          OR: [
+            { visibility: 'GLOBAL' },
+            { ownerId: owner.userId, visibility: 'PRIVATE' },
+          ],
+        },
+      }),
+    );
+    const copiedRoutineArgs = (
+      transaction.routine.create as jest.Mock<unknown, [unknown]>
+    ).mock.calls[0]?.[0] as { data: Record<string, unknown> };
+    expect(copiedRoutineArgs.data).toMatchObject({
+      ownerId: owner.userId,
+      visibility: 'PRIVATE',
+    });
   });
 
   it('deletes only an owned routine', async () => {
     prismaMock.routine.deleteMany.mockResolvedValue({ count: 1 });
 
-    await expect(service.remove(owner, routineId)).resolves.toEqual({
+    await expect(service.remove(owner, routineSlug)).resolves.toEqual({
       message: 'Routine deleted successfully',
     });
     expect(prismaMock.routine.deleteMany).toHaveBeenCalledWith({
-      where: { id: routineId, ownerId: owner.userId },
+      where: {
+        slug: routineSlug,
+        ownerId: owner.userId,
+        visibility: 'PRIVATE',
+      },
     });
   });
 });

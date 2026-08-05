@@ -11,12 +11,12 @@ export default async function EditRoutinePage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const [{ id }, query] = await Promise.all([params, searchParams]);
-  const routine = await fetchRoutine(id);
-  if (!routine) notFound();
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  const routine = await fetchRoutine(slug);
+  if (!routine || routine.visibility !== "PRIVATE") notFound();
 
   const initialExerciseSlug = typeof query.exerciseSlug === "string" ? query.exerciseSlug : undefined;
   return <RoutineBuilder routine={routine} initialExerciseSlug={initialExerciseSlug} />;

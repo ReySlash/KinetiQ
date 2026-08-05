@@ -6,6 +6,7 @@ import { muscleFunctions } from '../seed-data/muscle-functions';
 import { muscleGroups } from '../seed-data/muscle-groups';
 import { childMuscles, parentMuscles } from '../seed-data/muscles';
 import { movementPatterns } from '../seed-data/movement-patterns';
+import { globalRoutines } from '../seed-data/routines';
 import type {
   ExerciseCapabilitySeed,
   ExerciseDemandSeed,
@@ -169,6 +170,10 @@ export function validateSeedData(): void {
   assertUniqueSlugs(movementPatterns, 'movement pattern');
   assertUniqueSlugs(exercises, 'exercise');
   assertUniqueSlugs(exerciseCategories, 'exercise category');
+  assertUniqueSlugs(
+    globalRoutines.map((routine) => ({ slug: routine.key })),
+    'global routine',
+  );
 
   const muscleGroupSlugs = new Set(muscleGroups.map(({ slug }) => slug));
   const muscleSlugs = new Set(muscles.map(({ slug }) => slug));
@@ -177,6 +182,7 @@ export function validateSeedData(): void {
   const movementPatternSlugs = new Set(
     movementPatterns.map(({ slug }) => slug),
   );
+  const exerciseSlugs = new Set(exercises.map(({ slug }) => slug));
   const parentSlugByChildSlug = new Map(
     childMuscles.map(({ slug, parentSlug }) => [slug, parentSlug]),
   );
@@ -242,5 +248,31 @@ export function validateSeedData(): void {
         );
       }
     }
+  }
+
+  for (const routine of globalRoutines) {
+    assertRequiredText(routine.name, `Global routine "${routine.key}" name`);
+    assertRequiredText(
+      routine.description,
+      `Global routine "${routine.key}" description`,
+    );
+
+    routine.exercises.forEach((exercise, index) => {
+      if (exercise.order !== index + 1) {
+        throw new Error(
+          `Global routine "${routine.key}" must use dense one-based seed order.`,
+        );
+      }
+      if (!exerciseSlugs.has(exercise.exerciseSlug)) {
+        throw new Error(
+          `Global routine "${routine.key}" references unknown exercise slug "${exercise.exerciseSlug}".`,
+        );
+      }
+      if (exercise.minReps > exercise.maxReps) {
+        throw new Error(
+          `Global routine "${routine.key}" has an invalid rep range for "${exercise.exerciseSlug}".`,
+        );
+      }
+    });
   }
 }

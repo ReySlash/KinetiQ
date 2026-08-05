@@ -33,7 +33,7 @@ Use Better Auth’s [Prisma adapter and schema generation](https://better-auth.c
 
 Use `USER` and `ADMIN` as an application enum/field. Seed/bootstrap the first administrator through a one-time CLI/environment-controlled process that is disabled after use; do not promote based on an email list on every request. Role changes should invalidate or refresh sessions promptly and be audit logged.
 
-Global muscles/exercises are public read and admin write. Routines are owner read/write. Storage uploads inherit the target resource’s policy. Later coach access requires explicit grants and cannot be represented by changing ownership.
+Global muscles, exercises, and seeded global routines are public read. Global routines are owned by a protected non-login system administrator and are seed-managed until an admin UI exists. Private routines remain owner read/write; authenticated users may copy a global routine into a new private routine. Storage uploads inherit the target resource’s policy. Later coach access requires explicit grants and cannot be represented by changing ownership.
 
 ## Query-level ownership
 

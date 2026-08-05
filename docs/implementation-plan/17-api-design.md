@@ -22,10 +22,10 @@ POST   /api/admin/exercises/:id/thumbnail
 DELETE /api/admin/exercises/:id/thumbnail
 POST   /api/routines
 GET    /api/routines
-GET    /api/routines/:id
-PATCH  /api/routines/:id
-DELETE /api/routines/:id
-POST   /api/routines/:id/duplicate
+GET    /api/routines/:slug
+PATCH  /api/routines/:slug
+DELETE /api/routines/:slug
+POST   /api/routines/:slug/duplicate
 ```
 
 The `/admin` prefix makes curation intent and documentation clear, but role guards remain mandatory. Public reads and admin writes can share application services. Routine routes need no `/users/:userId` because identity comes from the session.

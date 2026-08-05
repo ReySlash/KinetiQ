@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CiMenuBurger } from "react-icons/ci";
+import type { Metadata } from "next";
 
 import StyledLink from "@/components/styled-link";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -16,6 +17,22 @@ import { RoutineActions } from "./routine-actions";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const routine = await fetchRoutine(slug);
+
+  if (!routine) return { title: "Routine not found | KinetiQ" };
+  return {
+    title: `${routine.name} routine | KinetiQ`,
+    description:
+      routine.description ?? `View the ${routine.name} workout routine.`,
+  };
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(
     new Date(value),
@@ -25,10 +42,10 @@ function formatDate(value: string) {
 export default async function RoutineDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
-  const routine = await fetchRoutine(id);
+  const { slug } = await params;
+  const routine = await fetchRoutine(slug);
   if (!routine) notFound();
 
   const activeExercises = routine.exercises.filter(
@@ -63,7 +80,10 @@ export default async function RoutineDetailsPage({
                 </span>
                 <span>Updated {formatDate(routine.updatedAt)}</span>
               </div>
-              <RoutineActions routineId={routine.id} />
+              <RoutineActions
+                routineSlug={routine.slug}
+                visibility={routine.visibility}
+              />
             </CardContent>
           </Card>
 

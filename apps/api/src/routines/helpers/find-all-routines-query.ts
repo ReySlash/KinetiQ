@@ -2,6 +2,7 @@ import { Prisma } from '../../../generated/prisma/client';
 
 const routineFindAllSelect = {
   id: true,
+  slug: true,
   name: true,
   description: true,
   visibility: true,
@@ -23,15 +24,21 @@ type BuildRoutinesFindAllQueryParams = {
   skip: number;
   search?: string;
   sort?: 'name:asc' | 'name:desc' | 'updatedAt:asc' | 'updatedAt:desc';
-  ownerId: string;
+  ownerId?: string;
+  scope: 'my' | 'global';
 };
 
 function buildRoutinesWhere(
-  ownerId: string,
+  ownerId: string | undefined,
+  scope: 'my' | 'global',
   search?: string,
 ): Prisma.RoutineWhereInput {
   const normalizedSearch = search?.trim();
-  const where: Prisma.RoutineWhereInput = { ownerId };
+  if (scope === 'my' && !ownerId) {
+    throw new Error('An owner is required for the my-routines scope.');
+  }
+  const where: Prisma.RoutineWhereInput =
+    scope === 'global' ? { visibility: 'GLOBAL' } : { ownerId };
 
   if (!normalizedSearch) return where;
 
@@ -50,6 +57,7 @@ export function buildRoutinesFindAllQuery({
   search,
   sort = 'updatedAt:desc',
   ownerId,
+  scope,
 }: BuildRoutinesFindAllQueryParams) {
   const [field, direction] = sort.split(':') as [
     'name' | 'updatedAt',
@@ -60,7 +68,7 @@ export function buildRoutinesFindAllQuery({
     take,
     skip,
     select: routineFindAllSelect,
-    where: buildRoutinesWhere(ownerId, search),
+    where: buildRoutinesWhere(ownerId, scope, search),
     orderBy: [{ [field]: direction }, { id: 'asc' }],
   } satisfies Prisma.RoutineFindManyArgs;
 }

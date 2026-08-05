@@ -2,19 +2,21 @@
 
 ## Purpose and user problem
 
-A routine is a reusable, owned workout template. Users need to arrange catalog exercises and attach prescription targets without changing global exercise definitions or confusing a plan with performed history.
+A routine is a reusable workout template. Users need private owned templates and access to curated global templates without changing global exercise definitions or confusing a plan with performed history.
 
 ## MVP scope
 
-Private user-owned routines support create, list, detail, edit, duplicate, and delete. Each has ordered `RoutineExercise` children with sets, rep range, target RIR, rest, tempo, and notes. The UI supports add, remove, reorder, and validation. Visibility is stored but MVP only permits `PRIVATE` behavior; public sharing is deferred.
+Private user-owned routines support create, list, detail, edit, duplicate, and delete. Seeded `GLOBAL` routines are publicly readable, owned by a protected non-login system user, and read-only to normal users. Users may copy a global routine into an independent private routine. Each routine has a stable globally unique slug and ordered `RoutineExercise` children with sets, rep range, target RIR, rest, tempo, and notes. User-created public sharing remains deferred.
 
 ## Out of scope
 
-Weekly scheduling, completed workouts, target RPE, supersets/circuits, progression rules, conditional prescriptions, per-set prescriptions, collaboration, public templates, custom exercises, analytics, and estimated duration.
+Weekly scheduling, completed workouts, target RPE, supersets/circuits, progression rules, conditional prescriptions, per-set prescriptions, collaboration, user-published routines, custom exercises, analytics, and estimated duration.
 
 ## User stories
 
 - An authenticated user can create an ordered routine from active global exercises.
+- Anyone can browse and read seeded global routines.
+- An authenticated user can copy a global routine into their private routines.
 - A user can edit, duplicate, and delete only their routines.
 - A duplicated routine gets independent child rows and a clear copy name.
 - A routine may contain the same exercise more than once when it represents distinct blocks or prescriptions.
@@ -26,6 +28,7 @@ Weekly scheduling, completed workouts, target RPE, supersets/circuits, progressi
 model Routine {
   id          String            @id @db.Uuid
   ownerId     String            @db.Uuid
+  slug        String            @unique
   name        String
   description String?
   visibility  RoutineVisibility @default(PRIVATE)
@@ -78,11 +81,11 @@ Use a surrogate ID so the same exercise may appear twice. Store dense zero-based
 ## API endpoints
 
 - `POST /api/routines`
-- `GET /api/routines?q=&sort=updatedAt:desc&limit=&offset=`
-- `GET /api/routines/:id`
-- `PATCH /api/routines/:id`
-- `DELETE /api/routines/:id`
-- `POST /api/routines/:id/duplicate`
+- `GET /api/routines?scope=my|global&q=&sort=updatedAt:desc&limit=&offset=`
+- `GET /api/routines/:slug`
+- `PATCH /api/routines/:slug`
+- `DELETE /api/routines/:slug`
+- `POST /api/routines/:slug/duplicate`
 
 Create/update receive the routine and complete ordered child array; write in one transaction. For MVP, delete may be hard delete because no sessions/plans exist. Before those phases ship, change to restrictive/archive semantics where referenced. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with a success message. Create, update, duplicate, and delete mutations return feedback only; clients use the read endpoints when they need the resource representation.
 
@@ -90,21 +93,21 @@ Routine list responses follow the exercise-library read pattern: `limit` default
 
 ## Ownership and authorization
 
-Every service query includes ownership:
+Private mutation queries include ownership and `PRIVATE` visibility. Public reads allow only `GLOBAL` routines unless the authenticated principal owns the requested routine:
 
 ```text
-findFirst({ where: { id: routineId, ownerId: principal.userId } })
-updateMany({ where: { id: routineId, ownerId: principal.userId }, data })
+findFirst({ where: { slug, ownerId: principal.userId, visibility: 'PRIVATE' } })
+findFirst({ where: { slug, OR: [{ visibility: 'GLOBAL' }, { ownerId: principal.userId }] } })
 ```
 
 For complex child replacements, first resolve the owned parent within the transaction; child deletes/updates also constrain `routineId`. Return `404` for another user’s private resource to avoid confirming it exists. Do not fetch globally then rely only on a later in-memory owner comparison.
 
 ## Frontend pages and components
 
-- `/app/routines`: owned cards/list, search, empty state, duplicate/delete menus
-- `/app/routines/new`: builder
-- `/app/routines/[id]`: detail with prescription summary
-- `/app/routines/[id]/edit`: builder
+- `/routines`: URL-backed `Global Routines` and `My Routines` tabs, search, empty and authentication states
+- `/routines/new`: private routine builder
+- `/routines/[slug]`: server-rendered detail with prescription summary and dynamic metadata
+- `/routines/[slug]/edit`: private routine builder
 - `RoutineForm`, `ExercisePicker`, `RoutineExerciseCard`, `PrescriptionFields`, `ReorderHandle`, `RoutineSummary`, confirmation dialog
 
 Use accessible drag-and-drop only if it includes keyboard controls and move-up/down alternatives. A simple button-based reorder is an acceptable first implementation. Mutations invalidate/update only the authenticated routine keys; optimistic reorder must roll back and announce errors.
@@ -133,4 +136,4 @@ An authenticated user completes every lifecycle action on only their records; pr
 
 ## Future extensions and open questions
 
-Add estimated duration, RPE, per-set targets, supersets/circuits, progression rules, tags, public sharing, imports, and versions later. Before training plans, decide delete/archive behavior. Before sessions, define snapshot rules. MVP’s accepted choices are private-only visibility, dense integer ordering, and duplicate exercise occurrences allowed.
+Add estimated duration, RPE, per-set targets, supersets/circuits, progression rules, tags, user-created public sharing, imports, and versions later. An admin UI for global routine curation is deferred; global templates are seed-managed for now. Before training plans, decide delete/archive behavior. Before sessions, define snapshot rules. Dense integer ordering and duplicate exercise occurrences remain supported.

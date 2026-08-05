@@ -52,26 +52,40 @@ describe('RoutinesController', () => {
     expect(routinesServiceMock.findAll).toHaveBeenCalledWith(principal, query);
   });
 
+  it('allows anonymous global list and detail reads', async () => {
+    const query = Object.assign(new FindRoutinesQueryDto(), {
+      scope: 'global' as const,
+    });
+    routinesServiceMock.findAll.mockResolvedValue([]);
+    routinesServiceMock.findOne.mockResolvedValue({ slug: 'push' });
+
+    await controller.findAll(null, query);
+    await controller.findOne(null, 'push');
+
+    expect(routinesServiceMock.findAll).toHaveBeenCalledWith(null, query);
+    expect(routinesServiceMock.findOne).toHaveBeenCalledWith(null, 'push');
+  });
+
   it('passes principal to every resource mutation', async () => {
-    const id = '323e4567-e89b-12d3-a456-426614174000';
+    const slug = 'upper-body-323e4567';
     const updateDto = new UpdateRoutineDto();
-    routinesServiceMock.findOne.mockResolvedValue({ id });
-    routinesServiceMock.update.mockResolvedValue({ id });
-    routinesServiceMock.remove.mockResolvedValue({ id });
-    routinesServiceMock.duplicate.mockResolvedValue({ id });
+    routinesServiceMock.findOne.mockResolvedValue({ slug });
+    routinesServiceMock.update.mockResolvedValue({ slug });
+    routinesServiceMock.remove.mockResolvedValue({ slug });
+    routinesServiceMock.duplicate.mockResolvedValue({ slug });
 
-    await controller.findOne(principal, id);
-    await controller.update(principal, id, updateDto);
-    await controller.remove(principal, id);
-    await controller.duplicate(principal, id);
+    await controller.findOne(principal, slug);
+    await controller.update(principal, slug, updateDto);
+    await controller.remove(principal, slug);
+    await controller.duplicate(principal, slug);
 
-    expect(routinesServiceMock.findOne).toHaveBeenCalledWith(principal, id);
+    expect(routinesServiceMock.findOne).toHaveBeenCalledWith(principal, slug);
     expect(routinesServiceMock.update).toHaveBeenCalledWith(
       principal,
-      id,
+      slug,
       updateDto,
     );
-    expect(routinesServiceMock.remove).toHaveBeenCalledWith(principal, id);
-    expect(routinesServiceMock.duplicate).toHaveBeenCalledWith(principal, id);
+    expect(routinesServiceMock.remove).toHaveBeenCalledWith(principal, slug);
+    expect(routinesServiceMock.duplicate).toHaveBeenCalledWith(principal, slug);
   });
 });

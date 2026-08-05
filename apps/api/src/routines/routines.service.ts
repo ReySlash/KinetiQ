@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
@@ -15,7 +16,7 @@ import {
 } from './dto/create-routine.dto';
 import { FindRoutinesQueryDto } from './dto/find-routines-query.dto';
 import { UpdateRoutineDto } from './dto/update-routine.dto';
-import { Prisma } from '../../generated/prisma/client';
+import { Prisma, RoutineVisibility } from '../../generated/prisma/client';
 import {
   buildRoutinesFindAllQuery,
   mapRoutinesFindAllRows,
@@ -24,6 +25,19 @@ import { buildRoutinesFindOneQuery } from './helpers/find-one-routines-query';
 
 const MAX_NAME_LENGTH = 120;
 const COPY_SUFFIX = ' (Copy)';
+
+function slugifyRoutineName(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug || 'routine';
+}
+
+function buildPrivateRoutineSlug(name: string, id: string): string {
+  return `${slugifyRoutineName(name)}-${id.slice(0, 8)}`;
+}
 
 @Injectable()
 export class RoutinesService {
@@ -34,14 +48,16 @@ export class RoutinesService {
 
     try {
       await this.prisma.$transaction(async (transaction) => {
+        const id = randomUUID();
         await this.assertActiveExercises(
           transaction,
           dto.exercises.map(({ exerciseSlug }) => exerciseSlug),
         );
         await transaction.routine.create({
           data: {
-            id: randomUUID(),
+            id,
             ownerId: principal.userId,
+            slug: buildPrivateRoutineSlug(dto.name, id),
             name: dto.name,
             description: dto.description ?? null,
             exercises: {
@@ -58,9 +74,14 @@ export class RoutinesService {
   }
 
   async findAll(
-    principal: AuthenticatedPrincipal,
+    principal: AuthenticatedPrincipal | null,
     query: FindRoutinesQueryDto,
   ) {
+    const scope = query.scope ?? 'my';
+    if (scope === 'my' && !principal) {
+      throw new UnauthorizedException('Sign in to view your routines.');
+    }
+
     try {
       const routines = await this.prisma.routine.findMany(
         buildRoutinesFindAllQuery({
@@ -68,7 +89,8 @@ export class RoutinesService {
           skip: query.offset ?? 0,
           search: query.q,
           sort: query.sort,
-          ownerId: principal.userId,
+          ownerId: principal?.userId,
+          scope,
         }),
       );
 
@@ -78,10 +100,10 @@ export class RoutinesService {
     }
   }
 
-  async findOne(principal: AuthenticatedPrincipal, id: string) {
+  async findOne(principal: AuthenticatedPrincipal | null, slug: string) {
     try {
       const routine = await this.prisma.routine.findFirst(
-        buildRoutinesFindOneQuery(id, principal.userId),
+        buildRoutinesFindOneQuery(slug, principal?.userId),
       );
 
       if (!routine) throw new NotFoundException('Routine not found');
@@ -94,7 +116,7 @@ export class RoutinesService {
 
   async update(
     principal: AuthenticatedPrincipal,
-    id: string,
+    slug: string,
     dto: UpdateRoutineDto,
   ) {
     normalizeRoutineStrings(dto);
@@ -102,7 +124,11 @@ export class RoutinesService {
     try {
       await this.prisma.$transaction(async (transaction) => {
         const ownedRoutine = await transaction.routine.findFirst({
-          where: { id, ownerId: principal.userId },
+          where: {
+            slug,
+            ownerId: principal.userId,
+            visibility: RoutineVisibility.PRIVATE,
+          },
           select: { id: true },
         });
         if (!ownedRoutine) throw new NotFoundException('Routine not found');
@@ -115,7 +141,7 @@ export class RoutinesService {
         }
 
         await transaction.routine.update({
-          where: { id },
+          where: { id: ownedRoutine.id },
           data: {
             ...(dto.name !== undefined ? { name: dto.name } : {}),
             ...(dto.description !== undefined
@@ -126,14 +152,14 @@ export class RoutinesService {
 
         if (dto.exercises) {
           await transaction.routineExercise.deleteMany({
-            where: { routineId: id },
+            where: { routineId: ownedRoutine.id },
           });
           if (dto.exercises.length > 0) {
             await transaction.routineExercise.createMany({
               data: this.buildExerciseCreateData(dto.exercises).map(
                 (exercise) => ({
                   ...exercise,
-                  routineId: id,
+                  routineId: ownedRoutine.id,
                 }),
               ),
             });
@@ -147,24 +173,36 @@ export class RoutinesService {
     }
   }
 
-  async remove(principal: AuthenticatedPrincipal, id: string) {
+  async remove(principal: AuthenticatedPrincipal, slug: string) {
     const result = await this.prisma.routine.deleteMany({
-      where: { id, ownerId: principal.userId },
+      where: {
+        slug,
+        ownerId: principal.userId,
+        visibility: RoutineVisibility.PRIVATE,
+      },
     });
     if (result.count === 0) throw new NotFoundException('Routine not found');
 
     return { message: 'Routine deleted successfully' };
   }
 
-  async duplicate(principal: AuthenticatedPrincipal, id: string) {
+  async duplicate(principal: AuthenticatedPrincipal, slug: string) {
     try {
       await this.prisma.$transaction(async (transaction) => {
         const source = await transaction.routine.findFirst({
-          where: { id, ownerId: principal.userId },
+          where: {
+            slug,
+            OR: [
+              { visibility: RoutineVisibility.GLOBAL },
+              {
+                ownerId: principal.userId,
+                visibility: RoutineVisibility.PRIVATE,
+              },
+            ],
+          },
           select: {
             name: true,
             description: true,
-            visibility: true,
             exercises: {
               orderBy: { order: 'asc' },
               select: {
@@ -188,13 +226,15 @@ export class RoutinesService {
           principal.userId,
           source.name,
         );
+        const duplicateId = randomUUID();
         await transaction.routine.create({
           data: {
-            id: randomUUID(),
+            id: duplicateId,
             ownerId: principal.userId,
+            slug: buildPrivateRoutineSlug(name, duplicateId),
             name,
             description: source.description,
-            visibility: source.visibility,
+            visibility: RoutineVisibility.PRIVATE,
             exercises: {
               create: source.exercises.map((exercise) => ({
                 id: randomUUID(),

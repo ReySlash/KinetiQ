@@ -20,16 +20,24 @@ function formatDate(value: string) {
   );
 }
 
-export function RoutinesLibrary({ routines }: { routines: RoutineListItem[] }) {
+export function RoutinesLibrary({
+  routines,
+  scope,
+}: {
+  routines: RoutineListItem[];
+  scope: "my" | "global";
+}) {
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-sm">
       <RoutinesFilters />
-      <div className="flex justify-end p-2">
-        <StyledLink href="/routines/new" size="lg">
-          <Plus />
-          New routine
-        </StyledLink>
-      </div>
+      {scope === "my" && (
+        <div className="flex justify-end p-2">
+          <StyledLink href="/routines/new" size="lg">
+            <Plus />
+            New routine
+          </StyledLink>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-auto p-3 md:p-5">
         {routines.length === 0 ? (
           <Card className="border-dashed">
@@ -38,15 +46,21 @@ export function RoutinesLibrary({ routines }: { routines: RoutineListItem[] }) {
                 <Dumbbell className="size-6" />
               </div>
               <div>
-                <p className="font-medium">No routines yet</p>
+                <p className="font-medium">
+                  {scope === "global" ? "No global routines found" : "No routines yet"}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Create your first routine and start arranging your training.
+                  {scope === "global"
+                    ? "Try adjusting your search or filters."
+                    : "Create your first routine and start arranging your training."}
                 </p>
               </div>
-              <StyledLink href="/routines/new" variant="outline">
-                <Plus />
-                Create routine
-              </StyledLink>
+              {scope === "my" && (
+                <StyledLink href="/routines/new" variant="outline">
+                  <Plus />
+                  Create routine
+                </StyledLink>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -60,7 +74,7 @@ export function RoutinesLibrary({ routines }: { routines: RoutineListItem[] }) {
                   <CardTitle>{routine.name}</CardTitle>
                   <CardAction>
                     <StyledLink
-                      href={`/routines/${routine.id}`}
+                      href={`/routines/${routine.slug}`}
                       variant="outline"
                     >
                       <CiMenuBurger />

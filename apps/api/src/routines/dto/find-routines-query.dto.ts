@@ -31,7 +31,15 @@ export const ROUTINE_SORTS = [
 
 export type RoutineSort = (typeof ROUTINE_SORTS)[number];
 
+export const ROUTINE_SCOPES = ['my', 'global'] as const;
+export type RoutineScope = (typeof ROUTINE_SCOPES)[number];
+
 export class FindRoutinesQueryDto {
+  @ApiPropertyOptional({ enum: ROUTINE_SCOPES, default: 'my' })
+  @IsOptional()
+  @IsIn(ROUTINE_SCOPES)
+  scope?: RoutineScope;
+
   @ApiPropertyOptional({ maxLength: 100, example: 'upper' })
   @IsOptional()
   @Transform(trimString)

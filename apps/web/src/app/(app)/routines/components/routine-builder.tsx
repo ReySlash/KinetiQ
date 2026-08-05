@@ -140,7 +140,7 @@ export function RoutineBuilder({
   const fields = useFieldArray({ control: form.control, name: "exercises" });
   const mutation = useMutation({
     mutationFn: (input: RoutineCreateInput) =>
-      routine ? updateRoutine(routine.id, input) : createRoutine(input),
+      routine ? updateRoutine(routine.slug, input) : createRoutine(input),
   });
 
   async function handleBrowseExercises(event: MouseEvent<HTMLAnchorElement>) {

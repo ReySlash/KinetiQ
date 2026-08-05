@@ -9,9 +9,13 @@ export type RoutinesFetchResult =
   | { status: "unauthenticated" };
 
 export async function fetchRoutines(
-  query: { q?: string; sort?: string },
+  query: { q?: string; sort?: string; scope: "my" | "global" },
 ): Promise<RoutinesFetchResult> {
-  const params = new URLSearchParams({ limit: "100", offset: "0" });
+  const params = new URLSearchParams({
+    limit: "100",
+    offset: "0",
+    scope: query.scope,
+  });
   if (query.q) params.set("q", query.q);
   if (query.sort) params.set("sort", query.sort);
 
@@ -35,9 +39,9 @@ export async function fetchRoutines(
   };
 }
 
-export async function fetchRoutine(id: string): Promise<RoutineDetail | null> {
+export async function fetchRoutine(slug: string): Promise<RoutineDetail | null> {
   const cookieHeader = (await cookies()).toString();
-  const response = await fetch(`${apiUrl}/api/routines/${id}`, {
+  const response = await fetch(`${apiUrl}/api/routines/${slug}`, {
     headers: cookieHeader ? { cookie: cookieHeader } : undefined,
     cache: "no-store",
   });

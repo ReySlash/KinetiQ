@@ -1,8 +1,9 @@
 export type RoutineListItem = {
   id: string;
+  slug: string;
   name: string;
   description: string | null;
-  visibility: "PRIVATE";
+  visibility: "PRIVATE" | "GLOBAL";
   createdAt: string;
   updatedAt: string;
   exerciseCount: number;
@@ -39,9 +40,10 @@ export type RoutineExercise = RoutineExerciseInput & {
 
 export type RoutineDetail = {
   id: string;
+  slug: string;
   name: string;
   description: string | null;
-  visibility: "PRIVATE";
+  visibility: "PRIVATE" | "GLOBAL";
   createdAt: string;
   updatedAt: string;
   exercises: RoutineExercise[];

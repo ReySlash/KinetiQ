@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -17,7 +16,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { OptionalAuth } from '@thallesp/nestjs-better-auth';
 import {
+  CurrentOptionalPrincipal,
   CurrentPrincipal,
   type AuthenticatedPrincipal,
 } from '../auth/principal';
@@ -48,7 +49,9 @@ export class RoutinesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List owned routines' })
+  @OptionalAuth()
+  @ApiOperation({ summary: 'List owned or global routines' })
+  @ApiQuery({ name: 'scope', required: false, enum: ['my', 'global'] })
   @ApiQuery({
     name: 'q',
     required: false,
@@ -63,58 +66,59 @@ export class RoutinesController {
   @ApiQuery({ name: 'offset', required: false, type: Number, example: 0 })
   @ApiResponse({ status: 200, type: [RoutineListItemDto] })
   findAll(
-    @CurrentPrincipal() principal: AuthenticatedPrincipal,
+    @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
     @Query() query: FindRoutinesQueryDto,
   ) {
     return this.routinesService.findAll(principal, query);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get an owned routine' })
-  @ApiParam({ name: 'id', format: 'uuid' })
+  @Get(':slug')
+  @OptionalAuth()
+  @ApiOperation({ summary: 'Get an owned or global routine' })
+  @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 200, type: RoutineDetailDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
   findOne(
-    @CurrentPrincipal() principal: AuthenticatedPrincipal,
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
+    @Param('slug') slug: string,
   ) {
-    return this.routinesService.findOne(principal, id);
+    return this.routinesService.findOne(principal, slug);
   }
 
-  @Patch(':id')
+  @Patch(':slug')
   @ApiOperation({ summary: 'Update an owned routine' })
-  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 200, type: RoutineMutationResponseDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
   update(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('slug') slug: string,
     @Body() dto: UpdateRoutineDto,
   ) {
-    return this.routinesService.update(principal, id, dto);
+    return this.routinesService.update(principal, slug, dto);
   }
 
-  @Delete(':id')
+  @Delete(':slug')
   @ApiOperation({ summary: 'Delete an owned routine' })
-  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 200, type: RoutineMutationResponseDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
   remove(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('slug') slug: string,
   ) {
-    return this.routinesService.remove(principal, id);
+    return this.routinesService.remove(principal, slug);
   }
 
-  @Post(':id/duplicate')
-  @ApiOperation({ summary: 'Duplicate an owned routine' })
-  @ApiParam({ name: 'id', format: 'uuid' })
+  @Post(':slug/duplicate')
+  @ApiOperation({ summary: 'Duplicate an owned or global routine' })
+  @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 201, type: RoutineMutationResponseDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
   duplicate(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('slug') slug: string,
   ) {
-    return this.routinesService.duplicate(principal, id);
+    return this.routinesService.duplicate(principal, slug);
   }
 }

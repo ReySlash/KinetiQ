@@ -7,6 +7,17 @@ import type {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
+export type RoutineScope = "my" | "global";
+
+export class RoutineApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiUrl}/api/${path}`, {
     ...options,
@@ -23,7 +34,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       typeof payload === "object" && payload !== null && "message" in payload
         ? String(payload.message)
         : "Something went wrong. Please try again.";
-    throw new Error(message);
+    throw new RoutineApiError(message, response.status);
   }
 
   return payload as T;
@@ -32,8 +43,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export function listRoutines(
   search = "",
   sort: "updatedAt:asc" | "updatedAt:desc" | "name:asc" | "name:desc" = "updatedAt:desc",
+  scope: RoutineScope = "my",
 ) {
-  const params = new URLSearchParams({ limit: "100", offset: "0" });
+  const params = new URLSearchParams({ limit: "100", offset: "0", scope });
   if (search.trim()) params.set("q", search.trim());
   params.set("sort", sort);
   return request<RoutineListItem[]>(`routines?${params.toString()}`);
@@ -52,25 +64,25 @@ export function createRoutine(input: RoutineCreateInput) {
   });
 }
 
-export function fetchRoutine(id: string) {
-  return request<RoutineDetail>(`routines/${id}`);
+export function fetchRoutine(slug: string) {
+  return request<RoutineDetail>(`routines/${slug}`);
 }
 
-export function updateRoutine(id: string, input: RoutineCreateInput) {
-  return request<{ message: string }>(`routines/${id}`, {
+export function updateRoutine(slug: string, input: RoutineCreateInput) {
+  return request<{ message: string }>(`routines/${slug}`, {
     method: "PATCH",
     body: JSON.stringify(input),
   });
 }
 
-export function deleteRoutine(id: string) {
-  return request<{ message: string }>(`routines/${id}`, {
+export function deleteRoutine(slug: string) {
+  return request<{ message: string }>(`routines/${slug}`, {
     method: "DELETE",
   });
 }
 
-export function duplicateRoutine(id: string) {
-  return request<{ message: string }>(`routines/${id}/duplicate`, {
+export function duplicateRoutine(slug: string) {
+  return request<{ message: string }>(`routines/${slug}/duplicate`, {
     method: "POST",
   });
 }

@@ -122,7 +122,7 @@ function RoutineChoice({
           size="sm"
           render={
             <Link
-              href={`/routines/${routine.id}/edit?exerciseSlug=${encodeURIComponent(exerciseSlug)}`}
+              href={`/routines/${routine.slug}/edit?exerciseSlug=${encodeURIComponent(exerciseSlug)}`}
             />
           }
         >

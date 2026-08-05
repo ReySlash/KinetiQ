@@ -10,6 +10,9 @@ export class RoutineListItemDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
+  @ApiProperty({ example: 'upper-body-a' })
+  slug!: string;
+
   @ApiProperty({ example: 'Upper Body A' })
   name!: string;
 
@@ -84,6 +87,9 @@ export class RoutineExerciseResponseDto {
 export class RoutineDetailDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
+
+  @ApiProperty({ example: 'upper-body-a' })
+  slug!: string;
 
   @ApiProperty({ example: 'Upper Body A' })
   name!: string;

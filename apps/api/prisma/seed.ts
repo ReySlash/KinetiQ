@@ -11,6 +11,8 @@ import { seedMuscleFunctionAssignments } from './seeders/seed-muscle-function-as
 import { seedMuscleFunctions } from './seeders/seed-muscle-functions';
 import { seedMuscleGroups } from './seeders/seed-muscle-groups';
 import { seedMuscles } from './seeders/seed-muscles';
+import { seedGlobalRoutines } from './seeders/seed-routines';
+import { seedSystemUser } from './seeders/seed-system-user';
 import { validateSeedData } from './seeders/validate-seed-data';
 import { verifySeed } from './seeders/verify-seed';
 
@@ -58,6 +60,12 @@ async function main(): Promise<void> {
     equipmentIdsBySlug,
     movementPatternIdsBySlug,
   });
+
+  // 12. Protected owner for platform-curated records
+  const systemUserId = await seedSystemUser(prisma);
+
+  // 13. Read-only global routine templates
+  await seedGlobalRoutines(prisma, systemUserId);
 
   await verifySeed(prisma);
   console.log('Database seed completed successfully.');

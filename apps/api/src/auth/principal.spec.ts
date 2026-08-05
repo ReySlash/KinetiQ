@@ -1,6 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 import {
   resolveAuthenticatedPrincipal,
+  resolveOptionalPrincipal,
   type BetterAuthSession,
 } from './principal';
 
@@ -42,5 +43,19 @@ describe('resolveAuthenticatedPrincipal', () => {
     expect(() => resolveAuthenticatedPrincipal(session)).toThrow(
       UnauthorizedException,
     );
+  });
+});
+
+describe('resolveOptionalPrincipal', () => {
+  it('returns null when no session is present', () => {
+    expect(resolveOptionalPrincipal(undefined)).toBeNull();
+  });
+
+  it('validates and returns an available session', () => {
+    expect(resolveOptionalPrincipal(validSession)).toEqual({
+      userId: validSession.user.id,
+      role: 'USER',
+      sessionId: validSession.session.id,
+    });
   });
 });

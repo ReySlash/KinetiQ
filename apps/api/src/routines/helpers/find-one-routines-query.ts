@@ -2,6 +2,7 @@ import { Prisma } from '../../../generated/prisma/client';
 
 export const routineFindOneSelect = {
   id: true,
+  slug: true,
   name: true,
   description: true,
   visibility: true,
@@ -33,9 +34,14 @@ export const routineFindOneSelect = {
   },
 } satisfies Prisma.RoutineSelect;
 
-export function buildRoutinesFindOneQuery(id: string, ownerId: string) {
+export function buildRoutinesFindOneQuery(slug: string, ownerId?: string) {
   return {
     select: routineFindOneSelect,
-    where: { id, ownerId },
+    where: {
+      slug,
+      ...(ownerId
+        ? { OR: [{ visibility: 'GLOBAL' as const }, { ownerId }] }
+        : { visibility: 'GLOBAL' as const }),
+    },
   } satisfies Prisma.RoutineFindFirstArgs;
 }

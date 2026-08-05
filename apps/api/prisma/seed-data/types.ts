@@ -122,3 +122,22 @@ export type ExerciseCategory = {
   slug: string;
   exercises: ExerciseSeed[];
 };
+
+export type RoutineExerciseSeed = {
+  exerciseSlug: string;
+  order: number;
+  sets: number;
+  minReps: number;
+  maxReps: number;
+  targetRir?: number;
+  restSeconds?: number;
+  tempo?: string;
+  notes?: string;
+};
+
+export type RoutineSeed = {
+  key: string;
+  name: string;
+  description: string;
+  exercises: readonly RoutineExerciseSeed[];
+};
