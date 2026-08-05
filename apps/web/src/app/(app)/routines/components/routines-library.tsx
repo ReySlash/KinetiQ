@@ -1,5 +1,4 @@
-import { Dumbbell, Plus } from "lucide-react";
-import { CiMenuBurger } from "react-icons/ci";
+import { Dumbbell, MoreHorizontal, Plus } from "lucide-react";
 
 import StyledLink from "@/components/styled-link";
 import {
@@ -11,6 +10,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { RoutineListItem } from "@/types/routine-types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { RoutinesFilters } from "./routines-filters";
 
@@ -73,13 +77,20 @@ export function RoutinesLibrary({
                 <CardHeader>
                   <CardTitle>{routine.name}</CardTitle>
                   <CardAction>
-                    <StyledLink
-                      href={`/routines/${routine.slug}`}
-                      variant="outline"
-                    >
-                      <CiMenuBurger />
-                      <span className="sr-only">Open routine details</span>
-                    </StyledLink>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <StyledLink
+                            href={`/routines/${routine.slug}`}
+                            variant="outline"
+                            aria-label="Open routine details"
+                          >
+                            <MoreHorizontal />
+                          </StyledLink>
+                        }
+                      />
+                      <TooltipContent>Open routine details</TooltipContent>
+                    </Tooltip>
                   </CardAction>
                   <CardDescription className="line-clamp-2 min-h-10">
                     {routine.description || "No description yet."}

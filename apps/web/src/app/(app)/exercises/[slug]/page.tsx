@@ -54,6 +54,7 @@ export default async function ExerciseDetailsPage(props: {
             <HeroCard
               thumbnailUrl={exerciseDetails.thumbnailUrl}
               imageAltText={exerciseDetails.imageAltText}
+              fallbackSrc="/empty-state-exercises.webp"
             />
 
             <StatsCard
@@ -89,6 +90,7 @@ export default async function ExerciseDetailsPage(props: {
           <HeroCard
             thumbnailUrl={exerciseDetails.thumbnailUrl}
             imageAltText={exerciseDetails.imageAltText}
+            fallbackSrc="/empty-state-exercises.webp"
           />
 
           <OverviewCard

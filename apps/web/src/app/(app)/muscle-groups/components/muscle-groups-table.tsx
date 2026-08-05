@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/table";
 import { MuscleGroup } from "@/types/muscle-types";
 import Image from "next/image";
-import { CiMenuBurger } from "react-icons/ci";
+import { MoreHorizontal } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type MuscleGroupsTableProps = {
   muscleGroups: MuscleGroup[];
@@ -68,7 +73,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                       className="border rounded-xl"
                       src={
                         muscleGroup.thumbnailUrl ??
-                        "https://avatar.vercel.sh/shadcn1"
+                        "/empty-state-muscles.webp"
                       }
                       alt={
                         muscleGroup.imageAltText ??
@@ -82,12 +87,22 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                   <TableCell>{getBodyRegion(muscleGroup)}</TableCell>
                   <TableCell>{muscleGroup.muscles.length}</TableCell>
                   <TableCell className="text-right">
-                    <StyledLink
-                      href={`/muscle-groups/${muscleGroup.slug}`}
-                      variant="outline"
-                    >
-                      <CiMenuBurger />
-                    </StyledLink>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <StyledLink
+                            href={`/muscle-groups/${muscleGroup.slug}`}
+                            variant="outline"
+                            aria-label="Open muscle group details"
+                          >
+                            <MoreHorizontal />
+                          </StyledLink>
+                        }
+                      />
+                      <TooltipContent>
+                        Open muscle group details
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))
@@ -115,7 +130,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                   className="col-span-1 rounded-xl"
                   src={
                     muscleGroup.thumbnailUrl ??
-                    "https://avatar.vercel.sh/shadcn"
+                    "/empty-state-muscles.webp"
                   }
                   alt={muscleGroup.imageAltText ?? "Event cover"}
                   width={70}
@@ -131,12 +146,20 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                     {muscleGroup.muscles.length} muscles
                   </CardDescription>
                 </div>
-                <StyledLink
-                  href={`/muscle-groups/${muscleGroup.slug}`}
-                  variant="outline"
-                >
-                  <CiMenuBurger />
-                </StyledLink>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <StyledLink
+                        href={`/muscle-groups/${muscleGroup.slug}`}
+                        variant="outline"
+                        aria-label="Open muscle group details"
+                      >
+                        <MoreHorizontal />
+                      </StyledLink>
+                    }
+                  />
+                  <TooltipContent>Open muscle group details</TooltipContent>
+                </Tooltip>
               </CardContent>
             </Card>
           ))

@@ -47,7 +47,7 @@ export default async function MuscleGroupPage(props: {
               <Image
                 src={
                   muscleDetails.thumbnailUrl ??
-                  "https://avatar.vercel.sh/shadcn1"
+                  "/empty-state-muscles.webp"
                 }
                 alt={muscleDetails.imageAltText ?? "Event cover"}
                 className="z-20 object-cover rounded-3xl"

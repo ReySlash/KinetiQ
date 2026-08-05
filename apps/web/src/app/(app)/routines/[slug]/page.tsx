@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CiMenuBurger } from "react-icons/ci";
+import { MoreHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 
 import StyledLink from "@/components/styled-link";
@@ -12,6 +12,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { fetchRoutine } from "@/lib/routines-server";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { RoutineActions } from "./routine-actions";
 
@@ -114,13 +119,20 @@ export default async function RoutineDetailsPage({
                           {routineExercise.exercise.name}
                         </h3>
                       </div>
-                      <StyledLink
-                        href={`/exercises/${routineExercise.exercise.slug}`}
-                        variant="outline"
-                      >
-                        <CiMenuBurger />
-                        <span className="sr-only">Open exercise details</span>
-                      </StyledLink>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <StyledLink
+                              href={`/exercises/${routineExercise.exercise.slug}`}
+                              variant="outline"
+                              aria-label="Open exercise details"
+                            >
+                              <MoreHorizontal />
+                            </StyledLink>
+                          }
+                        />
+                        <TooltipContent>Open exercise details</TooltipContent>
+                      </Tooltip>
                     </div>
                     <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-border/60 py-3 text-sm sm:grid-cols-4">
                       <div>

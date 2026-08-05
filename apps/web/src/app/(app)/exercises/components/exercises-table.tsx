@@ -15,8 +15,13 @@ import {
 } from "@/components/ui/table";
 import { Exercise } from "@/types/exercise-types";
 import Image from "next/image";
-import { CiMenuBurger } from "react-icons/ci";
+import { MoreHorizontal } from "lucide-react";
 import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ExercisesTableProps = {
   exercises: Exercise[];
@@ -47,7 +52,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                       className="border rounded-xl"
                       src={
                         exercise.thumbnailUrl ??
-                        "https://avatar.vercel.sh/shadcn1"
+                        "/empty-state-exercises.webp"
                       }
                       alt={
                         exercise.imageAltText ?? "Image description not found"
@@ -65,12 +70,20 @@ export function ExercisesTable(props: ExercisesTableProps) {
                         exerciseName={exercise.name}
                         triggerVariant="outline"
                       />
-                      <StyledLink
-                        href={`/exercises/${exercise.slug}`}
-                        variant={"outline"}
-                      >
-                        <CiMenuBurger />
-                      </StyledLink>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <StyledLink
+                              href={`/exercises/${exercise.slug}`}
+                              variant="outline"
+                              aria-label="Open exercise details"
+                            >
+                              <MoreHorizontal />
+                            </StyledLink>
+                          }
+                        />
+                        <TooltipContent>Open exercise details</TooltipContent>
+                      </Tooltip>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -98,7 +111,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                 <Image
                   className="col-span-1 rounded-xl"
                   src={
-                    exercise.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn"
+                    exercise.thumbnailUrl ?? "/empty-state-exercises.webp"
                   }
                   alt={exercise.imageAltText ?? "Event cover"}
                   width={70}
@@ -118,12 +131,20 @@ export function ExercisesTable(props: ExercisesTableProps) {
                     exerciseName={exercise.name}
                     triggerVariant="outline"
                   />
-                  <StyledLink
-                    href={`/exercises/${exercise.slug}`}
-                    variant={"outline"}
-                  >
-                    <CiMenuBurger />
-                  </StyledLink>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <StyledLink
+                          href={`/exercises/${exercise.slug}`}
+                          variant="outline"
+                          aria-label="Open exercise details"
+                        >
+                          <MoreHorizontal />
+                        </StyledLink>
+                      }
+                    />
+                    <TooltipContent>Open exercise details</TooltipContent>
+                  </Tooltip>
                 </div>
               </CardContent>
             </Card>

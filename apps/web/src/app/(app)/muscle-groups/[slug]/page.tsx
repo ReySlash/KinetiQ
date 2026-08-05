@@ -51,6 +51,7 @@ export default async function MuscleGroupDetailsPage(props: {
             <HeroCard
               thumbnailUrl={muscleGroupDetails.thumbnailUrl}
               imageAltText={muscleGroupDetails.imageAltText}
+              fallbackSrc="/empty-state-muscles.webp"
             />
           </div>
           <div className="flex w-1/2 flex-col gap-2">
@@ -64,6 +65,7 @@ export default async function MuscleGroupDetailsPage(props: {
           <HeroCard
             thumbnailUrl={muscleGroupDetails.thumbnailUrl}
             imageAltText={muscleGroupDetails.imageAltText}
+            fallbackSrc="/empty-state-muscles.webp"
           />
 
           <MuscleGroupOverviewCard muscleGroupDetails={muscleGroupDetails} />

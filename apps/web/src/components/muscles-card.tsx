@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/table";
 import { ExerciseMuscleSummary } from "@/types/exercise-types";
 import Image from "next/image";
-import { CiMenuBurger } from "react-icons/ci";
+import { MoreHorizontal } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type MuscleSCardProps = {
   muscles: ExerciseMuscleSummary[];
@@ -35,7 +40,7 @@ export default function MuscleSCard(props: MuscleSCardProps) {
                 <TableCell>
                   <Image
                     className="rounded-xl"
-                    src={m.thumbnailUrl ?? "https://avatar.vercel.sh/shadcn1"}
+                    src={m.thumbnailUrl ?? "/empty-state-muscles.webp"}
                     alt={m.imageAltText ?? "Not image description found."}
                     width={70}
                     height={70}
@@ -45,9 +50,20 @@ export default function MuscleSCard(props: MuscleSCardProps) {
                   {m.name}
                 </TableCell>
                 <TableCell className="text-right">
-                  <StyledLink href={`/muscles/${m.slug}`} variant={"outline"}>
-                    <CiMenuBurger />
-                  </StyledLink>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <StyledLink
+                          href={`/muscles/${m.slug}`}
+                          variant="outline"
+                          aria-label="Open muscle details"
+                        >
+                          <MoreHorizontal />
+                        </StyledLink>
+                      }
+                    />
+                    <TooltipContent>Open muscle details</TooltipContent>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}

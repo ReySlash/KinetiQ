@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/table";
 import { ExerciseMuscleSummary } from "@/types/exercise-types";
 import Image from "next/image";
-import { CiMenuBurger } from "react-icons/ci";
+import { MoreHorizontal } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ExercisesMusclesCardProps = {
   exercises: ExerciseMuscleSummary[];
@@ -37,7 +42,7 @@ export default function ExercisesMusclesCard(props: ExercisesMusclesCardProps) {
                     className="rounded-xl"
                     src={
                       exercise.thumbnailUrl ??
-                      "https://avatar.vercel.sh/shadcn1"
+                      "/empty-state-exercises.webp"
                     }
                     alt={
                       exercise.imageAltText ?? "Not image description found."
@@ -48,12 +53,20 @@ export default function ExercisesMusclesCard(props: ExercisesMusclesCardProps) {
                 </TableCell>
                 <TableCell>{exercise.name}</TableCell>
                 <TableCell className="text-right">
-                  <StyledLink
-                    href={`/exercises/${exercise.slug}`}
-                    variant={"outline"}
-                  >
-                    <CiMenuBurger />
-                  </StyledLink>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <StyledLink
+                          href={`/exercises/${exercise.slug}`}
+                          variant="outline"
+                          aria-label="Open exercise details"
+                        >
+                          <MoreHorizontal />
+                        </StyledLink>
+                      }
+                    />
+                    <TooltipContent>Open exercise details</TooltipContent>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}
