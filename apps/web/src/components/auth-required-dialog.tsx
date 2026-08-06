@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Dialog,
@@ -11,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import StyledLink from "@/components/styled-link";
 
 export function AuthRequiredDialog({
   open,
@@ -35,7 +35,7 @@ export function AuthRequiredDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button render={<Link href={signInHref} />}>Sign in</Button>
+          <StyledLink href={signInHref}>Sign in</StyledLink>
         </DialogFooter>
       </DialogContent>
     </Dialog>
