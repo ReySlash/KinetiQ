@@ -51,6 +51,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
   let secondUser: TestPrincipal;
   let admin: TestPrincipal;
   let exerciseSlug: string;
+  let muscleSlug: string;
 
   async function removeExistingPrincipal(email: string): Promise<void> {
     const existing = await prisma.user.findUnique({
@@ -130,6 +131,9 @@ describe('HTTP authentication and authorization (e2e)', () => {
     if (exerciseSlug) {
       await prisma.exercise.deleteMany({ where: { slug: exerciseSlug } });
     }
+    if (muscleSlug) {
+      await prisma.muscle.deleteMany({ where: { slug: muscleSlug } });
+    }
     await removeExistingPrincipal(user.email);
     await removeExistingPrincipal(secondUser.email);
     await removeExistingPrincipal(admin.email);
@@ -144,6 +148,43 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await request(app.getHttpServer())
       .post('/routines')
       .send({ name: 'Anonymous routine', description: null, exercises: [] })
+      .expect(401);
+    await request(app.getHttpServer())
+      .patch('/routines/not-owned')
+      .send({ name: 'Anonymous update' })
+      .expect(401);
+    await request(app.getHttpServer())
+      .delete('/routines/not-owned')
+      .expect(401);
+    await request(app.getHttpServer())
+      .post('/routines/not-owned/duplicate')
+      .expect(401);
+  });
+
+  it('rejects anonymous administrator mutations', async () => {
+    const id = '123e4567-e89b-12d3-a456-426614174000';
+
+    await request(app.getHttpServer())
+      .post('/admin/exercises')
+      .send({})
+      .expect(401);
+    await request(app.getHttpServer())
+      .patch(`/admin/exercises/${id}`)
+      .send({})
+      .expect(401);
+    await request(app.getHttpServer())
+      .delete(`/admin/exercises/${id}`)
+      .expect(401);
+    await request(app.getHttpServer())
+      .post('/admin/muscles')
+      .send({})
+      .expect(401);
+    await request(app.getHttpServer())
+      .patch('/admin/muscles/not-owned')
+      .send({})
+      .expect(401);
+    await request(app.getHttpServer())
+      .delete(`/admin/muscles/${id}`)
       .expect(401);
   });
 
@@ -182,23 +223,39 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .get(`/routines/${routineSlug}`)
       .set('Cookie', userCookies)
       .expect(200);
-    await request(app.getHttpServer())
-      .get(`/routines/${routineSlug}`)
-      .set('Cookie', secondUserCookies)
-      .expect(404);
-    await request(app.getHttpServer())
-      .patch(`/routines/${routineSlug}`)
-      .set('Cookie', secondUserCookies)
-      .send({ name: 'Stolen routine', description: null, exercises: [] })
-      .expect(404);
-    await request(app.getHttpServer())
-      .delete(`/routines/${routineSlug}`)
-      .set('Cookie', secondUserCookies)
-      .expect(404);
-    await request(app.getHttpServer())
-      .post(`/routines/${routineSlug}/duplicate`)
-      .set('Cookie', secondUserCookies)
-      .expect(404);
+
+    const privateRoutineResponses = [
+      await request(app.getHttpServer())
+        .get(`/routines/${routineSlug}`)
+        .set('Cookie', secondUserCookies)
+        .expect(404),
+      await request(app.getHttpServer())
+        .patch(`/routines/${routineSlug}`)
+        .set('Cookie', secondUserCookies)
+        .send({ name: 'Stolen routine', description: null, exercises: [] })
+        .expect(404),
+      await request(app.getHttpServer())
+        .delete(`/routines/${routineSlug}`)
+        .set('Cookie', secondUserCookies)
+        .expect(404),
+      await request(app.getHttpServer())
+        .post(`/routines/${routineSlug}/duplicate`)
+        .set('Cookie', secondUserCookies)
+        .expect(404),
+    ];
+
+    const notFoundResponse = {
+      status: privateRoutineResponses[0].status,
+      body: JSON.stringify(privateRoutineResponses[0].body),
+      text: privateRoutineResponses[0].text,
+    };
+    expect(
+      privateRoutineResponses.map(({ status, body, text }) => ({
+        status,
+        body: JSON.stringify(body),
+        text,
+      })),
+    ).toEqual(privateRoutineResponses.map(() => notFoundResponse));
   });
 
   it('allows an admin session to use admin routes and rejects a regular user', async () => {
@@ -256,9 +313,46 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .send(payload)
       .expect(403);
     await request(app.getHttpServer())
+      .patch(`/admin/exercises/${randomUUID()}`)
+      .set('Cookie', userCookies)
+      .send({})
+      .expect(403);
+    await request(app.getHttpServer())
+      .delete(`/admin/exercises/${randomUUID()}`)
+      .set('Cookie', userCookies)
+      .expect(403);
+    await request(app.getHttpServer())
       .post('/admin/exercises')
       .set('Cookie', adminCookies)
       .send(payload)
+      .expect(201);
+
+    muscleSlug = `http-auth-muscle-${randomUUID()}`;
+    const musclePayload = {
+      name: `HTTP auth muscle ${randomUUID()}`,
+      slug: muscleSlug,
+      description: 'A test muscle used to verify administrator authorization.',
+      bodyRegion: 'CORE',
+    };
+
+    await request(app.getHttpServer())
+      .post('/admin/muscles')
+      .set('Cookie', userCookies)
+      .send(musclePayload)
+      .expect(403);
+    await request(app.getHttpServer())
+      .patch(`/admin/muscles/${muscleSlug}`)
+      .set('Cookie', userCookies)
+      .send({ description: 'Unauthorized update' })
+      .expect(403);
+    await request(app.getHttpServer())
+      .delete(`/admin/muscles/${randomUUID()}`)
+      .set('Cookie', userCookies)
+      .expect(403);
+    await request(app.getHttpServer())
+      .post('/admin/muscles')
+      .set('Cookie', adminCookies)
+      .send(musclePayload)
       .expect(201);
   });
 });
