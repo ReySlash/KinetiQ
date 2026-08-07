@@ -16,7 +16,7 @@ This document separates the kinds of data KinetiQ stores so the `Exercise` table
 | ExerciseAthleticQuality | General athletic-quality mapping | Later editorial data |
 | Routine | Reusable template | One user owner |
 | RoutineExercise | Ordered prescription in a routine | Same owner through routine |
-| TrainingPlan | Schedule containing routine uses | Later, one user owner |
+| TrainingProgram | Schedule containing routine uses | Later, one user owner |
 | WorkoutSession | Historical occurrence | Later, one user owner |
 | SessionExercise | Snapshot of planned/performed exercise | Historical child |
 | CompletedSet | Actual performance | Historical child |
@@ -36,7 +36,7 @@ Exercise ──1:1── CapabilityProfile
    └─< RoutineExercise (order, sets, reps, RIR, rest, tempo)
           >─ Routine ── owner User
 
-Routine ──< scheduled use / TrainingPlan (later)
+Routine ──< scheduled use / TrainingProgram (later)
 Routine ── creates snapshots ──> WorkoutSession ─< SessionExercise ─< CompletedSet
 ```
 
@@ -95,4 +95,3 @@ Reference reads are public. Reference writes are administrator-only. User resour
 ## Dependencies and open questions
 
 Exact taxonomy seeds and UUID choice should be settled before the first migration. Sport mappings, custom exercises, and coach tenancy are intentionally modeled only at the boundary level until their user workflows are validated.
-

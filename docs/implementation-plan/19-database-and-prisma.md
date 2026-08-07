@@ -22,7 +22,7 @@ Prisma schema expresses keys, unique composites, foreign keys, referential actio
 - Routine numeric ranges and `min_reps <= max_reps` where feasible
 - Compound uniqueness for exercise-muscle, exercise-equipment, and routine order
 - Case-insensitive functional uniqueness if required
-- Partial uniqueness such as one active plan only if product rules demand it later
+- Partial uniqueness such as one active training program only if product rules demand it later
 
 Keep custom SQL in generated migration folders with comments and integration tests. Never rely on DTO validation alone.
 
@@ -30,7 +30,7 @@ Keep custom SQL in generated migration folders with comments and integration tes
 
 - Exercise deletion cascades capability/demand and editorial joins, but should be archive/restrict once routines/history reference it.
 - Muscle deletion is restricted when children or assignments exist.
-- Routine deletion cascades `RoutineExercise` during MVP; reevaluate when plans/sessions exist.
+- Routine deletion cascades `RoutineExercise` during MVP; reevaluate when training programs/sessions exist.
 - User deletion behavior needs a product policy. Prefer a controlled account-deletion job over broad database cascade once history exists.
 - Session source references use `SetNull`/restrict as appropriate while snapshot data remains.
 
@@ -80,4 +80,3 @@ Test clean migration, upgrade migration from the prior release, constraint failu
 ## Open questions
 
 Settle UUID version, snake_case mapping, initial search extension, and production database location before foundation completion. Recommendation: UUIDv4, mapped snake_case, no trigram extension until search exists, and external managed PostgreSQL if budget/region supports reliable backups; otherwise Compose with strict operational safeguards.
-

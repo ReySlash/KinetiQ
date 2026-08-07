@@ -50,7 +50,7 @@ Prefer same-site deployment (`app.example.com` with `/api` proxying) to simplify
 - `MediaModule`: upload policy and `StorageService`
 - `RoutinesModule`: owned templates and prescriptions
 - `HealthModule`: liveness/readiness
-- Later: `TrainingPlansModule`, `WorkoutSessionsModule`, `AnalyticsModule`
+- Later: `TrainingProgramsModule`, `WorkoutSessionsModule`, `AnalyticsModule`
 
 Modules may share IDs and public service interfaces, but should not reach into one another’s Prisma repositories. Cross-aggregate writes (for example exercise plus muscle assignments and profiles) are coordinated by one application service in one transaction.
 
@@ -106,4 +106,3 @@ Stateless web/API containers can later scale horizontally if sessions and media 
 ## Future extensions
 
 A worker process, cache, queue, or read model is added only after measurements justify it. The modular boundaries above provide extraction points without pre-building distributed infrastructure.
-

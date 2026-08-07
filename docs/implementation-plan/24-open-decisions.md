@@ -127,7 +127,7 @@ Choose off-host uptime/alerting, error tracking, and log retention with privacy/
 
 - Custom exercises: optional `ownerId` on `Exercise` versus a separate `CustomExercise`. Revisit only with sharing/moderation/search rules.
 - Exercise relationships: directionality, inverse generation, duplicate/conflict rules, and curator UI.
-- Training plan versioning versus live routine reference.
+- Training program versioning versus live routine reference.
 - Session canonical load/distance units and correction/audit policy.
 - Analytics formulas, working-set classification, unilateral/bodyweight conventions.
 - General athletic-quality curation rubric and public value.

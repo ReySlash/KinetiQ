@@ -22,7 +22,7 @@ This roadmap prevents the final vision from expanding the first release. Each re
 
 ### Excluded
 
-Workout sessions, completed sets, plans and calendars, analytics dashboards, recommendation engines, subjective recovery, fatigue tracking, coach organizations, sport-specific mappings, social activity, AI, nutrition, payments, notifications, user-created exercises, and multiple exercise media assets.
+Workout sessions, completed sets, training programs and calendars, analytics dashboards, recommendation engines, subjective recovery, fatigue tracking, coach organizations, sport-specific mappings, social activity, AI, nutrition, payments, notifications, user-created exercises, and multiple exercise media assets.
 
 ## Release phases
 
@@ -54,9 +54,9 @@ Integrate Better Auth with NestJS request authentication. Add private routine CR
 
 Complete accessibility checks, rate limiting, security headers, data backup/restore rehearsal, production Compose/Nginx/Certbot configuration, deployment automation, smoke tests, and operational docs.
 
-### Phase 7 — Training plans and weekly scheduling
+### Phase 7 — Training programs and weekly scheduling
 
-Compose routines into dated or weekday-based plans. Do not add performance records yet.
+Compose routines into dated or weekday-based training programs. Do not add performance records yet.
 
 ### Phase 8 — Sessions and performance
 
@@ -84,7 +84,7 @@ Foundation
           ├─ Capability and demand profiles
           └─ Media
               └─ Auth + owned routines
-                  └─ Training plans
+                  └─ Training programs
                       └─ Workout sessions
                           └─ Analytics
                               └─ Recommendations/recovery
@@ -107,4 +107,3 @@ Every phase must pass lint, type checks, unit tests, relevant integration tests,
 ## Open questions
 
 Commercial scope, initial exercise catalog size, thumbnail provider, and whether the first VPS database runs in Compose remain decisions recorded in [open decisions](24-open-decisions.md). None expands MVP scope.
-

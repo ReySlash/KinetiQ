@@ -81,7 +81,7 @@ This work may begin earlier and must be complete before R2–R5 reaches a shared
 
 ## Post-MVP releases
 
-- **R10:** training plans and weekly schedules
+- **R10:** training programs and weekly schedules
 - **R11:** session launch, snapshots, and completed strength sets
 - **R12:** session history and corrections
 - **R13:** deterministic overview analytics and PRs
@@ -92,7 +92,7 @@ This work may begin earlier and must be complete before R2–R5 reaches a shared
 
 ## Explicit non-goals through R9
 
-No workout-performance tracking, plan calendar, advanced analytics, recommendations, recovery/fatigue check-ins, AI, nutrition, payments, coach organizations, social features, sport-specific transfer, user-created exercises, or multiple media assets.
+No workout-performance tracking, training-program calendar, advanced analytics, recommendations, recovery/fatigue check-ins, AI, nutrition, payments, coach organizations, social features, sport-specific transfer, user-created exercises, or multiple media assets.
 
 ## Recommended first implementation task
 

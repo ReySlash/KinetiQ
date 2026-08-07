@@ -32,7 +32,7 @@ Use a dedicated check-in scale with its own meaning, not automatically the exerc
 - Missing answers remain null and are never converted to neutral values.
 - Free-text length is bounded, private, escaped, excluded from ordinary logs/telemetry, and covered by deletion/export policy.
 - Any derived readiness/fatigue estimate identifies input completeness, method version, limitations, and never presents medical certainty.
-- Recommendations are opt-in, explainable, dismissible, and do not automatically rewrite plans.
+- Recommendations are opt-in, explainable, dismissible, and do not automatically rewrite training programs.
 
 ## API and frontend
 
@@ -61,4 +61,3 @@ Users control private, optional check-ins; scales are unambiguous; missing data 
 ## Open questions
 
 Daily versus pre-session timing, exact questions/scales, retention/export, whether regional soreness adds value, data residency, and the evidence threshold for a recommendation must be resolved before implementation.
-

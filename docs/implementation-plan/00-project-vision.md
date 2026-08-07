@@ -36,7 +36,7 @@ Scores describe the exercise under a documented typical execution and prescripti
 
 ## Scope
 
-The product starts with controlled muscles and exercises, detailed relationships, search, thumbnails, authentication, and personal routines. It later adds plans, sessions, analytics, recommendations, recovery, and coaching in that dependency order.
+The product starts with controlled muscles and exercises, detailed relationships, search, thumbnails, authentication, and personal routines. It later adds training programs, sessions, analytics, recommendations, recovery, and coaching in that dependency order.
 
 ## Out of scope as product claims
 
@@ -67,4 +67,3 @@ Later product measures include routine reuse, completed session consistency, dat
 ## Definition of product integrity
 
 The project retains integrity when source data is distinguishable from calculations, ownership is enforced at query boundaries, historical records are immutable except for explicit corrections, and every user-facing estimate can identify its input data and interpretation.
-

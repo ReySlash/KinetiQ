@@ -83,7 +83,7 @@ Exercise ratings are editorial classifications, not precise scientific measureme
 
 The repository has a working foundation and a partial reference-library implementation. PostgreSQL runs through Docker Compose for local development; the API has Prisma migrations, validated configuration, Better Auth wiring, public muscle/exercise endpoints, and a database readiness endpoint; the web app has responsive reference-library pages and the shared application shell.
 
-The next product slice is authentication UX and user-owned routines. Training plans, workout sessions, analytics, progression, recovery, and coach workflows remain deferred according to the implementation plan.
+The next product slice is authentication UX and user-owned routines. Training programs, workout sessions, analytics, progression, recovery, and coach workflows remain deferred according to the implementation plan.
 
 ### Local verification
 

@@ -40,7 +40,7 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [10](10-exercise-media.md) | Image metadata and storage abstraction | MVP thumbnail slice |
 | [11](11-routine-builder.md) | User-owned reusable workout templates | MVP |
 | [12](12-authentication-and-authorization.md) | Better Auth integration and ownership | MVP |
-| [13](13-training-plans.md) | Plans and weekly schedules | Post-MVP |
+| [13](13-training-programs.md) | Training programs and weekly schedules | Post-MVP |
 | [14](14-workout-sessions.md) | Historical performed training | Post-MVP |
 | [15](15-analytics.md) | Derived metrics and recommendations | Post-MVP |
 | [16](16-testing-strategy.md) | Test pyramid, fixtures, and gates | MVP |
@@ -60,7 +60,7 @@ When documents disagree, the more specific feature document wins. Changes that a
 
 The MVP includes seeded, read-only muscle data; admin-managed global exercises; a thumbnail per exercise; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; routine exercise prescriptions; duplication; responsive UI; automated backend/frontend tests; and Docker deployment.
 
-The MVP explicitly excludes performed-workout tracking, training plans/calendar scheduling, analytics, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
+The MVP explicitly excludes performed-workout tracking, training-program/calendar scheduling, analytics, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
 
 ## Recommended implementation order
 
@@ -83,7 +83,7 @@ Authentication is integrated after public reference-library slices so early work
 | Reference library | Planned | Seeded muscles and admin exercise management work end to end |
 | Routine MVP | Planned | Authenticated users manage only their routines |
 | Production MVP | Planned | Security, tests, deployment, backup and restore drill pass |
-| Planning and scheduling | Deferred | Training plans can schedule reusable routines |
+| Training programs and scheduling | Deferred | Training programs can schedule reusable routines |
 | Performance and analytics | Deferred | Immutable session history supports explainable metrics |
 | Recommendations and recovery | Deferred | Rules use sufficient real data and expose rationale |
 | Coach/athlete | Exploratory | Tenancy and consent model is validated |

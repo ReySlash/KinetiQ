@@ -2,11 +2,11 @@
 
 ## Purpose and status
 
-Allow an athlete to delegate limited access to a coach without weakening ownership or turning coaches into system administrators. This is exploratory and should begin only after personal plans, sessions, privacy controls, and audit logs are stable.
+Allow an athlete to delegate limited access to a coach without weakening ownership or turning coaches into system administrators. This is exploratory and should begin only after personal training programs, sessions, privacy controls, and audit logs are stable.
 
 ## User problem and proposed scope
 
-An athlete may want a coach to view history, create/assign plans, comment, or adjust future prescriptions. The first slice should support one explicit coach–athlete grant with a small permission set, invitation/acceptance, revocation, and audited reads/writes. Organizations, teams, billing, discovery, messaging, and public profiles remain later.
+An athlete may want a coach to view history, create/assign training programs, comment, or adjust future prescriptions. The first slice should support one explicit coach–athlete grant with a small permission set, invitation/acceptance, revocation, and audited reads/writes. Organizations, teams, billing, discovery, messaging, and public profiles remain later.
 
 ## Modeling recommendation
 
@@ -19,7 +19,7 @@ CoachingRelationship(
 )
 ```
 
-Prefer normalized permission rows or a stable bitset/array only after exact actions are known. Likely permissions are view sessions/analytics, view recovery, manage plans/routines, and comment. Athlete-owned resources keep `ownerId=athleteId`; authorization checks either ownership or an active grant for that action.
+Prefer normalized permission rows or a stable bitset/array only after exact actions are known. Likely permissions are view sessions/analytics, view recovery, manage training programs/routines, and comment. Athlete-owned resources keep `ownerId=athleteId`; authorization checks either ownership or an active grant for that action.
 
 If multi-coach companies, rosters, staff roles, or shared templates become requirements, introduce `Organization`, `Membership`, and athlete consent as a true tenancy design rather than stretching a pair relationship.
 
@@ -29,7 +29,7 @@ If multi-coach companies, rosters, staff roles, or shared templates become requi
 - Grants are least privilege, resource/action specific, and time-limited optionally.
 - Coaches cannot view recovery/notes unless separately granted.
 - Revocation blocks new access while preserving audit/history of prior authorized changes.
-- Coach changes to plans/prescriptions identify the actor and never rewrite completed sessions.
+- Coach changes to training programs/prescriptions identify the actor and never rewrite completed sessions.
 - Account deletion/suspension terminates active grants.
 - A system administrator role is for catalog/operations, not routine coaching access.
 
@@ -45,7 +45,7 @@ Create a permission matrix for owner, granted coach, ungranted coach, revoked co
 
 ## Dependencies and implementation sequence
 
-Requires mature owner-scoped services, sessions/plans, audit logging, notification/email capability, privacy/export/deletion policies, and user validation. Conduct user research, define actions/consent, threat-model tenancy, implement grants/audit, then enable one resource at a time.
+Requires mature owner-scoped services, sessions/training programs, audit logging, notification/email capability, privacy/export/deletion policies, and user validation. Conduct user research, define actions/consent, threat-model tenancy, implement grants/audit, then enable one resource at a time.
 
 ## Definition of done
 
@@ -54,4 +54,3 @@ Athletes knowingly grant and instantly revoke narrowly defined access; owner IDs
 ## Open questions and future extensions
 
 Coach verification, liability, child/minor accounts, organizations, team roles, template ownership, comment moderation, notifications, regional privacy/data processing, billing, and data portability all require product/legal validation. These uncertainties keep the feature outside the committed roadmap.
-

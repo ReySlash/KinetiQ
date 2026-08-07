@@ -2,7 +2,7 @@
 
 ## Purpose and user problem
 
-A routine is a reusable workout template. Users need private owned templates and access to curated global templates without changing global exercise definitions or confusing a plan with performed history.
+A routine is a reusable workout template. Users need private owned templates and access to curated global templates without changing global exercise definitions or confusing a training program with performed history.
 
 ## MVP scope
 
@@ -87,7 +87,7 @@ Use a surrogate ID so the same exercise may appear twice. Store dense zero-based
 - `DELETE /api/routines/:slug`
 - `POST /api/routines/:slug/duplicate`
 
-Create/update receive the routine and complete ordered child array; write in one transaction. For MVP, delete may be hard delete because no sessions/plans exist. Before those phases ship, change to restrictive/archive semantics where referenced. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with a success message. Create, update, duplicate, and delete mutations return feedback only; clients use the read endpoints when they need the resource representation.
+Create/update receive the routine and complete ordered child array; write in one transaction. For MVP, delete may be hard delete because no sessions/training programs exist. Before those phases ship, change to restrictive/archive semantics where referenced. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with a success message. Create, update, duplicate, and delete mutations return feedback only; clients use the read endpoints when they need the resource representation.
 
 Routine list responses follow the exercise-library read pattern: `limit` defaults to 20, `offset` defaults to 0, and the endpoint returns a plain array without a separate total-count query. List rows use a lightweight projection and include an `exerciseCount`; detail rows include the full ordered prescription data.
 
@@ -136,4 +136,4 @@ An authenticated user completes every lifecycle action on only their records; pr
 
 ## Future extensions and open questions
 
-Add estimated duration, RPE, per-set targets, supersets/circuits, progression rules, tags, user-created public sharing, imports, and versions later. An admin UI for global routine curation is deferred; global templates are seed-managed for now. Before training plans, decide delete/archive behavior. Before sessions, define snapshot rules. Dense integer ordering and duplicate exercise occurrences remain supported.
+Add estimated duration, RPE, per-set targets, supersets/circuits, progression rules, tags, user-created public sharing, imports, and versions later. An admin UI for global routine curation is deferred; global templates are seed-managed for now. Before training programs, decide delete/archive behavior. Before sessions, define snapshot rules. Dense integer ordering and duplicate exercise occurrences remain supported.
