@@ -72,23 +72,29 @@ enum RoutineVisibility {
   GLOBAL
 }
 
+enum TrainingProgramVisibility {
+  PRIVATE
+  GLOBAL
+}
+
 enum PlatformRole {
   USER
   ADMIN
 }
 
 model User {
-  id            String       @id @db.Uuid
-  name          String
-  email         String       @unique
-  emailVerified Boolean      @default(false)
-  image         String?
-  role          PlatformRole @default(USER)
-  createdAt     DateTime     @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime     @updatedAt @db.Timestamptz(3)
-  sessions      Session[]
-  accounts      Account[]
-  routines      Routine[]
+  id               String            @id @db.Uuid
+  name             String
+  email            String            @unique
+  emailVerified    Boolean           @default(false)
+  image            String?
+  role             PlatformRole      @default(USER)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime          @updatedAt @db.Timestamptz(3)
+  sessions         Session[]
+  accounts         Account[]
+  routines         Routine[]
+  trainingPrograms TrainingProgram[]
 
   @@map("user")
 }
@@ -298,16 +304,17 @@ model ExerciseDemandProfile {
 }
 
 model Routine {
-  id          String            @id @db.Uuid
-  ownerId     String            @db.Uuid
-  slug        String            @unique
-  name        String
-  description String?
-  visibility  RoutineVisibility @default(PRIVATE)
-  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime          @updatedAt @db.Timestamptz(3)
-  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  exercises   RoutineExercise[]
+  id               String                   @id @db.Uuid
+  ownerId          String                   @db.Uuid
+  slug             String                   @unique
+  name             String
+  description      String?
+  visibility       RoutineVisibility        @default(PRIVATE)
+  createdAt        DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime                 @updatedAt @db.Timestamptz(3)
+  owner            User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  exercises        RoutineExercise[]
+  trainingPrograms TrainingProgramRoutine[]
 
   @@index([ownerId, updatedAt])
   @@index([ownerId, name])
@@ -315,25 +322,63 @@ model Routine {
 }
 
 model RoutineExercise {
-  id          String   @id @db.Uuid
-  routineId   String   @db.Uuid
+  id           String   @id @db.Uuid
+  routineId    String   @db.Uuid
   exerciseSlug String
-  order       Int
-  sets        Int
-  minReps     Int
-  maxReps     Int
-  targetRir   Int?
-  restSeconds Int?
-  tempo       String?
-  notes       String?
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
-  routine     Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
-  exercise    Exercise @relation(fields: [exerciseSlug], references: [slug], onDelete: Restrict)
+  order        Int
+  sets         Int
+  minReps      Int
+  maxReps      Int
+  targetRir    Int?
+  restSeconds  Int?
+  tempo        String?
+  notes        String?
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+  routine      Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise     Exercise @relation(fields: [exerciseSlug], references: [slug], onDelete: Restrict)
 
   @@unique([routineId, order])
   @@index([routineId])
   @@index([exerciseSlug])
+}
+
+model TrainingProgram {
+  id            String                    @id @db.Uuid
+  ownerId       String                    @db.Uuid
+  slug          String                    @unique
+  name          String
+  description   String?
+  visibility    TrainingProgramVisibility @default(PRIVATE)
+  durationWeeks Int
+  createdAt     DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime                  @updatedAt @db.Timestamptz(3)
+
+  owner    User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  routines TrainingProgramRoutine[]
+
+  @@index([ownerId, updatedAt])
+  @@index([ownerId, name])
+  @@index([visibility, updatedAt])
+}
+
+model TrainingProgramRoutine {
+  id                String  @id @db.Uuid
+  trainingProgramId String  @db.Uuid
+  routineId         String  @db.Uuid
+  weekNumber        Int
+  dayNumber         Int
+  notes             String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  trainingProgram TrainingProgram @relation(fields: [trainingProgramId], references: [id], onDelete: Cascade)
+  routine         Routine         @relation(fields: [routineId], references: [id], onDelete: Restrict)
+
+  @@unique([trainingProgramId, weekNumber, dayNumber])
+  @@index([trainingProgramId, weekNumber, dayNumber])
+  @@index([routineId])
 }
 
 // ###########################################################################################################################

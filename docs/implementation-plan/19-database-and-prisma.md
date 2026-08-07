@@ -30,7 +30,8 @@ Keep custom SQL in generated migration folders with comments and integration tes
 
 - Exercise deletion cascades capability/demand and editorial joins, but should be archive/restrict once routines/history reference it.
 - Muscle deletion is restricted when children or assignments exist.
-- Routine deletion cascades `RoutineExercise` during MVP; reevaluate when training programs/sessions exist.
+- Routine deletion cascades `RoutineExercise`, but is restricted when a `TrainingProgramRoutine` references the routine so a program cannot silently lose a scheduled workout.
+- Training program deletion cascades only its `TrainingProgramRoutine` schedule rows; referenced routines remain independently reusable.
 - User deletion behavior needs a product policy. Prefer a controlled account-deletion job over broad database cascade once history exists.
 - Session source references use `SetNull`/restrict as appropriate while snapshot data remains.
 
@@ -42,6 +43,7 @@ Start with indexes driven by endpoints:
 - `Exercise(slug unique)`, `(isActive, name)`, `(movementPatternId, isActive)`, `(skillLevel, isActive)`
 - Join reverse lookups such as `ExerciseMuscle(muscleId, role)` and `ExerciseEquipment(equipmentId, exerciseId)`
 - `Routine(ownerId, updatedAt)`, `Routine(ownerId, name)`, unique `(routineId, order)`
+- `TrainingProgram(ownerId, updatedAt)`, `(ownerId, name)`, `(visibility, updatedAt)`, unique schedule slot `(trainingProgramId, weekNumber, dayNumber)`, and reverse routine schedule lookup
 - Later session `(ownerId, startedAt)` and child foreign-key/order indexes
 
 PostgreSQL does not automatically create useful indexes for every foreign key; add them explicitly. For search, begin with normalized `ILIKE`; enable `pg_trgm` and GIN indexes only through an intentional migration after query-plan measurement. Avoid indexing every rating column.

@@ -87,7 +87,7 @@ Use a surrogate ID so the same exercise may appear twice. Store dense zero-based
 - `DELETE /api/routines/:slug`
 - `POST /api/routines/:slug/duplicate`
 
-Create/update receive the routine and complete ordered child array; write in one transaction. For MVP, delete may be hard delete because no sessions/training programs exist. Before those phases ship, change to restrictive/archive semantics where referenced. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with a success message. Create, update, duplicate, and delete mutations return feedback only; clients use the read endpoints when they need the resource representation.
+Create/update receive the routine and complete ordered child array; write in one transaction. Unreferenced routines may be hard-deleted. Once training programs reference a routine, the database restricts its deletion so a program cannot silently lose a scheduled workout; a clear conflict response or archive workflow belongs to the later Training Programs API design. Duplication copies scalar values and children, uses a name like `<name> (Copy)` with collision-safe truncation, and returns `201` with a success message. Create, update, duplicate, and delete mutations return feedback only; clients use the read endpoints when they need the resource representation.
 
 Routine list responses follow the exercise-library read pattern: `limit` defaults to 20, `offset` defaults to 0, and the endpoint returns a plain array without a separate total-count query. List rows use a lightweight projection and include an `exerciseCount`; detail rows include the full ordered prescription data.
 

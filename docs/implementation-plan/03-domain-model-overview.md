@@ -16,9 +16,11 @@ This document separates the kinds of data KinetiQ stores so the `Exercise` table
 | ExerciseAthleticQuality | General athletic-quality mapping | Later editorial data |
 | Routine | Reusable template | One user owner |
 | RoutineExercise | Ordered prescription in a routine | Same owner through routine |
-| TrainingProgram | Schedule containing routine uses | Later, one user owner |
+| TrainingProgram | Reusable multi-week template scheduling routines by relative week/day | One user or protected platform owner |
+| TrainingProgramRoutine | Relative routine placement within a program template | Same owner context through program |
+| ActiveProgram / UserTrainingProgram | User adoption and calendar mapping of a program template | Future, one user owner |
 | WorkoutSession | Historical occurrence | Later, one user owner |
-| SessionExercise | Snapshot of planned/performed exercise | Historical child |
+| ExercisePerformance | Snapshot of planned/performed exercise | Future historical child |
 | CompletedSet | Actual performance | Historical child |
 | RecoveryCheckIn | Athlete response/context | Later, one user owner |
 
@@ -36,8 +38,10 @@ Exercise ──1:1── CapabilityProfile
    └─< RoutineExercise (order, sets, reps, RIR, rest, tempo)
           >─ Routine ── owner User
 
-Routine ──< scheduled use / TrainingProgram (later)
-Routine ── creates snapshots ──> WorkoutSession ─< SessionExercise ─< CompletedSet
+Routine >── TrainingProgramRoutine ──> TrainingProgram
+
+TrainingProgram ──> ActiveProgram / UserTrainingProgram (future)
+   └─> WorkoutSession ─< ExercisePerformance ─< CompletedSet
 ```
 
 ## Core modeling rules
@@ -85,6 +89,7 @@ Materialized aggregates are deferred until query measurements show a need. If ca
 
 - Creating/updating an exercise with assignments and profiles is one transaction.
 - Creating/updating a routine and its prescription children is one transaction when submitted as a full form.
+- Creating/updating a training program and its relative routine schedule is one transaction when submitted as a full form.
 - Media object upload is not transactionally atomic with PostgreSQL; use a staged/finalized workflow and cleanup states.
 - Recording a completed session should commit the session snapshots and initial sets atomically where practical.
 
