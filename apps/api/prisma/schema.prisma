@@ -130,6 +130,7 @@ model Account {
   updatedAt             DateTime  @updatedAt @db.Timestamptz(3)
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([providerId, accountId])
   @@index([userId])
   @@map("account")
 }
@@ -390,7 +391,7 @@ enum MuscleFunctionRole {
 }
 
 model MuscleFunction {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String   @id @db.Uuid
   name        String   @unique
   slug        String   @unique
   description String?

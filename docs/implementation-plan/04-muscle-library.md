@@ -47,7 +47,7 @@ model Muscle {
 }
 ```
 
-`MuscleGroup` is recommended as a seeded reference table with `id`, `name`, `slug`, `description?`, and `sortOrder`. It avoids conflating hierarchy (“Quadriceps contains Rectus Femoris”) with an analytical grouping. If the initial catalog proves extremely small, `muscleGroup` can be an enum, but the table is preferred because labels and filter order will evolve.
+`MuscleGroup` is recommended as a seeded reference table with `id`, `name`, `slug`, `description?`, required `bodyRegion`, and `sortOrder`. It avoids conflating hierarchy (“Quadriceps contains Rectus Femoris”) with an analytical grouping. Every group must have a region so group-level filtering does not depend on nullable or inferred child data. If the initial catalog proves extremely small, `muscleGroup` can be an enum, but the table is preferred because labels and filter order will evolve.
 
 ## Domain and validation rules
 
@@ -115,4 +115,3 @@ A clean database can migrate and seed twice with identical results; public users
 ## Future extensions and open questions
 
 Possible extensions include synonyms for search, localization, richer anatomy, multi-region classifications, and an internal maintenance UI. Decide the initial catalog and whether group records themselves also appear as muscles before seeding; recommendation: allow “Quadriceps” as a selectable broad muscle record with children, while documenting that analytics must avoid double-counting a parent and child assigned to the same exercise.
-

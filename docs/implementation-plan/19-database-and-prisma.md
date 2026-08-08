@@ -10,7 +10,7 @@ Use separate development, test, staging, and production databases/users. Test co
 
 ## Identifier and naming choices
 
-Use native PostgreSQL UUID columns. Recommendation: UUIDv4 for MVP because Prisma/database/tool support is universal; move to UUIDv7 before the first migration only if the chosen generation path is consistent in API, seeds, and tests. Do not change ID type after release without strong cause.
+Use native PostgreSQL UUID columns and generate UUIDv4 identifiers in the application before persistence. Models therefore use `@id @db.Uuid` without database or Prisma schema defaults, and API/seed write paths provide the ID explicitly. Do not change ID type or generation ownership after release without strong cause.
 
 Prisma models/fields use PascalCase/camelCase; map to snake_case PostgreSQL tables/columns consistently if desired. Make that choice in the first migration. Timestamps are `timestamptz(3)` in UTC. Add `createdAt`/`updatedAt`; use `archivedAt` only where lifecycle requires it.
 
@@ -21,6 +21,7 @@ Prisma schema expresses keys, unique composites, foreign keys, referential actio
 - Every editorial score `BETWEEN 0 AND 5`
 - Routine numeric ranges and `min_reps <= max_reps` where feasible
 - Compound uniqueness for exercise-muscle, exercise-equipment, and routine order
+- Better Auth account identity uniqueness on `(providerId, accountId)`
 - Case-insensitive functional uniqueness if required
 - Partial uniqueness such as one active training program only if product rules demand it later
 
@@ -81,4 +82,4 @@ Test clean migration, upgrade migration from the prior release, constraint failu
 
 ## Open questions
 
-Settle UUID version, snake_case mapping, initial search extension, and production database location before foundation completion. Recommendation: UUIDv4, mapped snake_case, no trigram extension until search exists, and external managed PostgreSQL if budget/region supports reliable backups; otherwise Compose with strict operational safeguards.
+Settle snake_case mapping, initial search extension, and production database location before foundation completion. Use application-assigned UUIDv4 identifiers, no trigram extension until search exists, and external managed PostgreSQL if budget/region supports reliable backups; otherwise Compose with strict operational safeguards.
