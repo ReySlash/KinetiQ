@@ -26,9 +26,14 @@ GET    /api/routines/:slug
 PATCH  /api/routines/:slug
 DELETE /api/routines/:slug
 POST   /api/routines/:slug/duplicate
+POST   /api/training-programs
+GET    /api/training-programs
+GET    /api/training-programs/:slug
+PATCH  /api/training-programs/:slug
+DELETE /api/training-programs/:slug
 ```
 
-The `/admin` prefix makes curation intent and documentation clear, but role guards remain mandatory. Public reads and admin writes can share application services. Routine routes need no `/users/:userId` because identity comes from the session.
+The `/admin` prefix makes curation intent and documentation clear, but role guards remain mandatory. Public reads and admin writes can share application services. Routine and training-program routes need no `/users/:userId` because identity comes from the session. Training Program duplication and global-template management remain outside the first backend slice.
 
 ## DTO and validation strategy
 
@@ -39,6 +44,7 @@ Create and update DTO semantics:
 - `POST` requires all fields needed for a complete aggregate.
 - `PATCH` distinguishes omitted (“unchanged”) from explicit null/empty (“clear/replace”).
 - Child arrays in exercise/routine aggregate patches use documented replacement semantics when present.
+- Training Program HTTP DTOs live in its presentation layer and are mapped to transport-neutral application commands; neither representation imports Prisma.
 - Responses use stable camelCase JSON and ISO-8601 timestamps.
 - IDs are validated UUIDs; public reference detail may accept a UUID or slug but the matching rule is explicit.
 

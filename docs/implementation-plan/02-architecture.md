@@ -54,6 +54,54 @@ Prefer same-site deployment (`app.example.com` with `/api` proxying) to simplify
 
 Modules may share IDs and public service interfaces, but should not reach into one another’s Prisma repositories. Cross-aggregate writes (for example exercise plus muscle assignments and profiles) are coordinated by one application service in one transaction.
 
+## Training Programs architecture pilot
+
+`TrainingProgramsModule` is the first isolated pilot of a lean Clean Architecture/DDD vertical slice inside the existing modular monolith. This is not approval for a repository-wide rewrite. Existing modules keep their current structure until the pilot is implemented, tested, and evaluated.
+
+The pilot uses feature ownership first and layers inside the feature:
+
+```text
+apps/api/src/modules/training-programs/
+  domain/
+    entities/
+    errors/
+    repositories/
+  application/
+    use-cases/
+    models/
+  infrastructure/
+    persistence/prisma/
+  presentation/
+    http/dto/
+  training-programs.module.ts
+```
+
+Dependency direction is inward:
+
+```text
+presentation ──> application ──> domain
+                         ▲
+                         │ implements ports
+infrastructure ──────────┘
+```
+
+- **Domain** owns the `TrainingProgram` aggregate, schedule-entry behavior, invariants, and domain errors. It imports no NestJS, Prisma, Swagger, class-validator, or HTTP types.
+- **Application** owns use-case orchestration and transport-neutral input/output models. It depends on domain contracts, not concrete persistence.
+- **Infrastructure** implements feature-specific repository ports with Prisma, maps database rows to domain/application models, and owns atomic persistence details.
+- **Presentation** owns NestJS controllers, authentication decorators, HTTP request/response DTOs, Swagger annotations, and translation from application/domain errors to the established HTTP contract.
+- **Module composition** binds repository tokens to Prisma implementations and wires use cases/controllers.
+
+Keep the pilot lean:
+
+- Do not create generic base entities, repositories, use cases, result wrappers, event buses, or a CQRS dependency.
+- Introduce a value object only when it protects a meaningful compound invariant or behavior. Do not wrap `ownerId`, name, or description merely to avoid primitives.
+- Repository methods are aggregate/use-case specific and preserve ownership and transaction guarantees; do not expose generic unscoped CRUD.
+- Prisma types and generated enums do not cross the infrastructure boundary.
+- Continue using the existing global `PrismaModule` and Better Auth integration. Moving them into a new `shared/` hierarchy is a separate repository-wide decision.
+- Cross-feature access uses narrow ports or feature-owned repository operations; a module never imports another feature’s Prisma implementation.
+
+After the backend slice is complete, evaluate file count, rule placement, test clarity, transaction handling, and change cost. Migrate another feature only with a separate approved decision.
+
 ## Frontend architecture
 
 Use server components for public, read-oriented page shells and metadata where useful. Use client components for TanStack Query interactions, filters, forms, ordering, and authenticated mutations. Route groups should separate public library, authenticated app, and admin surfaces. React Hook Form plus Zod handles immediate browser feedback; Nest DTO validation remains authoritative.
@@ -63,9 +111,9 @@ Use server components for public, read-oriented page shells and metadata where u
 1. Nginx terminates HTTPS and proxies based on path.
 2. Better Auth session cookies are secure, HTTP-only, and same-site.
 3. NestJS resolves the authenticated principal and role.
-4. Controllers validate DTOs and delegate to application services.
-5. Services enforce domain rules and query-level ownership.
-6. Prisma executes constrained reads/writes, using transactions for aggregate changes.
+4. Controllers validate DTOs and delegate to application services or, in the Training Programs pilot, explicit application use cases.
+5. Services/use cases enforce domain rules and query-level ownership through feature contracts.
+6. Prisma executes constrained reads/writes directly for existing modules or behind the Training Programs infrastructure adapter, using transactions for aggregate changes.
 7. A global exception filter returns the standard problem response with a request ID.
 
 ## Alternatives considered

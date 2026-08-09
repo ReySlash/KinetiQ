@@ -1,12 +1,13 @@
 # Training programs and relative scheduling
 
-## Purpose and implementation boundary
+## Purpose and current implementation boundary
 
 A `TrainingProgram` is a reusable multi-week template that schedules existing
-routine templates. This persistence slice adds only the template and its
-schedule rows. Controllers, services, DTOs, API endpoints, frontend screens,
-seeds, activation, calendar placement, and performed-training models remain out
-of scope.
+routine templates. The persistence model and migration are complete. The next
+approved planning step is to specify a backend-only Clean Architecture/DDD
+vertical-slice pilot before writing application code. Frontend screens, seeds,
+activation, calendar placement, performed-training models, and duplication
+remain out of scope.
 
 The template hierarchy is:
 
@@ -233,11 +234,300 @@ deferred are active/user programs, workout sessions, exercise performance,
 weekday enums, direct program exercises, progression rules, percentage-based
 loading, mesocycles, `daysPerWeek`, and frontend-specific fields.
 
-## Persistence verification for this slice
+## Backend architecture pilot
+
+Training Programs is an isolated pilot of the architecture defined in
+[Architecture](02-architecture.md). It remains one NestJS feature module in the
+modular monolith; the vertical slice is organizational and dependency-oriented,
+not a microservice boundary.
+
+```text
+apps/api/src/modules/training-programs/
+  domain/
+    entities/
+      training-program.ts
+      training-program-schedule-entry.ts
+    errors/
+      training-program.errors.ts
+    repositories/
+      training-programs.repository.ts
+  application/
+    use-cases/
+      create-training-program.use-case.ts
+      list-training-programs.use-case.ts
+      get-training-program.use-case.ts
+      update-training-program.use-case.ts
+      delete-training-program.use-case.ts
+    models/
+      training-program.models.ts
+  infrastructure/
+    persistence/prisma/
+      prisma-training-programs.repository.ts
+      prisma-training-program.mapper.ts
+  presentation/
+    http/
+      dto/
+      training-programs.controller.ts
+      training-programs-exception.mapper.ts
+  training-programs.module.ts
+```
+
+This is a target organization, not a requirement to create empty placeholder
+files. Add a file only when the implementation gives it a concrete
+responsibility.
+
+### Layer responsibilities
+
+- The domain layer owns schedule-slot uniqueness, duration bounds, normalized
+  program state, and mutation rules. It has no NestJS or Prisma imports.
+- The application layer owns one use case per supported action, receives the
+  authenticated principal as trusted context, and coordinates domain and
+  repository contracts.
+- The infrastructure layer owns Prisma queries, projections, relation mapping,
+  and transactions. Prisma-generated types never appear in domain,
+  application, or HTTP contracts.
+- The presentation layer owns route decorators, authentication decorators,
+  class-validator/class-transformer request DTOs, Swagger response DTOs, and
+  HTTP error translation.
+- `training-programs.module.ts` is the composition root for this feature. It
+  imports the existing `PrismaModule`; the pilot does not relocate shared auth
+  or database infrastructure.
+
+The repository port is feature-specific rather than generic. Command-side
+methods persist the complete aggregate atomically and guarantee that referenced
+routines are resolved and revalidated in the same Prisma transaction. Query
+use cases may use purpose-built list/detail projections instead of hydrating an
+aggregate that will not be mutated. This is pragmatic command/query separation
+without a CQRS library, event bus, or additional dependency.
+
+### Aggregate boundary
+
+`TrainingProgram` is the aggregate root. Its schedule entries are children, not
+independently addressable resources. The aggregate enforces:
+
+- `durationWeeks >= 1`;
+- every `weekNumber` is between 1 and `durationWeeks`;
+- every `dayNumber >= 1`;
+- no duplicate `(weekNumber, dayNumber)` slot;
+- deterministic schedule ordering by `weekNumber`, then `dayNumber`;
+- reducing duration cannot leave entries beyond the new duration.
+
+Name, description, owner ID, and routine slug remain primitives after boundary
+validation. They do not receive one-property value objects. A dedicated
+schedule-slot value object is optional only if it materially simplifies the
+compound slot invariant.
+
+The aggregate references routines; it never embeds routine prescriptions or
+exercise data. HTTP/application commands use `routineSlug` as the stable
+external identifier. The Prisma adapter resolves it to `Routine.id` when
+persisting `TrainingProgramRoutine` rows.
+
+## Proposed first backend slice — approval gate
+
+The following contract is the recommended first slice. It must be approved
+before implementation because it defines API and authorization behavior.
+
+### Use cases
+
+1. `CreateTrainingProgram`: create one private owned template and its complete
+   schedule atomically.
+2. `ListTrainingPrograms`: list either the caller's private templates or global
+   templates with search, sorting, limit, and offset.
+3. `GetTrainingProgram`: return an accessible private/global template and its
+   ordered schedule with routine summaries.
+4. `UpdateTrainingProgram`: update an owned private template and optionally
+   replace its complete schedule atomically.
+5. `DeleteTrainingProgram`: delete an owned private template; database cascade
+   removes only its schedule rows.
+
+Global program creation/editing, duplication, activation, archive state,
+calendar placement, and session launch are excluded.
+
+### HTTP routes
+
+```text
+POST   /api/training-programs
+GET    /api/training-programs?scope=my|global&q=&sort=&limit=&offset=
+GET    /api/training-programs/:slug
+PATCH  /api/training-programs/:slug
+DELETE /api/training-programs/:slug
+```
+
+Routes use immutable program slugs rather than UUID path parameters, matching
+the Routine API. `ownerId`, `visibility`, IDs, slugs, and timestamps are never
+accepted from mutation bodies. Create generates an application-assigned UUID
+and collision-resistant slug; renaming a program does not change its slug.
+
+### Proposed request contracts
+
+Create:
+
+```json
+{
+  "name": "Upper/Lower Four Day",
+  "description": "Four training days across four weeks.",
+  "durationWeeks": 4,
+  "schedule": [
+    {
+      "routineSlug": "upper-a-1234abcd",
+      "weekNumber": 1,
+      "dayNumber": 1,
+      "notes": null
+    }
+  ]
+}
+```
+
+Patch accepts any of `name`, `description`, `durationWeeks`, or `schedule`.
+Omitted fields remain unchanged. Explicit `description: null` clears the
+description. When `schedule` is present, it replaces the complete child
+collection; partial child updates and schedule-entry endpoints are not part of
+the first slice. Validation applies to the resulting aggregate, so changing
+duration without submitting schedule still fails if existing entries would be
+out of range.
+
+The recommended validation contract is:
+
+- name: trimmed, 2–120 characters;
+- description: optional/null, trimmed, at most 2,000 characters;
+- duration: integer at least 1, with no invented product maximum yet;
+- schedule: an array, with an empty array allowed for an intentionally
+  unscheduled template;
+- routine slug: trimmed, 1–120 characters;
+- week/day: integers with the aggregate bounds above;
+- notes: optional/null, trimmed, at most 1,000 characters;
+- duplicate slots: rejected before persistence with a field-addressable error.
+
+Global request body size limits remain the technical protection against
+unbounded payloads until product requirements justify a schedule-entry maximum.
+
+### Proposed response contracts
+
+List follows the existing Routine convention: a plain array with `limit`
+defaulting to 20, maximum 100, and `offset` defaulting to 0. Allowed sorts are
+`updatedAt:asc|desc` and `name:asc|desc`; default is `updatedAt:desc`. List rows
+contain `id`, `slug`, `name`, `description`, `visibility`, `durationWeeks`,
+`routineCount`, `createdAt`, and `updatedAt`.
+
+Detail adds an ordered `schedule` array. Each entry contains its own `id`,
+`weekNumber`, `dayNumber`, `notes`, and a routine summary with `id`, `slug`,
+`name`, and `visibility`. Exercise prescriptions remain behind the Routine API
+and are not duplicated into the program response.
+
+Mutations follow the existing feedback-only convention:
+
+```json
+{ "message": "Training program created successfully" }
+```
+
+### Proposed visibility and authorization
+
+- `scope=my` requires authentication and returns only private programs whose
+  `ownerId` equals the principal user ID.
+- `scope=global` and global detail are anonymously readable.
+- Private detail is readable only by its owner; another user's program returns
+  the same 404 as a missing slug.
+- Create always produces `PRIVATE`; the client cannot choose visibility or
+  owner.
+- Update/delete require the authenticated owner and `PRIVATE` visibility.
+- The first slice has no normal-user write path for `GLOBAL` programs.
+- Repository queries include ownership/visibility predicates; use cases do not
+  fetch an unscoped private record and authorize it afterward.
+
+Recommended routine eligibility is strict lifecycle alignment: a private
+program may reference only private routines owned by the same user. A global
+program may reference only platform-owned global routines. To use a global
+routine in a private program, the user first duplicates that routine. This
+prevents a private program from depending permanently on a global template and
+matches the future deep-copy rule for global program duplication.
+
+When any submitted routine is missing, inaccessible, or otherwise ineligible,
+return one generic 422 error such as “One or more scheduled routines are
+unavailable.” Field errors may identify schedule indexes but must not disclose
+another user's private routine.
+
+### Persistence and transaction behavior
+
+- Create resolves every unique routine slug and creates the parent/children in
+  one transaction.
+- Update first resolves the owned private program inside the transaction. If a
+  schedule replacement is present, validate routine eligibility, delete current
+  schedule rows, and create the canonical ordered replacement in that same
+  transaction.
+- Empty replacement uses `deleteMany` without `createMany`.
+- List/detail use bounded projections and select only fields in the documented
+  response.
+- Delete constrains slug, owner, and private visibility. Program cascade removes
+  schedule rows only.
+- Reject duplicate slots found in the submitted aggregate as 422. Translate a
+  database unique-slot race to 409; no partial aggregate may remain.
+
+The existing Routine delete path must translate a `TrainingProgramRoutine`
+foreign-key restriction into a stable 409 conflict instead of a generic 500.
+That is a small cross-feature integration change required when this backend
+slice ships; it does not change the restrictive database rule.
+
+### Error boundaries
+
+Domain/application errors contain stable codes and safe context but never extend
+NestJS HTTP exceptions. The presentation mapper translates them to the existing
+API problem/error conventions:
+
+- unauthenticated mutation or `scope=my`: 401;
+- concealed inaccessible private program: 404;
+- invalid aggregate or unavailable routine reference: 422;
+- persistence uniqueness/state conflict: 409;
+- unexpected repository failure: 500 without SQL or sensitive payloads.
+
+Do not log session tokens, full mutation payloads, private notes, or Prisma
+errors containing sensitive parameters.
+
+## Testing requirements for the backend slice
+
+- Domain: duration, week/day bounds, duplicate slots, canonical ordering,
+  duration reduction, empty schedule, and patch state transitions.
+- HTTP DTO: trimming, nullable fields, nested validation, integer boundaries,
+  unknown fields, and duplicate-slot error paths.
+- Use cases: principal propagation, scope rules, concealed access, immutable
+  slug, feedback responses, and repository error mapping.
+- Mapper: Prisma/domain/read-model mapping and schedule ordering.
+- Prisma integration: atomic create/replacement rollback, routine eligibility,
+  owner-scoped reads/writes, slot uniqueness, program cascade, and routine
+  deletion restriction.
+- API E2E: anonymous global reads, authenticated private lifecycle, two-user
+  isolation, unavailable routine references, invalid schedules, and routine
+  delete conflict.
+- Architecture: domain/application files have no imports from NestJS, Prisma,
+  Swagger, or presentation DTOs.
+
+Do not add placeholder “is defined” tests. Each test must prove behavior at the
+cheapest appropriate layer.
+
+## Implementation sequence after contract approval
+
+1. Create only the folders/files needed for domain invariants and repository
+   contracts; add domain tests first.
+2. Add application use cases and behavior-focused tests using repository fakes.
+3. Implement the Prisma mapper/repository and real PostgreSQL integration tests.
+4. Add presentation DTOs, controller, Swagger documentation, and error mapping.
+5. Wire the feature module into `AppModule`.
+6. Add API E2E ownership and lifecycle coverage.
+7. Add the Routine delete-conflict translation and its regression test.
+8. Run Prisma validation, lint, typecheck, unit/integration/E2E tests, and build.
+
+## Persistence verification completed
 
 Format and validate the Prisma schema, generate and inspect a forward-only
-migration, and run the existing backend suite. Do not seed training programs or
-add placeholder API tests. Future implementation will need focused database and
-service tests for slot uniqueness, bounds validation, ownership, eligible
-routine attachment, deletion restriction, program cascade behavior, and deep
-copying of global templates.
+migration, and run the existing backend suite. The persistence slice completed
+those checks. Do not seed Training Programs as part of the backend slice.
+
+## Decisions requiring explicit approval before coding
+
+1. Use the five-route backend slice above with no duplication/global-management
+   endpoints.
+2. Allow empty schedules and impose no arbitrary product maximum yet.
+3. Use full schedule replacement when `schedule` is present in `PATCH`.
+4. Allow private programs to reference only the owner's private routines; users
+   duplicate global routines before scheduling them privately.
+5. Keep mutation responses feedback-only and list responses as plain arrays.
+6. Include the small Routine delete-conflict translation in this backend slice.

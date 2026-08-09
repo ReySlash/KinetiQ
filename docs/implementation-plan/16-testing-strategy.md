@@ -15,6 +15,14 @@ Testing should protect domain invariants, ownership, transaction boundaries, his
 - **API E2E (Supertest):** a real Nest app, auth/session test helpers, real test database, and HTTP contracts.
 - **OpenAPI contract checks:** generation succeeds; optionally diff committed schema on intentional changes.
 
+For the Training Programs Clean Architecture pilot, tests follow the dependency boundaries:
+
+- **Domain tests:** aggregate invariants and state transitions with no Nest testing module or database.
+- **Use-case tests:** orchestration, authorization decisions, and error propagation using narrow repository fakes/mocks.
+- **Mapper tests:** explicit Prisma-row to domain/response mapping, including nullable fields and schedule ordering.
+- **Prisma repository integration tests:** real PostgreSQL ownership filters, routine eligibility, atomic child replacement, uniqueness, and referential actions.
+- **Controller/DTO tests:** HTTP validation, auth principal extraction, Swagger response contracts, and error translation; controllers do not retest domain logic.
+
 ### Frontend
 
 - **Unit/component (Vitest + React Testing Library):** components, form sections, accessibility semantics, URL filter state, loading/error/empty states.
@@ -31,6 +39,8 @@ Testing should protect domain invariants, ownership, transaction boundaries, his
 | Exercise aggregate atomic | Service behavior | Rollback | Failed child leaves nothing | Error preserves form |
 | Admin-only reference writes | Policy | — | User/anonymous denied | Admin navigation only |
 | Routine owner isolation | Policy | Scoped query | Two-user matrix | Two-user Playwright smoke |
+| Training program slot unique and within duration | Domain/DTO | Unique constraint/transaction | Invalid and duplicate schedule | Later editor validation |
+| Training program owner isolation | Use case | Scoped repository query | Anonymous/two-user/global matrix | Later two-user smoke |
 | Session history survives template edits | Later unit | Snapshot relations | Regression E2E | History comparison |
 | Media failure leaves no incomplete data | Service | Metadata/object cleanup | Upload failure | Retry/prior image remains |
 
@@ -86,4 +96,3 @@ A feature is not done until tests exist at the cheapest layer that can prove eac
 ## Open questions
 
 Choose CI provider, database isolation method, browser matrix, and exact coverage floors during foundation. Recommendation: GitHub Actions, Chromium on every PR, broader browsers on main/release, and Testcontainers or a Compose PostgreSQL service depending on team environment reliability.
-

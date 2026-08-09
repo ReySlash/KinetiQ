@@ -40,7 +40,7 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [10](10-exercise-media.md) | Image metadata and storage abstraction | MVP thumbnail slice |
 | [11](11-routine-builder.md) | User-owned reusable workout templates | MVP |
 | [12](12-authentication-and-authorization.md) | Better Auth integration and ownership | MVP |
-| [13](13-training-programs.md) | Training programs and weekly schedules | Post-MVP |
+| [13](13-training-programs.md) | Reusable multi-week programs and relative routine schedules | Post-MVP |
 | [14](14-workout-sessions.md) | Historical performed training | Post-MVP |
 | [15](15-analytics.md) | Derived metrics and recommendations | Post-MVP |
 | [16](16-testing-strategy.md) | Test pyramid, fixtures, and gates | MVP |

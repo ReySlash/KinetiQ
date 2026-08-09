@@ -24,6 +24,7 @@ Record choices that materially affect implementation. Resolve a decision just be
 | Analytics persistence | Raw history stored; derived/heuristic metrics computed initially | Explainable and avoids stale aggregates |
 | Production media | Object storage, not PostgreSQL/VPS filesystem | Independent durability and scalable serving |
 | Muscle involvement scale | Store and validate integers 0–5; warn on usually-unnecessary zero assignments | Matches the project-wide required scale while preserving explicit “negligible” meaning |
+| Training Programs backend architecture | Pilot lean Clean Architecture/DDD layers inside one vertical feature module; leave existing modules unchanged | Tests architectural value on a rule-bearing aggregate without authorizing a repository-wide rewrite |
 
 ## Decisions required before R0
 
