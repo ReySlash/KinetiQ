@@ -1,5 +1,6 @@
 import type { TrainingProgramId } from './training-program-id.vo';
 import type { TrainingProgramName } from './training-program-name.vo';
+import { TrainingProgramValidationError } from '../errors/training-program.errors';
 
 const MAX_SLUG_LENGTH = 120;
 const GENERATED_SUFFIX_LENGTH = 9;
@@ -14,7 +15,7 @@ export class TrainingProgramSlug {
   ): TrainingProgramSlug {
     const base = TrainingProgramSlug.normalize(value?.trim() || name.value);
     if (!base) {
-      throw new Error(
+      throw new TrainingProgramValidationError(
         'Training program slug must contain alphanumeric characters.',
       );
     }

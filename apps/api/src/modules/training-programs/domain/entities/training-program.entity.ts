@@ -1,7 +1,7 @@
 import type {
   CreateTrainingProgramAttributes,
   PrimitiveTrainingProgram,
-} from '../training-program.types';
+} from './training-program.types';
 import { TrainingProgramDescription } from '../value-objects/training-program-description.vo';
 import { TrainingProgramDuration } from '../value-objects/training-program-duration.vo';
 import { TrainingProgramId } from '../value-objects/training-program-id.vo';

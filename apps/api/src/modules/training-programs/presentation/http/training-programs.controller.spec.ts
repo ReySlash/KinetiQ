@@ -3,6 +3,11 @@ import 'reflect-metadata';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { AuthenticatedPrincipal } from '../../../../auth/principal';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/create-training-programs.use-case';
+import {
+  TrainingProgramPersistenceError,
+  TrainingProgramSlugConflictError,
+} from '../../application/errors/training-program.errors';
+import { TrainingProgramValidationError } from '../../domain/errors/training-program.errors';
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/list-training-programs.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { TrainingProgramsController } from './training-programs.controller';
@@ -57,5 +62,27 @@ describe('TrainingProgramsController', () => {
       description: null,
       durationWeeks: 4,
     });
+  });
+
+  it.each([
+    [new TrainingProgramValidationError('test error'), 400],
+    [new TrainingProgramSlugConflictError(), 409],
+    [new TrainingProgramPersistenceError(), 500],
+  ])('maps %p to HTTP status %s', async (error, status) => {
+    create.mockRejectedValue(error);
+
+    await expect(
+      controller.create(
+        {
+          userId: '123e4567-e89b-12d3-a456-426614174000',
+          role: 'USER',
+          sessionId: '223e4567-e89b-12d3-a456-426614174000',
+        },
+        Object.assign(new CreateTrainingProgramDto(), {
+          name: 'Strength Base',
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toMatchObject({ status: status });
   });
 });

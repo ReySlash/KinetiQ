@@ -324,8 +324,9 @@ The entity currently represents persisted program identity and state only. Its
 schedule invariants and behavior belong in the domain layer when a command use
 case requiring them is approved. The GET spike has no authentication or
 authorization logic; the create spike requires an authenticated principal only
-to derive ownership. There are no query DTOs, Swagger decorators, response
-DTOs, or exception translation yet. The GET controller uses the existing
+to derive ownership. There are no query DTOs, Swagger decorators, or response
+DTOs yet. The create path translates domain validation, duplicate-slug, and
+persistence errors at the HTTP boundary. The GET controller uses the existing
 `@OptionalAuth()` marker only to opt that public spike endpoint out of the API's
 default authentication guard.
 

@@ -1,4 +1,5 @@
 const MAX_DESCRIPTION_LENGTH = 2000;
+import { TrainingProgramValidationError } from '../errors/training-program.errors';
 
 export class TrainingProgramDescription {
   private constructor(private readonly description: string | null) {}
@@ -6,7 +7,7 @@ export class TrainingProgramDescription {
   static create(value: string | null | undefined): TrainingProgramDescription {
     const normalized = value?.trim() || null;
     if (normalized && normalized.length > MAX_DESCRIPTION_LENGTH) {
-      throw new Error(
+      throw new TrainingProgramValidationError(
         `Training program description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters.`,
       );
     }

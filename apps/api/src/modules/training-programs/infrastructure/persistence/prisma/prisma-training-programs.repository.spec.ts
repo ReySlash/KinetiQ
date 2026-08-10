@@ -3,13 +3,19 @@ jest.mock('../../../../../prisma/prisma.service', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 import { PrismaService } from '../../../../../prisma/prisma.service';
+import {
+  TrainingProgramPersistenceError,
+  TrainingProgramSlugConflictError,
+} from '../../../application/errors/training-program.errors';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
 import { trainingProgramSelect } from './prisma-training-program.mapper';
 import { PrismaTrainingProgramsRepository } from './prisma-training-programs.repository';
 
 describe('PrismaTrainingProgramsRepository', () => {
   const findMany = jest.fn();
+  const create = jest.fn();
   let repository: PrismaTrainingProgramsRepository;
 
   beforeEach(async () => {
@@ -18,7 +24,7 @@ describe('PrismaTrainingProgramsRepository', () => {
         PrismaTrainingProgramsRepository,
         {
           provide: PrismaService,
-          useValue: { trainingProgram: { findMany } },
+          useValue: { trainingProgram: { findMany, create } },
         },
       ],
     }).compile();
@@ -50,5 +56,39 @@ describe('PrismaTrainingProgramsRepository', () => {
     });
     expect(result[0]).toBeInstanceOf(TrainingProgram);
     expect(result[0]).toMatchObject({ name: 'Strength Base' });
+  });
+
+  it('translates duplicate slug errors', async () => {
+    const duplicateError = Object.create(
+      PrismaClientKnownRequestError.prototype,
+    ) as PrismaClientKnownRequestError;
+    duplicateError.code = 'P2002';
+    create.mockRejectedValue(duplicateError);
+
+    await expect(
+      repository.create(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramSlugConflictError);
+  });
+
+  it('translates unexpected persistence errors', async () => {
+    create.mockRejectedValue(new Error('database unavailable'));
+
+    await expect(
+      repository.create(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramPersistenceError);
   });
 });

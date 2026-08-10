@@ -7,6 +7,7 @@ import {
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/list-training-programs.use-case';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/create-training-programs.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
+import { toTrainingProgramsHttpException } from './training-programs-exception.mapper';
 
 @Controller('training-programs')
 export class TrainingProgramsController {
@@ -22,16 +23,20 @@ export class TrainingProgramsController {
   }
 
   @Post()
-  create(
+  async create(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
     @Body() createTrainingProgramDto: CreateTrainingProgramDto,
   ) {
-    return this.createTrainingProgram.execute({
-      ownerId: principal.userId,
-      name: createTrainingProgramDto.name,
-      slug: createTrainingProgramDto.slug,
-      description: createTrainingProgramDto.description ?? null,
-      durationWeeks: createTrainingProgramDto.durationWeeks,
-    });
+    try {
+      return await this.createTrainingProgram.execute({
+        ownerId: principal.userId,
+        name: createTrainingProgramDto.name,
+        slug: createTrainingProgramDto.slug,
+        description: createTrainingProgramDto.description ?? null,
+        durationWeeks: createTrainingProgramDto.durationWeeks,
+      });
+    } catch (error) {
+      throw toTrainingProgramsHttpException(error);
+    }
   }
 }
