@@ -1,0 +1,38 @@
+import type { TrainingProgramId } from './training-program-id.vo';
+import type { TrainingProgramName } from './training-program-name.vo';
+
+const MAX_SLUG_LENGTH = 120;
+const GENERATED_SUFFIX_LENGTH = 9;
+
+export class TrainingProgramSlug {
+  private constructor(private readonly slug: string) {}
+
+  static create(
+    value: string | undefined,
+    name: TrainingProgramName,
+    id: TrainingProgramId,
+  ): TrainingProgramSlug {
+    const base = TrainingProgramSlug.normalize(value?.trim() || name.value);
+    if (!base) {
+      throw new Error(
+        'Training program slug must contain alphanumeric characters.',
+      );
+    }
+    const availableBaseLength = MAX_SLUG_LENGTH - GENERATED_SUFFIX_LENGTH;
+    const shortenedBase = base.slice(0, availableBaseLength).replace(/-+$/, '');
+
+    return new TrainingProgramSlug(`${shortenedBase}-${id.value.slice(0, 8)}`);
+  }
+
+  private static normalize(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  get value(): string {
+    return this.slug;
+  }
+}

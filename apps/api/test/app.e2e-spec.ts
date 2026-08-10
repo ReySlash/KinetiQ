@@ -23,6 +23,14 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
+  it('/training-programs (GET)', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/training-programs')
+      .expect(200);
+
+    expect(Array.isArray(response.body)).toBe(true);
+  });
+
   afterEach(async () => {
     await app.close();
   });

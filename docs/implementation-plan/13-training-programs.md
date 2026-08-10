@@ -3,11 +3,16 @@
 ## Purpose and current implementation boundary
 
 A `TrainingProgram` is a reusable multi-week template that schedules existing
-routine templates. The persistence model and migration are complete. The next
-approved planning step is to specify a backend-only Clean Architecture/DDD
-vertical-slice pilot before writing application code. Frontend screens, seeds,
-activation, calendar placement, performed-training models, and duplication
-remain out of scope.
+routine templates. The persistence model and migration are complete. The
+backend-only Clean Architecture/DDD vertical-slice pilot currently exposes a
+deliberately minimal `GET /api/training-programs` read and an authenticated
+`POST /api/training-programs` create. The create currently persists only the
+top-level program row so the dependency flow can be evaluated; schedule
+creation remains a later slice. The read is not yet the proposed production
+list contract. Filters, pagination, Swagger, response DTOs, and the other
+proposed backend operations remain unimplemented and require approval before
+coding. Frontend screens, seeds, activation, calendar placement,
+performed-training models, and duplication remain out of scope.
 
 The template hierarchy is:
 
@@ -300,6 +305,35 @@ use cases may use purpose-built list/detail projections instead of hydrating an
 aggregate that will not be mutated. This is pragmatic command/query separation
 without a CQRS library, event bus, or additional dependency.
 
+The current spike implements the smallest paths through these boundaries:
+
+```text
+HTTP controller
+  → ListTrainingProgramsUseCase
+  → TrainingProgramsRepository (domain contract)
+  → PrismaTrainingProgramsRepository
+  → Prisma mapper
+  → TrainingProgram domain entity
+```
+
+The create path follows the same flow and derives `ownerId` from the
+authenticated principal. It always creates a private program and intentionally
+does not persist schedule rows yet.
+
+The entity currently represents persisted program identity and state only. Its
+schedule invariants and behavior belong in the domain layer when a command use
+case requiring them is approved. The GET spike has no authentication or
+authorization logic; the create spike requires an authenticated principal only
+to derive ownership. There are no query DTOs, Swagger decorators, response
+DTOs, or exception translation yet. The GET controller uses the existing
+`@OptionalAuth()` marker only to opt that public spike endpoint out of the API's
+default authentication guard.
+
+The current create factory delegates name, description, duration, slug, and ID
+normalization/generation to dedicated immutable domain value objects. The
+factory coordinates those objects and assembles the entity; it does not own
+their validation rules directly.
+
 ### Aggregate boundary
 
 `TrainingProgram` is the aggregate root. Its schedule entries are children, not
@@ -322,10 +356,26 @@ exercise data. HTTP/application commands use `routineSlug` as the stable
 external identifier. The Prisma adapter resolves it to `Routine.id` when
 persisting `TrainingProgramRoutine` rows.
 
-## Proposed first backend slice — approval gate
+## Architectural spike and proposed backend slice
 
-The following contract is the recommended first slice. It must be approved
-before implementation because it defines API and authorization behavior.
+The implemented architectural-spike operations are:
+
+```text
+GET /api/training-programs
+POST /api/training-programs
+```
+
+The GET accepts no query parameters and returns every persisted training
+program. The POST accepts `name`, `description`, `durationWeeks`, and an
+optional slug. Identity, owner, visibility, and timestamps are server-
+controlled. Whether supplied or omitted, the slug base is normalized and gets
+an eight-character UUID suffix. It creates a private top-level row without
+schedule entries. The open GET behavior and minimal POST are architectural
+spikes, not the production authorization or schedule contract.
+
+The following contract remains proposed. Every production operation, including
+the secured and filtered list behavior, must be approved before implementation
+because it defines API and authorization behavior.
 
 ### Use cases
 
@@ -354,9 +404,10 @@ DELETE /api/training-programs/:slug
 ```
 
 Routes use immutable program slugs rather than UUID path parameters, matching
-the Routine API. `ownerId`, `visibility`, IDs, slugs, and timestamps are never
+the Routine API. `ownerId`, `visibility`, IDs, and timestamps are never
 accepted from mutation bodies. Create generates an application-assigned UUID
-and collision-resistant slug; renaming a program does not change its slug.
+and appends an eight-character UUID suffix to the normalized supplied slug or
+name base. Renaming a program does not change its slug.
 
 ### Proposed request contracts
 
@@ -521,10 +572,11 @@ Format and validate the Prisma schema, generate and inspect a forward-only
 migration, and run the existing backend suite. The persistence slice completed
 those checks. Do not seed Training Programs as part of the backend slice.
 
-## Decisions requiring explicit approval before coding
+## Remaining decisions requiring explicit approval before coding
 
-1. Use the five-route backend slice above with no duplication/global-management
-   endpoints.
+1. Replace the open architectural-spike list behavior with the proposed secured
+   list contract, or implement any other proposed route, with no
+   duplication/global-management endpoints.
 2. Allow empty schedules and impose no arbitrary product maximum yet.
 3. Use full schedule replacement when `schedule` is present in `PATCH`.
 4. Allow private programs to reference only the owner's private routines; users

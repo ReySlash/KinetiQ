@@ -61,6 +61,9 @@ describe('HTTP authentication and authorization (e2e)', () => {
 
     if (!existing) return;
 
+    await prisma.trainingProgram.deleteMany({
+      where: { ownerId: existing.id },
+    });
     await prisma.routine.deleteMany({ where: { ownerId: existing.id } });
     await prisma.user.delete({ where: { id: existing.id } });
   }
@@ -148,6 +151,10 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await request(app.getHttpServer())
       .post('/routines')
       .send({ name: 'Anonymous routine', description: null, exercises: [] })
+      .expect(401);
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .send({ name: 'Anonymous program', durationWeeks: 4 })
       .expect(401);
     await request(app.getHttpServer())
       .patch('/routines/not-owned')
@@ -256,6 +263,38 @@ describe('HTTP authentication and authorization (e2e)', () => {
         text,
       })),
     ).toEqual(privateRoutineResponses.map(() => notFoundResponse));
+  });
+
+  it('creates a private training program for the authenticated owner', async () => {
+    const userCookies = await signIn(user);
+    const name = `Private HTTP program ${randomUUID()}`;
+
+    const response = await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name,
+        description: 'A minimal training program.',
+        durationWeeks: 4,
+      })
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      ownerId: user.id,
+      name,
+      visibility: 'PRIVATE',
+      durationWeeks: 4,
+    });
+
+    const persisted = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { ownerId: true, visibility: true, name: true },
+    });
+    expect(persisted).toEqual({
+      ownerId: user.id,
+      visibility: 'PRIVATE',
+      name,
+    });
   });
 
   it('allows an admin session to use admin routes and rejects a regular user', async () => {

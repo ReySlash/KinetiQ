@@ -12,6 +12,7 @@ import { createAuth } from './auth/auth';
 import { PrismaService } from './prisma/prisma.service';
 import { HealthModule } from './health/health.module';
 import { RoutinesModule } from './routines/routines.module';
+import { TrainingProgramsModule } from './modules/training-programs/training-programs.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { RoutinesModule } from './routines/routines.module';
     ExercisesModule,
     HealthModule,
     RoutinesModule,
+    TrainingProgramsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

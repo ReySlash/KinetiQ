@@ -1,0 +1,54 @@
+jest.mock('../../../../../prisma/prisma.service', () => ({
+  PrismaService: class PrismaService {},
+}));
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../../../../../prisma/prisma.service';
+import { TrainingProgram } from '../../../domain/entities/training-program.entity';
+import { trainingProgramSelect } from './prisma-training-program.mapper';
+import { PrismaTrainingProgramsRepository } from './prisma-training-programs.repository';
+
+describe('PrismaTrainingProgramsRepository', () => {
+  const findMany = jest.fn();
+  let repository: PrismaTrainingProgramsRepository;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PrismaTrainingProgramsRepository,
+        {
+          provide: PrismaService,
+          useValue: { trainingProgram: { findMany } },
+        },
+      ],
+    }).compile();
+
+    repository = module.get(PrismaTrainingProgramsRepository);
+    jest.clearAllMocks();
+  });
+
+  it('maps all persisted training programs to domain entities', async () => {
+    findMany.mockResolvedValue([
+      {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        ownerId: '223e4567-e89b-12d3-a456-426614174000',
+        slug: 'strength-base-123e4567',
+        name: 'Strength Base',
+        description: null,
+        visibility: 'PRIVATE',
+        durationWeeks: 4,
+        createdAt: new Date('2026-08-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-02T00:00:00.000Z'),
+      },
+    ]);
+
+    const result = await repository.findAll();
+
+    expect(findMany).toHaveBeenCalledWith({
+      select: trainingProgramSelect,
+      orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+    });
+    expect(result[0]).toBeInstanceOf(TrainingProgram);
+    expect(result[0]).toMatchObject({ name: 'Strength Base' });
+  });
+});
