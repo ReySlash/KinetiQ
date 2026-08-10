@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { OptionalAuth } from '@thallesp/nestjs-better-auth';
 import {
   CurrentPrincipal,
+  CurrentOptionalPrincipal,
   type AuthenticatedPrincipal,
 } from '../../../../auth/principal';
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/list-training-programs.use-case';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/create-training-programs.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { toTrainingProgramsHttpException } from './training-programs-exception.mapper';
+import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';
 
 @Controller('training-programs')
 export class TrainingProgramsController {
@@ -18,9 +20,12 @@ export class TrainingProgramsController {
 
   @Get()
   @OptionalAuth()
-  async findAll() {
+  async findAll(
+    @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
+    @Query() query: ListTrainingProgramsQueryDto,
+  ) {
     try {
-      return await this.listTrainingPrograms.execute();
+      return await this.listTrainingPrograms.execute({ principal, ...query });
     } catch (error) {
       throw toTrainingProgramsHttpException(error);
     }
@@ -32,13 +37,18 @@ export class TrainingProgramsController {
     @Body() createTrainingProgramDto: CreateTrainingProgramDto,
   ) {
     try {
-      return await this.createTrainingProgram.execute({
+      const result = await this.createTrainingProgram.execute({
         ownerId: principal.userId,
         name: createTrainingProgramDto.name,
         slug: createTrainingProgramDto.slug,
         description: createTrainingProgramDto.description ?? null,
         durationWeeks: createTrainingProgramDto.durationWeeks,
+        schedule: createTrainingProgramDto.schedule,
       });
+      return {
+        message: 'Training program created successfully',
+        slug: result.slug,
+      };
     } catch (error) {
       throw toTrainingProgramsHttpException(error);
     }

@@ -24,3 +24,30 @@ export class TrainingProgramQueryError extends Error {
     this.name = 'TrainingProgramQueryError';
   }
 }
+
+export class TrainingProgramRoutineUnavailableError extends Error {
+  readonly code = 'TRAINING_PROGRAM_ROUTINE_UNAVAILABLE';
+
+  constructor() {
+    super('One or more scheduled routines are unavailable.');
+    this.name = 'TrainingProgramRoutineUnavailableError';
+  }
+}
+
+export class TrainingProgramScheduleConflictError extends Error {
+  readonly code = 'TRAINING_PROGRAM_SCHEDULE_CONFLICT';
+
+  constructor() {
+    super('A routine already occupies one of the requested program slots.');
+    this.name = 'TrainingProgramScheduleConflictError';
+  }
+}
+
+export class TrainingProgramListAuthenticationError extends Error {
+  readonly code = 'TRAINING_PROGRAM_LIST_AUTHENTICATION_REQUIRED';
+
+  constructor() {
+    super('Authentication is required to list your training programs.');
+    this.name = 'TrainingProgramListAuthenticationError';
+  }
+}

@@ -10,6 +10,24 @@ export type PrimitiveTrainingProgram = {
   durationWeeks: number;
   createdAt: Date;
   updatedAt: Date;
+  schedule: PrimitiveTrainingProgramScheduleEntry[];
+};
+
+export type PrimitiveTrainingProgramScheduleEntry = {
+  id: string;
+  routineSlug: string;
+  weekNumber: number;
+  dayNumber: number;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type CreateTrainingProgramScheduleEntryAttributes = {
+  routineSlug: string;
+  weekNumber: number;
+  dayNumber: number;
+  notes?: string | null;
 };
 
 export type CreateTrainingProgramAttributes = {
@@ -18,4 +36,5 @@ export type CreateTrainingProgramAttributes = {
   slug?: string;
   description: string | null;
   durationWeeks: number;
+  schedule?: CreateTrainingProgramScheduleEntryAttributes[];
 };

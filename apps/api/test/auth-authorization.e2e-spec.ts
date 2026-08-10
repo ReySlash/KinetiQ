@@ -268,6 +268,16 @@ describe('HTTP authentication and authorization (e2e)', () => {
   it('creates a private training program for the authenticated owner', async () => {
     const userCookies = await signIn(user);
     const name = `Private HTTP program ${randomUUID()}`;
+    const routineSlug = `private-http-routine-${randomUUID()}`;
+    await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug: routineSlug,
+        name: 'Private HTTP routine',
+        visibility: 'PRIVATE',
+      },
+    });
 
     const response = await request(app.getHttpServer())
       .post('/training-programs')
@@ -276,24 +286,66 @@ describe('HTTP authentication and authorization (e2e)', () => {
         name,
         description: 'A minimal training program.',
         durationWeeks: 4,
+        schedule: [
+          { routineSlug, weekNumber: 1, dayNumber: 1, notes: 'Start here' },
+        ],
       })
       .expect(201);
 
     expect(response.body).toMatchObject({
-      ownerId: user.id,
-      name,
-      visibility: 'PRIVATE',
-      durationWeeks: 4,
+      message: 'Training program created successfully',
     });
 
     const persisted = await prisma.trainingProgram.findFirstOrThrow({
       where: { name },
-      select: { ownerId: true, visibility: true, name: true },
+      select: {
+        ownerId: true,
+        visibility: true,
+        name: true,
+        routines: {
+          select: { weekNumber: true, dayNumber: true, notes: true },
+        },
+      },
     });
     expect(persisted).toEqual({
       ownerId: user.id,
       visibility: 'PRIVATE',
       name,
+      routines: [{ weekNumber: 1, dayNumber: 1, notes: 'Start here' }],
+    });
+  });
+
+  it('does not disclose whether a scheduled private routine exists', async () => {
+    const userCookies = await signIn(user);
+    const inaccessibleRoutineSlug = `other-user-routine-${randomUUID()}`;
+    await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: secondUser.id,
+        slug: inaccessibleRoutineSlug,
+        name: 'Other user routine',
+        visibility: 'PRIVATE',
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name: `Invalid HTTP program ${randomUUID()}`,
+        durationWeeks: 4,
+        schedule: [
+          {
+            routineSlug: inaccessibleRoutineSlug,
+            weekNumber: 1,
+            dayNumber: 1,
+          },
+        ],
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      message: 'One or more scheduled routines are unavailable.',
     });
   });
 

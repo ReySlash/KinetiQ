@@ -8,15 +8,45 @@ import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramQueryError,
+  TrainingProgramRoutineUnavailableError,
   TrainingProgramSlugConflictError,
 } from '../../../application/errors/training-program.errors';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { trainingProgramSelect } from './prisma-training-program.mapper';
+import { trainingProgramListSelect } from './prisma-training-program.mapper';
 import { PrismaTrainingProgramsRepository } from './prisma-training-programs.repository';
 
 describe('PrismaTrainingProgramsRepository', () => {
-  const findMany = jest.fn();
-  const create = jest.fn();
+  type RoutineQuery = {
+    where: {
+      slug: { in: string[] };
+      OR: Array<{ visibility: string; ownerId?: string }>;
+    };
+    select: { id: boolean; slug: boolean };
+  };
+  type ProgramCreateQuery = {
+    data: {
+      routines: {
+        create: Array<{
+          routineId: string;
+          weekNumber: number;
+          dayNumber: number;
+        }>;
+      };
+    };
+  };
+  const programFindMany = jest.fn();
+  const routineFindMany =
+    jest.fn<
+      (query: RoutineQuery) => Promise<Array<{ id: string; slug: string }>>
+    >();
+  const create = jest.fn<(query: ProgramCreateQuery) => Promise<void>>();
+  const transaction = jest.fn(
+    async (work: (client: object) => Promise<unknown>) =>
+      work({
+        routine: { findMany: routineFindMany },
+        trainingProgram: { create },
+      }),
+  );
   let repository: PrismaTrainingProgramsRepository;
 
   beforeEach(async () => {
@@ -25,7 +55,10 @@ describe('PrismaTrainingProgramsRepository', () => {
         PrismaTrainingProgramsRepository,
         {
           provide: PrismaService,
-          useValue: { trainingProgram: { findMany, create } },
+          useValue: {
+            trainingProgram: { findMany: programFindMany },
+            $transaction: transaction,
+          },
         },
       ],
     }).compile();
@@ -34,29 +67,80 @@ describe('PrismaTrainingProgramsRepository', () => {
     jest.clearAllMocks();
   });
 
-  it('maps all persisted training programs to domain entities', async () => {
-    findMany.mockResolvedValue([
-      {
-        id: '123e4567-e89b-12d3-a456-426614174000',
+  it('creates a program and eligible schedule rows atomically', async () => {
+    let capturedRoutineQuery: RoutineQuery | undefined;
+    let capturedCreateQuery: ProgramCreateQuery | undefined;
+    routineFindMany.mockImplementationOnce((query: RoutineQuery) => {
+      capturedRoutineQuery = query;
+      return Promise.resolve([{ id: 'routine-id', slug: 'upper-a' }]);
+    });
+    create.mockImplementationOnce((query: ProgramCreateQuery) => {
+      capturedCreateQuery = query;
+      return Promise.resolve();
+    });
+
+    await repository.create(
+      TrainingProgram.create({
         ownerId: '223e4567-e89b-12d3-a456-426614174000',
-        slug: 'strength-base-123e4567',
         name: 'Strength Base',
         description: null,
-        visibility: 'PRIVATE',
         durationWeeks: 4,
-        createdAt: new Date('2026-08-01T00:00:00.000Z'),
-        updatedAt: new Date('2026-08-02T00:00:00.000Z'),
+        schedule: [{ routineSlug: 'upper-a', weekNumber: 1, dayNumber: 1 }],
+      }),
+    );
+
+    expect(transaction).toHaveBeenCalledTimes(1);
+    expect(capturedRoutineQuery?.where.OR).toEqual([
+      { visibility: 'GLOBAL' },
+      {
+        visibility: 'PRIVATE',
+        ownerId: '223e4567-e89b-12d3-a456-426614174000',
       },
     ]);
-
-    const result = await repository.findAll();
-
-    expect(findMany).toHaveBeenCalledWith({
-      select: trainingProgramSelect,
-      orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+    expect(capturedCreateQuery?.data.routines.create[0]).toMatchObject({
+      routineId: 'routine-id',
+      weekNumber: 1,
+      dayNumber: 1,
     });
-    expect(result[0]).toBeInstanceOf(TrainingProgram);
-    expect(result[0]).toMatchObject({ name: 'Strength Base' });
+  });
+
+  it('conceals missing and inaccessible routines behind one error', async () => {
+    routineFindMany.mockResolvedValue([]);
+
+    await expect(
+      repository.create(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+          schedule: [
+            { routineSlug: 'private-routine', weekNumber: 1, dayNumber: 1 },
+          ],
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramRoutineUnavailableError);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('selects only the approved list projection and applies scope', async () => {
+    programFindMany.mockResolvedValue([]);
+
+    await repository.findAll({
+      scope: 'my',
+      ownerId: 'owner-id',
+      sort: 'updatedAt:desc',
+      limit: 20,
+      offset: 0,
+    });
+
+    expect(programFindMany).toHaveBeenCalledWith({
+      where: { visibility: 'PRIVATE', ownerId: 'owner-id' },
+      select: trainingProgramListSelect,
+      orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      take: 20,
+      skip: 0,
+    });
   });
 
   it('translates duplicate slug errors', async () => {
@@ -79,16 +163,19 @@ describe('PrismaTrainingProgramsRepository', () => {
   });
 
   it('translates unexpected query errors', async () => {
-    findMany.mockRejectedValue(new Error('database unavailable'));
-
-    await expect(repository.findAll()).rejects.toBeInstanceOf(
-      TrainingProgramQueryError,
-    );
+    programFindMany.mockRejectedValue(new Error('database unavailable'));
+    await expect(
+      repository.findAll({
+        scope: 'global',
+        sort: 'updatedAt:desc',
+        limit: 20,
+        offset: 0,
+      }),
+    ).rejects.toBeInstanceOf(TrainingProgramQueryError);
   });
 
   it('translates unexpected persistence errors', async () => {
     create.mockRejectedValue(new Error('database unavailable'));
-
     await expect(
       repository.create(
         TrainingProgram.create({

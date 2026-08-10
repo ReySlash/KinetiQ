@@ -7,6 +7,8 @@ import { TrainingProgramDuration } from '../value-objects/training-program-durat
 import { TrainingProgramId } from '../value-objects/training-program-id.vo';
 import { TrainingProgramName } from '../value-objects/training-program-name.vo';
 import { TrainingProgramSlug } from '../value-objects/training-program-slug.vo';
+import { TrainingProgramScheduleValidationError } from '../errors/training-program.errors';
+import { TrainingProgramScheduleEntry } from './training-program-schedule-entry.entity';
 
 export class TrainingProgram {
   public readonly id: string;
@@ -18,6 +20,7 @@ export class TrainingProgram {
   public readonly durationWeeks: number;
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
+  public readonly schedule: readonly TrainingProgramScheduleEntry[];
 
   private constructor(attributes: PrimitiveTrainingProgram) {
     this.id = attributes.id;
@@ -29,6 +32,13 @@ export class TrainingProgram {
     this.durationWeeks = attributes.durationWeeks;
     this.createdAt = attributes.createdAt;
     this.updatedAt = attributes.updatedAt;
+    this.schedule = attributes.schedule
+      .map((entry) => TrainingProgramScheduleEntry.reconstitute(entry))
+      .sort(
+        (left, right) =>
+          left.slot.weekNumber - right.slot.weekNumber ||
+          left.slot.dayNumber - right.slot.dayNumber,
+      );
   }
 
   static create(attributes: CreateTrainingProgramAttributes): TrainingProgram {
@@ -40,6 +50,27 @@ export class TrainingProgram {
     const duration = TrainingProgramDuration.create(attributes.durationWeeks);
     const slug = TrainingProgramSlug.create(attributes.slug, name, id);
     const now = new Date();
+    const schedule = (attributes.schedule ?? [])
+      .map((entry) => TrainingProgramScheduleEntry.create(entry))
+      .sort(
+        (left, right) =>
+          left.slot.weekNumber - right.slot.weekNumber ||
+          left.slot.dayNumber - right.slot.dayNumber,
+      );
+    const occupiedSlots = new Set<string>();
+    for (const entry of schedule) {
+      if (entry.slot.weekNumber > duration.value) {
+        throw new TrainingProgramScheduleValidationError(
+          'Schedule weekNumber cannot exceed durationWeeks.',
+        );
+      }
+      if (occupiedSlots.has(entry.slot.key)) {
+        throw new TrainingProgramScheduleValidationError(
+          `Only one routine can occupy week ${entry.slot.weekNumber}, day ${entry.slot.dayNumber}.`,
+        );
+      }
+      occupiedSlots.add(entry.slot.key);
+    }
 
     return new TrainingProgram({
       id: id.value,
@@ -51,6 +82,7 @@ export class TrainingProgram {
       durationWeeks: duration.value,
       createdAt: now,
       updatedAt: now,
+      schedule: schedule.map((entry) => entry.toValue()),
     });
   }
 
@@ -69,6 +101,7 @@ export class TrainingProgram {
       durationWeeks: this.durationWeeks,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      schedule: this.schedule.map((entry) => entry.toValue()),
     };
   }
 }

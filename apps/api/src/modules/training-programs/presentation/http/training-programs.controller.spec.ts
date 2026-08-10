@@ -6,11 +6,17 @@ import { CreateTrainingProgramUseCase } from '../../application/use-cases/create
 import {
   TrainingProgramPersistenceError,
   TrainingProgramQueryError,
+  TrainingProgramListAuthenticationError,
+  TrainingProgramRoutineUnavailableError,
   TrainingProgramSlugConflictError,
 } from '../../application/errors/training-program.errors';
-import { TrainingProgramValidationError } from '../../domain/errors/training-program.errors';
+import {
+  TrainingProgramScheduleValidationError,
+  TrainingProgramValidationError,
+} from '../../domain/errors/training-program.errors';
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/list-training-programs.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
+import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';
 import { TrainingProgramsController } from './training-programs.controller';
 
 describe('TrainingProgramsController', () => {
@@ -33,18 +39,21 @@ describe('TrainingProgramsController', () => {
     controller = module.get(TrainingProgramsController);
     jest.clearAllMocks();
     execute.mockResolvedValue([]);
-    create.mockResolvedValue({});
+    create.mockResolvedValue({ slug: 'strength-base-12345678' });
   });
 
   it('delegates to the list use case', async () => {
-    await expect(controller.findAll()).resolves.toEqual([]);
-    expect(execute).toHaveBeenCalledWith();
+    const query = new ListTrainingProgramsQueryDto();
+    await expect(controller.findAll(null, query)).resolves.toEqual([]);
+    expect(execute).toHaveBeenCalledWith({ principal: null });
   });
 
   it('maps list persistence errors to a safe server error', async () => {
     execute.mockRejectedValue(new TrainingProgramQueryError());
 
-    await expect(controller.findAll()).rejects.toMatchObject({
+    await expect(
+      controller.findAll(null, new ListTrainingProgramsQueryDto()),
+    ).rejects.toMatchObject({
       status: 500,
       message: 'Failed to fetch training programs.',
     });
@@ -61,9 +70,13 @@ describe('TrainingProgramsController', () => {
       slug: 'strength-base',
       description: null,
       durationWeeks: 4,
+      schedule: [{ routineSlug: 'upper-a', weekNumber: 1, dayNumber: 1 }],
     });
 
-    await controller.create(principal, dto);
+    await expect(controller.create(principal, dto)).resolves.toEqual({
+      message: 'Training program created successfully',
+      slug: 'strength-base-12345678',
+    });
 
     expect(create).toHaveBeenCalledWith({
       ownerId: principal.userId,
@@ -71,12 +84,15 @@ describe('TrainingProgramsController', () => {
       slug: 'strength-base',
       description: null,
       durationWeeks: 4,
+      schedule: dto.schedule,
     });
   });
 
   it.each([
     [new TrainingProgramValidationError('test error'), 400],
+    [new TrainingProgramScheduleValidationError('invalid schedule'), 422],
     [new TrainingProgramSlugConflictError(), 409],
+    [new TrainingProgramRoutineUnavailableError(), 422],
     [new TrainingProgramPersistenceError(), 500],
   ])('maps %p to HTTP status %s', async (error, status) => {
     create.mockRejectedValue(error);
@@ -94,5 +110,16 @@ describe('TrainingProgramsController', () => {
         }),
       ),
     ).rejects.toMatchObject({ status: status });
+  });
+
+  it('maps unauthenticated private listing to a meaningful 401', async () => {
+    execute.mockRejectedValue(new TrainingProgramListAuthenticationError());
+
+    await expect(
+      controller.findAll(null, new ListTrainingProgramsQueryDto()),
+    ).rejects.toMatchObject({
+      status: 401,
+      message: 'Authentication is required to list your training programs.',
+    });
   });
 });

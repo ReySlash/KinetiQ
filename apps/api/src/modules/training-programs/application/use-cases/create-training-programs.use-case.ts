@@ -9,9 +9,9 @@ export class CreateTrainingProgramUseCase {
 
   async execute(
     attributes: CreateTrainingProgramInput,
-  ): Promise<TrainingProgram> {
+  ): Promise<{ slug: string }> {
     const trainingProgram = TrainingProgram.create(attributes);
     await this.trainingProgramsRepository.create(trainingProgram);
-    return trainingProgram;
+    return { slug: trainingProgram.slug };
   }
 }

@@ -4,14 +4,14 @@
 
 A `TrainingProgram` is a reusable multi-week template that schedules existing
 routine templates. The persistence model and migration are complete. The
-backend-only Clean Architecture/DDD vertical-slice pilot currently exposes a
-deliberately minimal `GET /api/training-programs` read and an authenticated
-`POST /api/training-programs` create. The create currently persists only the
-top-level program row so the dependency flow can be evaluated; schedule
-creation remains a later slice. The read is not yet the proposed production
-list contract. Filters, pagination, Swagger, response DTOs, and the other
-proposed backend operations remain unimplemented and require approval before
-coding. Frontend screens, seeds, activation, calendar placement,
+backend-only Clean Architecture/DDD vertical-slice pilot currently implements
+the approved `GET /api/training-programs` list and authenticated
+`POST /api/training-programs` create. Create persists the complete aggregate,
+including its optional schedule, in one transaction. List supports the approved
+visibility scopes, search, sorting, limit, and offset through a bounded read
+projection. Detail, update, delete, Swagger expansion, and the other proposed
+backend operations remain unimplemented and require approval before coding.
+Frontend screens, seeds, activation, calendar placement,
 performed-training models, and duplication remain out of scope.
 
 The template hierarchy is:
@@ -138,10 +138,11 @@ private routines, then schedule those copies in the private program. The copy
 must not leave the user's program permanently dependent on mutable or removable
 global routine templates. Duplication is not implemented in this slice.
 
-Future authorization must derive `ownerId` from the authenticated principal and
-must verify that each attached routine is visible/eligible for the program in
-the same transaction. The exact service and API contract requires a later
-approved design.
+Create derives `ownerId` from the authenticated principal and verifies every
+attached routine in the same transaction. A private program may schedule a
+GLOBAL routine or a PRIVATE routine owned by that principal. Missing routines
+and private routines owned by another user produce the same generic 422 response
+without disclosing whether the submitted slug exists.
 
 ## Referential actions and deletion
 
@@ -250,8 +251,9 @@ not a microservice boundary.
 apps/api/src/modules/training-programs/
   domain/
     entities/
-      training-program.ts
-      training-program-schedule-entry.ts
+      training-program.entity.ts
+      training-program.types.ts
+      training-program-schedule-entry.entity.ts
     errors/
       training-program.errors.ts
     repositories/
@@ -305,31 +307,23 @@ use cases may use purpose-built list/detail projections instead of hydrating an
 aggregate that will not be mutated. This is pragmatic command/query separation
 without a CQRS library, event bus, or additional dependency.
 
-The current spike implements the smallest paths through these boundaries:
+The implemented slice follows these paths:
 
 ```text
 HTTP controller
   → ListTrainingProgramsUseCase
-  → TrainingProgramsRepository (domain contract)
+  → TrainingProgramsQueryRepository (application read port)
   → PrismaTrainingProgramsRepository
   → Prisma mapper
-  → TrainingProgram domain entity
+  → lightweight list projection
 ```
 
-The create path follows the same flow and derives `ownerId` from the
-authenticated principal. It always creates a private program and intentionally
-does not persist schedule rows yet.
-
-The entity currently represents persisted program identity and state only. Its
-schedule invariants and behavior belong in the domain layer when a command use
-case requiring them is approved. The GET spike has no authentication or
-authorization logic; the create spike requires an authenticated principal only
-to derive ownership. There are no query DTOs, Swagger decorators, or response
-DTOs yet. The create path translates domain validation, duplicate-slug, and
-persistence errors at the HTTP boundary; the list path translates query
-failures to a safe fetch error. The GET controller uses the existing
-`@OptionalAuth()` marker only to opt that public spike endpoint out of the API's
-default authentication guard.
+The create path uses the domain `TrainingProgramsRepository` command port. It
+derives `ownerId` from the principal, always creates a PRIVATE program, resolves
+eligible routine slugs, and inserts the parent and schedule children atomically.
+The aggregate owns schedule invariants and canonical ordering. The GET uses
+`@OptionalAuth()` so GLOBAL reads can remain public; the default `my` scope
+still requires a valid principal in the application layer.
 
 The current create factory delegates name, description, duration, slug, and ID
 normalization/generation to dedicated immutable domain value objects. The
@@ -348,36 +342,33 @@ independently addressable resources. The aggregate enforces:
 - deterministic schedule ordering by `weekNumber`, then `dayNumber`;
 - reducing duration cannot leave entries beyond the new duration.
 
-Name, description, owner ID, and routine slug remain primitives after boundary
-validation. They do not receive one-property value objects. A dedicated
-schedule-slot value object is optional only if it materially simplifies the
-compound slot invariant.
+The schedule child entity owns occurrence identity, routine reference, notes,
+and timestamps. A schedule-slot value object owns positive integer week/day
+validation and its compound identity; the aggregate applies duration bounds and
+cross-entry uniqueness.
 
 The aggregate references routines; it never embeds routine prescriptions or
 exercise data. HTTP/application commands use `routineSlug` as the stable
 external identifier. The Prisma adapter resolves it to `Routine.id` when
 persisting `TrainingProgramRoutine` rows.
 
-## Architectural spike and proposed backend slice
+## Implemented backend slice and future operations
 
-The implemented architectural-spike operations are:
+The implemented operations are:
 
 ```text
 GET /api/training-programs
 POST /api/training-programs
 ```
 
-The GET accepts no query parameters and returns every persisted training
-program. The POST accepts `name`, `description`, `durationWeeks`, and an
-optional slug. Identity, owner, visibility, and timestamps are server-
-controlled. Whether supplied or omitted, the slug base is normalized and gets
-an eight-character UUID suffix. It creates a private top-level row without
-schedule entries. The open GET behavior and minimal POST are architectural
-spikes, not the production authorization or schedule contract.
+GET accepts the approved `scope`, `q`, `sort`, `limit`, and `offset` parameters.
+POST accepts `name`, `description`, `durationWeeks`, optional `slug`, and an
+optional `schedule` that defaults to an empty array. Identity, owner,
+visibility, and timestamps are server-controlled. Whether supplied or omitted,
+the slug base is normalized and gets an eight-character UUID suffix.
 
-The following contract remains proposed. Every production operation, including
-the secured and filtered list behavior, must be approved before implementation
-because it defines API and authorization behavior.
+The remaining detail, update, and delete contracts below are proposals and
+still require explicit approval before implementation.
 
 ### Use cases
 
@@ -456,11 +447,12 @@ unbounded payloads until product requirements justify a schedule-entry maximum.
 
 ### Proposed response contracts
 
-List follows the existing Routine convention: a plain array with `limit`
+List returns a plain array with `limit`
 defaulting to 20, maximum 100, and `offset` defaulting to 0. Allowed sorts are
 `updatedAt:asc|desc` and `name:asc|desc`; default is `updatedAt:desc`. List rows
-contain `id`, `slug`, `name`, `description`, `visibility`, `durationWeeks`,
-`routineCount`, `createdAt`, and `updatedAt`.
+contain only `slug`, `name`, `description`, `visibility`, `durationWeeks`, and
+`updatedAt`. They deliberately omit internal IDs, `ownerId`, schedule content,
+routine counts, and creation timestamps.
 
 Detail adds an ordered `schedule` array. Each entry contains its own `id`,
 `weekNumber`, `dayNumber`, `notes`, and a routine summary with `id`, `slug`,
@@ -470,7 +462,10 @@ and are not duplicated into the program response.
 Mutations follow the existing feedback-only convention:
 
 ```json
-{ "message": "Training program created successfully" }
+{
+  "message": "Training program created successfully",
+  "slug": "upper-lower-four-day-1234abcd"
+}
 ```
 
 ### Proposed visibility and authorization
@@ -487,12 +482,12 @@ Mutations follow the existing feedback-only convention:
 - Repository queries include ownership/visibility predicates; use cases do not
   fetch an unscoped private record and authorize it afterward.
 
-Recommended routine eligibility is strict lifecycle alignment: a private
-program may reference only private routines owned by the same user. A global
-program may reference only platform-owned global routines. To use a global
-routine in a private program, the user first duplicates that routine. This
-prevents a private program from depending permanently on a global template and
-matches the future deep-copy rule for global program duplication.
+A private program may reference GLOBAL routines from the KinetiQ library and
+PRIVATE routines owned by the same user. It may not reference another user's
+PRIVATE routine. This direct global reference is intentional for manually
+created private programs. It does not change the separate future duplication
+rule: duplicating a GLOBAL program must deep-copy its routines so the duplicate
+is independent.
 
 When any submitted routine is missing, inaccessible, or otherwise ineligible,
 return one generic 422 error such as “One or more scheduled routines are
@@ -576,12 +571,11 @@ those checks. Do not seed Training Programs as part of the backend slice.
 
 ## Remaining decisions requiring explicit approval before coding
 
-1. Replace the open architectural-spike list behavior with the proposed secured
-   list contract, or implement any other proposed route, with no
-   duplication/global-management endpoints.
-2. Allow empty schedules and impose no arbitrary product maximum yet.
-3. Use full schedule replacement when `schedule` is present in `PATCH`.
-4. Allow private programs to reference only the owner's private routines; users
-   duplicate global routines before scheduling them privately.
-5. Keep mutation responses feedback-only and list responses as plain arrays.
-6. Include the small Routine delete-conflict translation in this backend slice.
+1. Define and implement the detail endpoint and its accessible schedule
+   projection.
+2. Define PATCH behavior, including whether a supplied schedule replaces the
+   complete collection.
+3. Define delete behavior and include the Routine delete-conflict translation
+   when delete-related work is approved.
+4. Define any global-program management path; normal users currently create
+   PRIVATE programs only.

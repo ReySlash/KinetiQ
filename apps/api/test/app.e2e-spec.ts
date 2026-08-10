@@ -23,9 +23,9 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
-  it('/training-programs (GET)', async () => {
+  it('/training-programs?scope=global (GET)', async () => {
     const response = await request(app.getHttpServer())
-      .get('/training-programs')
+      .get('/training-programs?scope=global')
       .expect(200);
 
     expect(Array.isArray(response.body)).toBe(true);

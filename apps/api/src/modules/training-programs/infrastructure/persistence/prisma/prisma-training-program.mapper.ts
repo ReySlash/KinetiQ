@@ -1,32 +1,28 @@
 import { Prisma } from '../../../../../../generated/prisma/client';
-import { TrainingProgram } from '../../../domain/entities/training-program.entity';
+import type { TrainingProgramListItem } from '../../../application/models/list-training-programs.model';
 
-export const trainingProgramSelect = {
-  id: true,
-  ownerId: true,
+export const trainingProgramListSelect = {
   slug: true,
   name: true,
   description: true,
   visibility: true,
   durationWeeks: true,
-  createdAt: true,
   updatedAt: true,
 } satisfies Prisma.TrainingProgramSelect;
 
-type PrismaTrainingProgram = Prisma.TrainingProgramGetPayload<{
-  select: typeof trainingProgramSelect;
+type PrismaTrainingProgramListItem = Prisma.TrainingProgramGetPayload<{
+  select: typeof trainingProgramListSelect;
 }>;
 
-export function toDomain(row: PrismaTrainingProgram): TrainingProgram {
-  return TrainingProgram.reconstitute({
-    id: row.id,
-    ownerId: row.ownerId,
+export function toListItem(
+  row: PrismaTrainingProgramListItem,
+): TrainingProgramListItem {
+  return {
     slug: row.slug,
     name: row.name,
     description: row.description,
     visibility: row.visibility,
     durationWeeks: row.durationWeeks,
-    createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-  });
+  };
 }

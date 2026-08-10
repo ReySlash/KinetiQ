@@ -2,17 +2,37 @@ import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
+  UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramQueryError,
+  TrainingProgramListAuthenticationError,
+  TrainingProgramRoutineUnavailableError,
+  TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
 } from '../../application/errors/training-program.errors';
-import { TrainingProgramValidationError } from '../../domain/errors/training-program.errors';
+import {
+  TrainingProgramScheduleValidationError,
+  TrainingProgramValidationError,
+} from '../../domain/errors/training-program.errors';
 
 export function toTrainingProgramsHttpException(error: unknown): Error {
   if (error instanceof TrainingProgramValidationError) {
     return new BadRequestException(error.message);
+  }
+  if (error instanceof TrainingProgramScheduleValidationError) {
+    return new UnprocessableEntityException(error.message);
+  }
+  if (error instanceof TrainingProgramRoutineUnavailableError) {
+    return new UnprocessableEntityException(error.message);
+  }
+  if (error instanceof TrainingProgramListAuthenticationError) {
+    return new UnauthorizedException(error.message);
+  }
+  if (error instanceof TrainingProgramScheduleConflictError) {
+    return new ConflictException(error.message);
   }
   if (error instanceof TrainingProgramSlugConflictError) {
     return new ConflictException(error.message);

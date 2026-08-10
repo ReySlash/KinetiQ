@@ -1,11 +1,11 @@
-import type { TrainingProgramsRepository } from '../../domain/repositories/training-programs.repository';
+import { TrainingProgramListAuthenticationError } from '../errors/training-program.errors';
+import type { TrainingProgramsQueryRepository } from '../repositories/training-programs-query.repository';
 import { ListTrainingProgramsUseCase } from './list-training-programs.use-case';
 
 describe('ListTrainingProgramsUseCase', () => {
   const findAll = jest.fn();
-  const repository: TrainingProgramsRepository = {
+  const repository: TrainingProgramsQueryRepository = {
     findAll,
-    create: jest.fn(),
   };
   const useCase = new ListTrainingProgramsUseCase(repository);
 
@@ -14,8 +14,40 @@ describe('ListTrainingProgramsUseCase', () => {
     findAll.mockResolvedValue([]);
   });
 
-  it('returns all training programs from the repository', async () => {
-    await expect(useCase.execute()).resolves.toEqual([]);
-    expect(findAll).toHaveBeenCalledWith();
+  it('defaults to the authenticated user private scope', async () => {
+    await expect(
+      useCase.execute({ principal: { userId: 'user-id' } }),
+    ).resolves.toEqual([]);
+    expect(findAll).toHaveBeenCalledWith({
+      scope: 'my',
+      ownerId: 'user-id',
+      sort: 'updatedAt:desc',
+      limit: 20,
+      offset: 0,
+    });
+  });
+
+  it('allows anonymous global listing with bounded query options', async () => {
+    await useCase.execute({
+      principal: null,
+      scope: 'global',
+      q: 'strength',
+      sort: 'name:asc',
+      limit: 10,
+      offset: 20,
+    });
+    expect(findAll).toHaveBeenCalledWith({
+      scope: 'global',
+      q: 'strength',
+      sort: 'name:asc',
+      limit: 10,
+      offset: 20,
+    });
+  });
+
+  it('requires authentication for the my scope', () => {
+    expect(() => useCase.execute({ principal: null })).toThrow(
+      TrainingProgramListAuthenticationError,
+    );
   });
 });

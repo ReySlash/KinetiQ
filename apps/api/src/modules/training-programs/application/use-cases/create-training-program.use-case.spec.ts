@@ -1,13 +1,16 @@
 import type { CreateTrainingProgramInput } from '../models/create-training-program.input';
 import type { TrainingProgramsRepository } from '../../domain/repositories/training-programs.repository';
 import { CreateTrainingProgramUseCase } from './create-training-programs.use-case';
+import { TrainingProgram } from '../../domain/entities/training-program.entity';
 
 describe('CreateTrainingProgramUseCase', () => {
   it('creates a private program for the supplied owner', async () => {
-    const create = jest.fn().mockResolvedValue(undefined);
+    let persisted: TrainingProgram | null = null;
     const repository: TrainingProgramsRepository = {
-      findAll: jest.fn(),
-      create,
+      create: (program) => {
+        persisted = program;
+        return Promise.resolve();
+      },
     };
     const useCase = new CreateTrainingProgramUseCase(repository);
     const input: CreateTrainingProgramInput = {
@@ -16,16 +19,27 @@ describe('CreateTrainingProgramUseCase', () => {
       slug: 'strength-base',
       description: 'A simple program',
       durationWeeks: 4,
+      schedule: [
+        {
+          routineSlug: 'upper-a-12345678',
+          weekNumber: 1,
+          dayNumber: 1,
+        },
+      ],
     };
 
     const result = await useCase.execute(input);
 
-    expect(create).toHaveBeenCalledWith(result);
-    expect(result.toValue()).toMatchObject({
+    expect(persisted).toMatchObject({
       ownerId: input.ownerId,
       name: input.name,
       visibility: 'PRIVATE',
       durationWeeks: input.durationWeeks,
+      schedule: [
+        expect.objectContaining({
+          routineSlug: 'upper-a-12345678',
+        }),
+      ],
     });
     expect(result.slug).toMatch(/^strength-base-[a-f0-9]{8}$/);
   });
