@@ -7,6 +7,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compi
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramQueryError,
   TrainingProgramSlugConflictError,
 } from '../../../application/errors/training-program.errors';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
@@ -75,6 +76,14 @@ describe('PrismaTrainingProgramsRepository', () => {
         }),
       ),
     ).rejects.toBeInstanceOf(TrainingProgramSlugConflictError);
+  });
+
+  it('translates unexpected query errors', async () => {
+    findMany.mockRejectedValue(new Error('database unavailable'));
+
+    await expect(repository.findAll()).rejects.toBeInstanceOf(
+      TrainingProgramQueryError,
+    );
   });
 
   it('translates unexpected persistence errors', async () => {

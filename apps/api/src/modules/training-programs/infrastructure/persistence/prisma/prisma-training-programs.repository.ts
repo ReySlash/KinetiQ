@@ -3,6 +3,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compi
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramQueryError,
   TrainingProgramSlugConflictError,
 } from '../../../application/errors/training-program.errors';
 import type { TrainingProgram } from '../../../domain/entities/training-program.entity';
@@ -35,11 +36,15 @@ export class PrismaTrainingProgramsRepository implements TrainingProgramsReposit
   }
 
   async findAll(): Promise<TrainingProgram[]> {
-    const rows = await this.prisma.trainingProgram.findMany({
-      select: trainingProgramSelect,
-      orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
-    });
+    try {
+      const rows = await this.prisma.trainingProgram.findMany({
+        select: trainingProgramSelect,
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      });
 
-    return rows.map(toDomain);
+      return rows.map(toDomain);
+    } catch {
+      throw new TrainingProgramQueryError();
+    }
   }
 }

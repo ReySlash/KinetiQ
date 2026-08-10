@@ -18,8 +18,12 @@ export class TrainingProgramsController {
 
   @Get()
   @OptionalAuth()
-  findAll() {
-    return this.listTrainingPrograms.execute();
+  async findAll() {
+    try {
+      return await this.listTrainingPrograms.execute();
+    } catch (error) {
+      throw toTrainingProgramsHttpException(error);
+    }
   }
 
   @Post()

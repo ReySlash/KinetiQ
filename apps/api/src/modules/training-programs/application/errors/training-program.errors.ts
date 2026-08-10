@@ -15,3 +15,12 @@ export class TrainingProgramPersistenceError extends Error {
     this.name = 'TrainingProgramPersistenceError';
   }
 }
+
+export class TrainingProgramQueryError extends Error {
+  readonly code = 'TRAINING_PROGRAM_QUERY_FAILED';
+
+  constructor() {
+    super('Training program query failed.');
+    this.name = 'TrainingProgramQueryError';
+  }
+}

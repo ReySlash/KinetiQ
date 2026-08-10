@@ -5,6 +5,7 @@ import type { AuthenticatedPrincipal } from '../../../../auth/principal';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/create-training-programs.use-case';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramQueryError,
   TrainingProgramSlugConflictError,
 } from '../../application/errors/training-program.errors';
 import { TrainingProgramValidationError } from '../../domain/errors/training-program.errors';
@@ -38,6 +39,15 @@ describe('TrainingProgramsController', () => {
   it('delegates to the list use case', async () => {
     await expect(controller.findAll()).resolves.toEqual([]);
     expect(execute).toHaveBeenCalledWith();
+  });
+
+  it('maps list persistence errors to a safe server error', async () => {
+    execute.mockRejectedValue(new TrainingProgramQueryError());
+
+    await expect(controller.findAll()).rejects.toMatchObject({
+      status: 500,
+      message: 'Failed to fetch training programs.',
+    });
   });
 
   it('derives the owner from the authenticated principal', async () => {

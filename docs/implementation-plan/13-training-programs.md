@@ -326,7 +326,8 @@ case requiring them is approved. The GET spike has no authentication or
 authorization logic; the create spike requires an authenticated principal only
 to derive ownership. There are no query DTOs, Swagger decorators, or response
 DTOs yet. The create path translates domain validation, duplicate-slug, and
-persistence errors at the HTTP boundary. The GET controller uses the existing
+persistence errors at the HTTP boundary; the list path translates query
+failures to a safe fetch error. The GET controller uses the existing
 `@OptionalAuth()` marker only to opt that public spike endpoint out of the API's
 default authentication guard.
 
