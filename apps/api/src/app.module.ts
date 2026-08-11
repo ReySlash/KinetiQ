@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { validateEnv } from './config/env.validation';
 import { PrismaModule } from './prisma/prisma.module';
 import { MusclesModule } from './muscles/muscles.module';
@@ -36,7 +34,5 @@ import { TrainingProgramsModule } from './modules/training-programs/training-pro
     RoutinesModule,
     TrainingProgramsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
