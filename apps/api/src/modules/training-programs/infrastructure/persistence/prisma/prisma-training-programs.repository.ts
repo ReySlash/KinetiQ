@@ -11,7 +11,7 @@ import {
 import type { ListTrainingProgramsQuery } from '../../../application/models/list-training-programs.model';
 import { TrainingProgramsQueryRepository } from '../../../application/repositories/training-programs-query.repository';
 import type { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsRepository } from '../../../domain/repositories/training-programs.repository';
+import { TrainingProgramsRepository } from '../../../application/repositories/training-programs.repository';
 import {
   toListItem,
   trainingProgramListSelect,

@@ -1,9 +1,9 @@
-import { TrainingProgramListAuthenticationError } from '../errors/training-program.errors';
+import { TrainingProgramListAuthenticationError } from '../../errors/training-program.errors';
 import type {
   ListTrainingProgramsInput,
   TrainingProgramListItem,
-} from '../models/list-training-programs.model';
-import type { TrainingProgramsQueryRepository } from '../repositories/training-programs-query.repository';
+} from '../../models/list-training-programs.model';
+import type { TrainingProgramsQueryRepository } from '../../repositories/training-programs-query.repository';
 
 export class ListTrainingProgramsUseCase {
   constructor(

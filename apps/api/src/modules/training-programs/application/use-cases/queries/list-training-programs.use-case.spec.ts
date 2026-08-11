@@ -1,5 +1,5 @@
-import { TrainingProgramListAuthenticationError } from '../errors/training-program.errors';
-import type { TrainingProgramsQueryRepository } from '../repositories/training-programs-query.repository';
+import { TrainingProgramListAuthenticationError } from '../../errors/training-program.errors';
+import type { TrainingProgramsQueryRepository } from '../../repositories/training-programs-query.repository';
 import { ListTrainingProgramsUseCase } from './list-training-programs.use-case';
 
 describe('ListTrainingProgramsUseCase', () => {

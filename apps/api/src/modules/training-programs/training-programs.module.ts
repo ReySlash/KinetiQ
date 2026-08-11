@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { ListTrainingProgramsUseCase } from './application/use-cases/list-training-programs.use-case';
-import { TrainingProgramsRepository } from './domain/repositories/training-programs.repository';
+import { ListTrainingProgramsUseCase } from './application/use-cases/queries/list-training-programs.use-case';
+import { TrainingProgramsRepository } from './application/repositories/training-programs.repository';
 import { PrismaTrainingProgramsRepository } from './infrastructure/persistence/prisma/prisma-training-programs.repository';
 import { TrainingProgramsController } from './presentation/http/training-programs.controller';
-import { CreateTrainingProgramUseCase } from './application/use-cases/create-training-programs.use-case';
+import { CreateTrainingProgramUseCase } from './application/use-cases/commands/create-training-programs.use-case';
 import { TrainingProgramsQueryRepository } from './application/repositories/training-programs-query.repository';
 
 @Module({

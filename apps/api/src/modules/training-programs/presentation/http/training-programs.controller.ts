@@ -5,8 +5,8 @@ import {
   CurrentOptionalPrincipal,
   type AuthenticatedPrincipal,
 } from '../../../../auth/principal';
-import { ListTrainingProgramsUseCase } from '../../application/use-cases/list-training-programs.use-case';
-import { CreateTrainingProgramUseCase } from '../../application/use-cases/create-training-programs.use-case';
+import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
+import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { toTrainingProgramsHttpException } from './training-programs-exception.mapper';
 import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';

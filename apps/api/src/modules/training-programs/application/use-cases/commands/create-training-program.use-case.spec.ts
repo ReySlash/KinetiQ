@@ -1,7 +1,7 @@
-import type { CreateTrainingProgramInput } from '../models/create-training-program.input';
-import type { TrainingProgramsRepository } from '../../domain/repositories/training-programs.repository';
+import type { CreateTrainingProgramInput } from '../../models/create-training-program.input';
+import type { TrainingProgramsRepository } from '../../repositories/training-programs.repository';
 import { CreateTrainingProgramUseCase } from './create-training-programs.use-case';
-import { TrainingProgram } from '../../domain/entities/training-program.entity';
+import { TrainingProgram } from '../../../domain/entities/training-program.entity';
 
 describe('CreateTrainingProgramUseCase', () => {
   it('creates a private program for the supplied owner', async () => {

@@ -256,15 +256,18 @@ apps/api/src/modules/training-programs/
       training-program-schedule-entry.entity.ts
     errors/
       training-program.errors.ts
+  application/
     repositories/
       training-programs.repository.ts
-  application/
+      training-programs-query.repository.ts
     use-cases/
-      create-training-program.use-case.ts
-      list-training-programs.use-case.ts
-      get-training-program.use-case.ts
-      update-training-program.use-case.ts
-      delete-training-program.use-case.ts
+      commands/
+        create-training-programs.use-case.ts
+        update-training-program.use-case.ts
+        delete-training-program.use-case.ts
+      queries/
+        list-training-programs.use-case.ts
+        get-training-program.use-case.ts
     models/
       training-program.models.ts
   infrastructure/
@@ -300,12 +303,14 @@ responsibility.
   imports the existing `PrismaModule`; the pilot does not relocate shared auth
   or database infrastructure.
 
-The repository port is feature-specific rather than generic. Command-side
-methods persist the complete aggregate atomically and guarantee that referenced
-routines are resolved and revalidated in the same Prisma transaction. Query
-use cases may use purpose-built list/detail projections instead of hydrating an
-aggregate that will not be mutated. This is pragmatic command/query separation
-without a CQRS library, event bus, or additional dependency.
+The repository ports are feature-specific rather than generic and belong to the
+application boundary. The command port persists the complete aggregate
+atomically and guarantees that referenced routines are resolved and revalidated
+in the same Prisma transaction. Query use cases may use purpose-built
+list/detail projections instead of hydrating an aggregate that will not be
+mutated. This is pragmatic command/query separation without a CQRS library,
+event bus, or additional dependency. The domain layer contains entities and
+invariants only; it does not know about persistence ports.
 
 The implemented slice follows these paths:
 
@@ -318,7 +323,7 @@ HTTP controller
   → lightweight list projection
 ```
 
-The create path uses the domain `TrainingProgramsRepository` command port. It
+The create path uses the application `TrainingProgramsRepository` command port. It
 derives `ownerId` from the principal, always creates a PRIVATE program, resolves
 eligible routine slugs, and inserts the parent and schedule children atomically.
 The aggregate owns schedule invariants and canonical ordering. The GET uses
