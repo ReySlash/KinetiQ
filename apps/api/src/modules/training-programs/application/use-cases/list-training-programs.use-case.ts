@@ -14,18 +14,28 @@ export class ListTrainingProgramsUseCase {
     input: ListTrainingProgramsInput,
   ): Promise<TrainingProgramListItem[]> {
     const scope = input.scope ?? 'my';
-    if (scope === 'my' && !input.principal) {
-      throw new TrainingProgramListAuthenticationError();
-    }
-    const ownerId = scope === 'my' ? input.principal?.userId : undefined;
-
-    return this.trainingPrograms.findAll({
-      scope,
-      ...(ownerId ? { ownerId } : {}),
+    const options = {
       ...(input.q ? { q: input.q } : {}),
       sort: input.sort ?? 'updatedAt:desc',
       limit: input.limit ?? 20,
       offset: input.offset ?? 0,
+    } as const;
+
+    if (scope === 'my') {
+      const principal = input.principal;
+      if (!principal) {
+        throw new TrainingProgramListAuthenticationError();
+      }
+      return this.trainingPrograms.findAll({
+        ...options,
+        scope: 'my',
+        ownerId: principal.userId,
+      });
+    }
+
+    return this.trainingPrograms.findAll({
+      ...options,
+      scope: 'global',
     });
   }
 }

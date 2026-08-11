@@ -39,6 +39,27 @@ export class TrainingProgram {
           left.slot.weekNumber - right.slot.weekNumber ||
           left.slot.dayNumber - right.slot.dayNumber,
       );
+    TrainingProgram.validateSchedule(this.schedule, this.durationWeeks);
+  }
+
+  private static validateSchedule(
+    schedule: readonly TrainingProgramScheduleEntry[],
+    durationWeeks: number,
+  ): void {
+    const occupiedSlots = new Set<string>();
+    for (const entry of schedule) {
+      if (entry.slot.weekNumber > durationWeeks) {
+        throw new TrainingProgramScheduleValidationError(
+          'Schedule weekNumber cannot exceed durationWeeks.',
+        );
+      }
+      if (occupiedSlots.has(entry.slot.key)) {
+        throw new TrainingProgramScheduleValidationError(
+          `Only one routine can occupy week ${entry.slot.weekNumber}, day ${entry.slot.dayNumber}.`,
+        );
+      }
+      occupiedSlots.add(entry.slot.key);
+    }
   }
 
   static create(attributes: CreateTrainingProgramAttributes): TrainingProgram {
@@ -57,20 +78,7 @@ export class TrainingProgram {
           left.slot.weekNumber - right.slot.weekNumber ||
           left.slot.dayNumber - right.slot.dayNumber,
       );
-    const occupiedSlots = new Set<string>();
-    for (const entry of schedule) {
-      if (entry.slot.weekNumber > duration.value) {
-        throw new TrainingProgramScheduleValidationError(
-          'Schedule weekNumber cannot exceed durationWeeks.',
-        );
-      }
-      if (occupiedSlots.has(entry.slot.key)) {
-        throw new TrainingProgramScheduleValidationError(
-          `Only one routine can occupy week ${entry.slot.weekNumber}, day ${entry.slot.dayNumber}.`,
-        );
-      }
-      occupiedSlots.add(entry.slot.key);
-    }
+    TrainingProgram.validateSchedule(schedule, duration.value);
 
     return new TrainingProgram({
       id: id.value,

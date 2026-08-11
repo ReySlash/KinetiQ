@@ -147,6 +147,10 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await request(app.getHttpServer())
       .get('/routines?scope=global')
       .expect(200);
+    await request(app.getHttpServer())
+      .get('/training-programs?scope=global')
+      .expect(200);
+    await request(app.getHttpServer()).get('/training-programs').expect(401);
 
     await request(app.getHttpServer())
       .post('/routines')
@@ -269,6 +273,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
     const userCookies = await signIn(user);
     const name = `Private HTTP program ${randomUUID()}`;
     const routineSlug = `private-http-routine-${randomUUID()}`;
+    const globalRoutineSlug = `global-http-routine-${randomUUID()}`;
     await prisma.routine.create({
       data: {
         id: randomUUID(),
@@ -276,6 +281,15 @@ describe('HTTP authentication and authorization (e2e)', () => {
         slug: routineSlug,
         name: 'Private HTTP routine',
         visibility: 'PRIVATE',
+      },
+    });
+    await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug: globalRoutineSlug,
+        name: 'Global HTTP routine',
+        visibility: 'GLOBAL',
       },
     });
 
@@ -288,6 +302,12 @@ describe('HTTP authentication and authorization (e2e)', () => {
         durationWeeks: 4,
         schedule: [
           { routineSlug, weekNumber: 1, dayNumber: 1, notes: 'Start here' },
+          {
+            routineSlug: globalRoutineSlug,
+            weekNumber: 1,
+            dayNumber: 2,
+            notes: 'Library movement',
+          },
         ],
       })
       .expect(201);
@@ -311,13 +331,54 @@ describe('HTTP authentication and authorization (e2e)', () => {
       ownerId: user.id,
       visibility: 'PRIVATE',
       name,
-      routines: [{ weekNumber: 1, dayNumber: 1, notes: 'Start here' }],
+      routines: [
+        { weekNumber: 1, dayNumber: 1, notes: 'Start here' },
+        { weekNumber: 1, dayNumber: 2, notes: 'Library movement' },
+      ],
     });
+  });
+
+  it('lists only the authenticated owner private programs', async () => {
+    const userCookies = await signIn(user);
+    const secondUserCookies = await signIn(secondUser);
+    const userProgramName = `Listed HTTP program ${randomUUID()}`;
+    const secondUserProgramName = `Hidden HTTP program ${randomUUID()}`;
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({ name: userProgramName, durationWeeks: 4 })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', secondUserCookies)
+      .send({ name: secondUserProgramName, durationWeeks: 4 })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .get('/training-programs')
+      .set('Cookie', userCookies)
+      .expect(200);
+
+    expect(response.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: userProgramName }),
+      ]),
+    );
+    expect(response.body).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: secondUserProgramName }),
+      ]),
+    );
+    expect(response.body).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ ownerId: user.id })]),
+    );
   });
 
   it('does not disclose whether a scheduled private routine exists', async () => {
     const userCookies = await signIn(user);
     const inaccessibleRoutineSlug = `other-user-routine-${randomUUID()}`;
+    const programName = `Invalid HTTP program ${randomUUID()}`;
     await prisma.routine.create({
       data: {
         id: randomUUID(),
@@ -332,7 +393,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .post('/training-programs')
       .set('Cookie', userCookies)
       .send({
-        name: `Invalid HTTP program ${randomUUID()}`,
+        name: programName,
         durationWeeks: 4,
         schedule: [
           {
@@ -347,6 +408,34 @@ describe('HTTP authentication and authorization (e2e)', () => {
     expect(response.body).toMatchObject({
       message: 'One or more scheduled routines are unavailable.',
     });
+    await expect(
+      prisma.trainingProgram.findFirst({ where: { name: programName } }),
+    ).resolves.toBeNull();
+  });
+
+  it('rejects duplicate schedule slots before persistence', async () => {
+    const userCookies = await signIn(user);
+    const programName = `Duplicate slot HTTP program ${randomUUID()}`;
+
+    const response = await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name: programName,
+        durationWeeks: 4,
+        schedule: [
+          { routineSlug: 'upper-a', weekNumber: 1, dayNumber: 1 },
+          { routineSlug: 'lower-a', weekNumber: 1, dayNumber: 1 },
+        ],
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      message: 'Only one routine can occupy week 1, day 1.',
+    });
+    await expect(
+      prisma.trainingProgram.findFirst({ where: { name: programName } }),
+    ).resolves.toBeNull();
   });
 
   it('allows an admin session to use admin routes and rejects a regular user', async () => {

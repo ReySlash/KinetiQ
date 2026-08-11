@@ -27,11 +27,19 @@ export type TrainingProgramListItem = {
   updatedAt: Date;
 };
 
-export type ListTrainingProgramsQuery = {
-  scope: TrainingProgramScope;
-  ownerId?: string;
+type ListTrainingProgramsQueryOptions = {
   q?: string;
   sort: TrainingProgramSort;
   limit: number;
   offset: number;
 };
+
+export type ListTrainingProgramsQuery =
+  | (ListTrainingProgramsQueryOptions & {
+      scope: 'my';
+      ownerId: string;
+    })
+  | (ListTrainingProgramsQueryOptions & {
+      scope: 'global';
+      ownerId?: never;
+    });

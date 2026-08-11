@@ -35,11 +35,11 @@ describe('PrismaTrainingProgramsRepository', () => {
     };
   };
   const programFindMany = jest.fn();
-  const routineFindMany =
-    jest.fn<
-      (query: RoutineQuery) => Promise<Array<{ id: string; slug: string }>>
-    >();
-  const create = jest.fn<(query: ProgramCreateQuery) => Promise<void>>();
+  const routineFindMany = jest.fn<
+    Promise<Array<{ id: string; slug: string }>>,
+    [RoutineQuery]
+  >();
+  const create = jest.fn<Promise<void>, [ProgramCreateQuery]>();
   const transaction = jest.fn(
     async (work: (client: object) => Promise<unknown>) =>
       work({
@@ -140,6 +140,37 @@ describe('PrismaTrainingProgramsRepository', () => {
       orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
       take: 20,
       skip: 0,
+    });
+  });
+
+  it('applies search, sorting, and pagination to the list projection', async () => {
+    programFindMany.mockResolvedValue([]);
+
+    await repository.findAll({
+      scope: 'global',
+      q: 'strength',
+      sort: 'name:asc',
+      limit: 10,
+      offset: 20,
+    });
+
+    expect(programFindMany).toHaveBeenCalledWith({
+      where: {
+        visibility: 'GLOBAL',
+        OR: [
+          { name: { contains: 'strength', mode: 'insensitive' } },
+          {
+            description: {
+              contains: 'strength',
+              mode: 'insensitive',
+            },
+          },
+        ],
+      },
+      select: trainingProgramListSelect,
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      take: 10,
+      skip: 20,
     });
   });
 

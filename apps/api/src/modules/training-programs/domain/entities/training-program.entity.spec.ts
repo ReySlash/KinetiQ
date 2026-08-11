@@ -44,4 +44,31 @@ describe('TrainingProgram schedule', () => {
       TrainingProgramScheduleValidationError,
     );
   });
+
+  it('revalidates persisted schedule invariants during reconstitution', () => {
+    expect(() =>
+      TrainingProgram.reconstitute({
+        id: '323e4567-e89b-12d3-a456-426614174000',
+        ownerId: base.ownerId,
+        slug: 'strength-base-12345678',
+        name: base.name,
+        description: null,
+        visibility: 'PRIVATE',
+        durationWeeks: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        schedule: [
+          {
+            id: '423e4567-e89b-12d3-a456-426614174000',
+            routineSlug: 'upper-a',
+            weekNumber: 2,
+            dayNumber: 1,
+            notes: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+      }),
+    ).toThrow(TrainingProgramScheduleValidationError);
+  });
 });
