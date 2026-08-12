@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { OptionalAuth } from '@thallesp/nestjs-better-auth';
 import {
   CurrentPrincipal,
@@ -6,6 +6,7 @@ import {
   type AuthenticatedPrincipal,
 } from '../../../../auth/principal';
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
+import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { toTrainingProgramsHttpException } from './training-programs-exception.mapper';
@@ -15,6 +16,7 @@ import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query
 export class TrainingProgramsController {
   constructor(
     private readonly listTrainingPrograms: ListTrainingProgramsUseCase,
+    private readonly getTrainingProgram: GetTrainingProgramUseCase,
     private readonly createTrainingProgram: CreateTrainingProgramUseCase,
   ) {}
 
@@ -26,6 +28,22 @@ export class TrainingProgramsController {
   ) {
     try {
       return await this.listTrainingPrograms.execute({ principal, ...query });
+    } catch (error) {
+      throw toTrainingProgramsHttpException(error);
+    }
+  }
+
+  @Get(':slug')
+  @OptionalAuth()
+  async findOne(
+    @Param('slug') slug: string,
+    @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
+  ) {
+    try {
+      return await this.getTrainingProgram.execute({
+        slug,
+        ...(principal ? { ownerId: principal.userId } : {}),
+      });
     } catch (error) {
       throw toTrainingProgramsHttpException(error);
     }

@@ -319,6 +319,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
     const persisted = await prisma.trainingProgram.findFirstOrThrow({
       where: { name },
       select: {
+        slug: true,
         ownerId: true,
         visibility: true,
         name: true,
@@ -328,6 +329,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
       },
     });
     expect(persisted).toEqual({
+      slug: persisted.slug,
       ownerId: user.id,
       visibility: 'PRIVATE',
       name,
@@ -336,6 +338,62 @@ describe('HTTP authentication and authorization (e2e)', () => {
         { weekNumber: 1, dayNumber: 2, notes: 'Library movement' },
       ],
     });
+
+    const detail = await request(app.getHttpServer())
+      .get(`/training-programs/${persisted.slug}`)
+      .set('Cookie', userCookies)
+      .expect(200);
+
+    expect(detail.body).toMatchObject({
+      slug: persisted.slug,
+      name,
+      description: 'A minimal training program.',
+      visibility: 'PRIVATE',
+      durationWeeks: 4,
+      schedule: [
+        {
+          weekNumber: 1,
+          dayNumber: 1,
+          notes: 'Start here',
+          routine: {
+            slug: routineSlug,
+            name: 'Private HTTP routine',
+            visibility: 'PRIVATE',
+          },
+        },
+        {
+          weekNumber: 1,
+          dayNumber: 2,
+          notes: 'Library movement',
+          routine: {
+            slug: globalRoutineSlug,
+            name: 'Global HTTP routine',
+            visibility: 'GLOBAL',
+          },
+        },
+      ],
+    });
+  });
+
+  it('conceals another user private program behind the same 404', async () => {
+    const ownerCookies = await signIn(secondUser);
+    const viewerCookies = await signIn(user);
+    const name = `Private detail HTTP program ${randomUUID()}`;
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', ownerCookies)
+      .send({ name, durationWeeks: 4 })
+      .expect(201);
+
+    const persisted = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true },
+    });
+    await request(app.getHttpServer())
+      .get(`/training-programs/${persisted.slug}`)
+      .set('Cookie', viewerCookies)
+      .expect(404);
   });
 
   it('lists only the authenticated owner private programs', async () => {

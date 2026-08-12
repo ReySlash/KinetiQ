@@ -12,7 +12,10 @@ import {
   TrainingProgramSlugConflictError,
 } from '../../../application/errors/training-program.errors';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { trainingProgramListSelect } from './prisma-training-program.mapper';
+import {
+  trainingProgramDetailSelect,
+  trainingProgramListSelect,
+} from './prisma-training-program.mapper';
 import { PrismaTrainingProgramsRepository } from './prisma-training-programs.repository';
 
 describe('PrismaTrainingProgramsRepository', () => {
@@ -35,6 +38,7 @@ describe('PrismaTrainingProgramsRepository', () => {
     };
   };
   const programFindMany = jest.fn();
+  const programFindFirst = jest.fn();
   const routineFindMany = jest.fn<
     Promise<Array<{ id: string; slug: string }>>,
     [RoutineQuery]
@@ -56,7 +60,10 @@ describe('PrismaTrainingProgramsRepository', () => {
         {
           provide: PrismaService,
           useValue: {
-            trainingProgram: { findMany: programFindMany },
+            trainingProgram: {
+              findMany: programFindMany,
+              findFirst: programFindFirst,
+            },
             $transaction: transaction,
           },
         },
@@ -171,6 +178,28 @@ describe('PrismaTrainingProgramsRepository', () => {
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
       take: 10,
       skip: 20,
+    });
+  });
+
+  it('returns an ordered detail projection scoped by visibility and owner', async () => {
+    programFindFirst.mockResolvedValue(null);
+
+    await expect(
+      repository.findBySlug({
+        slug: 'strength-base-12345678',
+        ownerId: 'owner-id',
+      }),
+    ).resolves.toBeNull();
+
+    expect(programFindFirst).toHaveBeenCalledWith({
+      where: {
+        slug: 'strength-base-12345678',
+        OR: [
+          { visibility: 'GLOBAL' },
+          { visibility: 'PRIVATE', ownerId: 'owner-id' },
+        ],
+      },
+      select: trainingProgramDetailSelect,
     });
   });
 

@@ -1,10 +1,10 @@
 import type { CreateTrainingProgramInput } from '../../models/create-training-program.input';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsRepository } from '../../repositories/training-programs.repository';
+import { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
 
 export class CreateTrainingProgramUseCase {
   constructor(
-    private readonly trainingProgramsRepository: TrainingProgramsRepository,
+    private readonly trainingProgramsRepository: TrainingProgramsCommandRepository,
   ) {}
 
   async execute(

@@ -15,6 +15,7 @@ import {
   TrainingProgramValidationError,
 } from '../../domain/errors/training-program.errors';
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
+import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';
 import { TrainingProgramsController } from './training-programs.controller';
@@ -22,6 +23,7 @@ import { TrainingProgramsController } from './training-programs.controller';
 describe('TrainingProgramsController', () => {
   const execute = jest.fn();
   const create = jest.fn();
+  const get = jest.fn();
   let controller: TrainingProgramsController;
 
   beforeEach(async () => {
@@ -29,6 +31,7 @@ describe('TrainingProgramsController', () => {
       controllers: [TrainingProgramsController],
       providers: [
         { provide: ListTrainingProgramsUseCase, useValue: { execute } },
+        { provide: GetTrainingProgramUseCase, useValue: { execute: get } },
         {
           provide: CreateTrainingProgramUseCase,
           useValue: { execute: create },
@@ -40,6 +43,7 @@ describe('TrainingProgramsController', () => {
     jest.clearAllMocks();
     execute.mockResolvedValue([]);
     create.mockResolvedValue({ slug: 'strength-base-12345678' });
+    get.mockResolvedValue({});
   });
 
   it('delegates to the list use case', async () => {
@@ -56,6 +60,29 @@ describe('TrainingProgramsController', () => {
     ).rejects.toMatchObject({
       status: 500,
       message: 'Failed to fetch training programs.',
+    });
+  });
+
+  it('delegates detail lookup with the authenticated owner when present', async () => {
+    const principal: AuthenticatedPrincipal = {
+      userId: '123e4567-e89b-12d3-a456-426614174000',
+      role: 'USER',
+      sessionId: '223e4567-e89b-12d3-a456-426614174000',
+    };
+
+    await controller.findOne('strength-base-12345678', principal);
+
+    expect(get).toHaveBeenCalledWith({
+      slug: 'strength-base-12345678',
+      ownerId: principal.userId,
+    });
+  });
+
+  it('allows anonymous detail lookup without an owner scope', async () => {
+    await controller.findOne('global-program-12345678', null);
+
+    expect(get).toHaveBeenCalledWith({
+      slug: 'global-program-12345678',
     });
   });
 

@@ -5,7 +5,7 @@
 A `TrainingProgram` is a reusable multi-week template that schedules existing
 routine templates. The persistence model and migration are complete. The
 backend-only Clean Architecture/DDD vertical-slice pilot currently implements
-the approved `GET /api/training-programs` list and authenticated
+the approved `GET /api/training-programs` list, slug-based detail read, and authenticated
 `POST /api/training-programs` create. Create persists the complete aggregate,
 including its optional schedule, in one transaction. List supports the approved
 visibility scopes, search, sorting, limit, and offset through a bounded read
@@ -258,7 +258,7 @@ apps/api/src/modules/training-programs/
       training-program.errors.ts
   application/
     repositories/
-      training-programs.repository.ts
+      training-programs-command.repository.ts
       training-programs-query.repository.ts
     use-cases/
       commands/
@@ -323,7 +323,7 @@ HTTP controller
   → lightweight list projection
 ```
 
-The create path uses the application `TrainingProgramsRepository` command port. It
+The create path uses the application `TrainingProgramsCommandRepository` command port. It
 derives `ownerId` from the principal, always creates a PRIVATE program, resolves
 eligible routine slugs, and inserts the parent and schedule children atomically.
 The aggregate owns schedule invariants and canonical ordering. The GET uses
@@ -363,6 +363,7 @@ The implemented operations are:
 
 ```text
 GET /api/training-programs
+GET /api/training-programs/:slug
 POST /api/training-programs
 ```
 
@@ -372,8 +373,8 @@ optional `schedule` that defaults to an empty array. Identity, owner,
 visibility, and timestamps are server-controlled. Whether supplied or omitted,
 the slug base is normalized and gets an eight-character UUID suffix.
 
-The remaining detail, update, and delete contracts below are proposals and
-still require explicit approval before implementation.
+The remaining update and delete contracts below are proposals and still require
+explicit approval before implementation.
 
 ### Use cases
 
@@ -382,7 +383,8 @@ still require explicit approval before implementation.
 2. `ListTrainingPrograms`: list either the caller's private templates or global
    templates with search, sorting, limit, and offset.
 3. `GetTrainingProgram`: return an accessible private/global template and its
-   ordered schedule with routine summaries.
+   ordered schedule with routine summaries. This read path is implemented;
+   update and delete remain deferred.
 4. `UpdateTrainingProgram`: update an owned private template and optionally
    replace its complete schedule atomically.
 5. `DeleteTrainingProgram`: delete an owned private template; database cascade
@@ -459,10 +461,10 @@ contain only `slug`, `name`, `description`, `visibility`, `durationWeeks`, and
 `updatedAt`. They deliberately omit internal IDs, `ownerId`, schedule content,
 routine counts, and creation timestamps.
 
-Detail adds an ordered `schedule` array. Each entry contains its own `id`,
-`weekNumber`, `dayNumber`, `notes`, and a routine summary with `id`, `slug`,
-`name`, and `visibility`. Exercise prescriptions remain behind the Routine API
-and are not duplicated into the program response.
+Detail returns an ordered `schedule` array. Each entry contains `weekNumber`,
+`dayNumber`, `notes`, and a routine summary with `slug`, `name`, and
+`visibility`. Internal IDs and owner IDs are excluded. Exercise prescriptions
+remain behind the Routine API and are not duplicated into the program response.
 
 Mutations follow the existing feedback-only convention:
 
@@ -527,7 +529,7 @@ NestJS HTTP exceptions. The presentation mapper translates them to the existing
 API problem/error conventions:
 
 - unauthenticated mutation or `scope=my`: 401;
-- concealed inaccessible private program: 404;
+- missing or concealed inaccessible private program detail: 404;
 - invalid aggregate or unavailable routine reference: 422;
 - persistence uniqueness/state conflict: 409;
 - unexpected repository failure: 500 without SQL or sensitive payloads.

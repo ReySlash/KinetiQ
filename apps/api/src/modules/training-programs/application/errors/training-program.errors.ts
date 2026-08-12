@@ -25,6 +25,15 @@ export class TrainingProgramQueryError extends Error {
   }
 }
 
+export class TrainingProgramNotFoundError extends Error {
+  readonly code = 'TRAINING_PROGRAM_NOT_FOUND';
+
+  constructor() {
+    super('Training program not found.');
+    this.name = 'TrainingProgramNotFoundError';
+  }
+}
+
 export class TrainingProgramRoutineUnavailableError extends Error {
   readonly code = 'TRAINING_PROGRAM_ROUTINE_UNAVAILABLE';
 

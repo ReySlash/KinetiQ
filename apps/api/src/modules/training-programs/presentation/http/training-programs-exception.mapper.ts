@@ -2,12 +2,14 @@ import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramQueryError,
+  TrainingProgramNotFoundError,
   TrainingProgramListAuthenticationError,
   TrainingProgramRoutineUnavailableError,
   TrainingProgramScheduleConflictError,
@@ -19,6 +21,9 @@ import {
 } from '../../domain/errors/training-program.errors';
 
 export function toTrainingProgramsHttpException(error: unknown): Error {
+  if (error instanceof TrainingProgramNotFoundError) {
+    return new NotFoundException(error.message);
+  }
   if (error instanceof TrainingProgramValidationError) {
     return new BadRequestException(error.message);
   }

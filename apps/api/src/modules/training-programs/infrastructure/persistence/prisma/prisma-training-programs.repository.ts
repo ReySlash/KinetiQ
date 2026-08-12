@@ -8,12 +8,15 @@ import {
   TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
 } from '../../../application/errors/training-program.errors';
+import type { GetTrainingProgramQuery } from '../../../application/models/detail-training-program.model';
 import type { ListTrainingProgramsQuery } from '../../../application/models/list-training-programs.model';
 import { TrainingProgramsQueryRepository } from '../../../application/repositories/training-programs-query.repository';
 import type { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsRepository } from '../../../application/repositories/training-programs.repository';
+import { TrainingProgramsCommandRepository } from '../../../application/repositories/training-programs-command.repository';
 import {
   toListItem,
+  toDetail,
+  trainingProgramDetailSelect,
   trainingProgramListSelect,
 } from './prisma-training-program.mapper';
 
@@ -26,7 +29,7 @@ const TRAINING_PROGRAM_ORDER_BY = {
 
 @Injectable()
 export class PrismaTrainingProgramsRepository
-  implements TrainingProgramsRepository, TrainingProgramsQueryRepository
+  implements TrainingProgramsCommandRepository, TrainingProgramsQueryRepository
 {
   constructor(private readonly prisma: PrismaService) {}
   async create(trainingProgram: TrainingProgram): Promise<void> {
@@ -139,6 +142,27 @@ export class PrismaTrainingProgramsRepository
       });
 
       return rows.map(toListItem);
+    } catch {
+      throw new TrainingProgramQueryError();
+    }
+  }
+
+  async findBySlug(query: GetTrainingProgramQuery) {
+    try {
+      const row = await this.prisma.trainingProgram.findFirst({
+        where: {
+          slug: query.slug,
+          OR: [
+            { visibility: 'GLOBAL' },
+            ...(query.ownerId
+              ? [{ visibility: 'PRIVATE' as const, ownerId: query.ownerId }]
+              : []),
+          ],
+        },
+        select: trainingProgramDetailSelect,
+      });
+
+      return row ? toDetail(row) : null;
     } catch {
       throw new TrainingProgramQueryError();
     }
