@@ -161,6 +161,9 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .send({ name: 'Anonymous program', durationWeeks: 4 })
       .expect(401);
     await request(app.getHttpServer())
+      .delete('/training-programs/not-owned')
+      .expect(401);
+    await request(app.getHttpServer())
       .patch('/routines/not-owned')
       .send({ name: 'Anonymous update' })
       .expect(401);
@@ -651,6 +654,102 @@ describe('HTTP authentication and authorization (e2e)', () => {
     expect(response.body).toMatchObject({
       message: 'Only one routine can occupy week 1, day 1.',
     });
+  });
+
+  it('deletes an owned private program and cascades only its schedule rows', async () => {
+    const userCookies = await signIn(user);
+    const routineSlug = `delete-http-routine-${randomUUID()}`;
+    const name = `Delete HTTP program ${randomUUID()}`;
+    const routine = await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug: routineSlug,
+        name: 'Delete HTTP routine',
+        visibility: 'PRIVATE',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name,
+        durationWeeks: 4,
+        schedule: [{ routineSlug, weekNumber: 1, dayNumber: 1 }],
+      })
+      .expect(201);
+    const created = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true, id: true },
+    });
+
+    const response = await request(app.getHttpServer())
+      .delete(`/training-programs/${created.slug}`)
+      .set('Cookie', userCookies)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      message: 'Training program deleted successfully',
+      slug: created.slug,
+    });
+    await expect(
+      prisma.trainingProgram.findUnique({ where: { id: created.id } }),
+    ).resolves.toBeNull();
+    await expect(
+      prisma.trainingProgramRoutine.findFirst({
+        where: { trainingProgramId: created.id },
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      prisma.routine.findUnique({ where: { id: routine.id } }),
+    ).resolves.not.toBeNull();
+  });
+
+  it('does not allow another user to delete a private program', async () => {
+    const ownerCookies = await signIn(secondUser);
+    const userCookies = await signIn(user);
+    const name = `Protected delete HTTP program ${randomUUID()}`;
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', ownerCookies)
+      .send({ name, durationWeeks: 4 })
+      .expect(201);
+    const created = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true },
+    });
+
+    await request(app.getHttpServer())
+      .delete(`/training-programs/${created.slug}`)
+      .set('Cookie', userCookies)
+      .expect(404);
+    await expect(
+      prisma.trainingProgram.findUnique({ where: { slug: created.slug } }),
+    ).resolves.not.toBeNull();
+  });
+
+  it('does not allow deleting a global training program template', async () => {
+    const userCookies = await signIn(user);
+    const slug = `global-delete-target-${randomUUID()}`;
+    await prisma.trainingProgram.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug,
+        name: `Global delete target ${randomUUID()}`,
+        visibility: 'GLOBAL',
+        durationWeeks: 4,
+      },
+    });
+
+    await request(app.getHttpServer())
+      .delete(`/training-programs/${slug}`)
+      .set('Cookie', userCookies)
+      .expect(404);
+    await expect(
+      prisma.trainingProgram.findUnique({ where: { slug } }),
+    ).resolves.not.toBeNull();
   });
 
   it('rejects duplicate schedule slots before persistence', async () => {

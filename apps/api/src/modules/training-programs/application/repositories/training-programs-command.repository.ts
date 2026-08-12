@@ -7,4 +7,8 @@ export abstract class TrainingProgramsCommandRepository {
     ownerId: string,
   ): Promise<TrainingProgram | null>;
   abstract update(trainingProgram: TrainingProgram): Promise<void>;
+  abstract deleteOwnedPrivateBySlug(
+    slug: string,
+    ownerId: string,
+  ): Promise<void>;
 }

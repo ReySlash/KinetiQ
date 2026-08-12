@@ -7,6 +7,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compi
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramDeletePersistenceError,
   TrainingProgramNotFoundError,
   TrainingProgramQueryError,
   TrainingProgramRoutineUnavailableError,
@@ -55,6 +56,7 @@ describe('PrismaTrainingProgramsRepository', () => {
   };
   const programFindMany = jest.fn();
   const programFindFirst = jest.fn();
+  const programDeleteMany = jest.fn();
   const routineFindMany = jest.fn<
     Promise<Array<{ id: string; slug: string }>>,
     [RoutineQuery]
@@ -80,6 +82,7 @@ describe('PrismaTrainingProgramsRepository', () => {
             trainingProgram: {
               findMany: programFindMany,
               findFirst: programFindFirst,
+              deleteMany: programDeleteMany,
             },
             $transaction: transaction,
           },
@@ -263,6 +266,47 @@ describe('PrismaTrainingProgramsRepository', () => {
         }),
       ),
     ).rejects.toBeInstanceOf(TrainingProgramPersistenceError);
+  });
+
+  it('deletes only the owned private program', async () => {
+    programDeleteMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      repository.deleteOwnedPrivateBySlug(
+        'strength-base-12345678',
+        '223e4567-e89b-12d3-a456-426614174000',
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(programDeleteMany).toHaveBeenCalledWith({
+      where: {
+        slug: 'strength-base-12345678',
+        ownerId: '223e4567-e89b-12d3-a456-426614174000',
+        visibility: 'PRIVATE',
+      },
+    });
+  });
+
+  it('maps an ineligible or missing delete target to not found', async () => {
+    programDeleteMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      repository.deleteOwnedPrivateBySlug(
+        'missing-program-12345678',
+        '223e4567-e89b-12d3-a456-426614174000',
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramNotFoundError);
+  });
+
+  it('maps delete persistence failures to a stable error', async () => {
+    programDeleteMany.mockRejectedValue(new Error('database unavailable'));
+
+    await expect(
+      repository.deleteOwnedPrivateBySlug(
+        'strength-base-12345678',
+        '223e4567-e89b-12d3-a456-426614174000',
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramDeletePersistenceError);
   });
 
   it('replaces the persisted schedule during update', async () => {

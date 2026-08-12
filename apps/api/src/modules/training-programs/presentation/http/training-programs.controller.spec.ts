@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import type { AuthenticatedPrincipal } from '../../../../auth/principal';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
+import { DeleteTrainingProgramUseCase } from '../../application/use-cases/commands/delete-training-program.use-case';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramUpdateConflictError,
@@ -28,6 +29,7 @@ describe('TrainingProgramsController', () => {
   const create = jest.fn();
   const get = jest.fn();
   const update = jest.fn();
+  const remove = jest.fn();
   let controller: TrainingProgramsController;
 
   beforeEach(async () => {
@@ -39,6 +41,10 @@ describe('TrainingProgramsController', () => {
         {
           provide: UpdateTrainingProgramUseCase,
           useValue: { execute: update },
+        },
+        {
+          provide: DeleteTrainingProgramUseCase,
+          useValue: { execute: remove },
         },
         {
           provide: CreateTrainingProgramUseCase,
@@ -53,6 +59,7 @@ describe('TrainingProgramsController', () => {
     create.mockResolvedValue({ slug: 'strength-base-12345678' });
     get.mockResolvedValue({});
     update.mockResolvedValue({ slug: 'strength-base-12345678' });
+    remove.mockResolvedValue({ slug: 'strength-base-12345678' });
   });
 
   it('delegates to the list use case', async () => {
@@ -156,6 +163,25 @@ describe('TrainingProgramsController', () => {
         new UpdateTrainingProgramDto(),
       ),
     ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('deletes an owned program using the authenticated principal', async () => {
+    const principal: AuthenticatedPrincipal = {
+      userId: '123e4567-e89b-12d3-a456-426614174000',
+      role: 'USER',
+      sessionId: '223e4567-e89b-12d3-a456-426614174000',
+    };
+
+    await expect(
+      controller.delete('strength-base-12345678', principal),
+    ).resolves.toEqual({
+      message: 'Training program deleted successfully',
+      slug: 'strength-base-12345678',
+    });
+    expect(remove).toHaveBeenCalledWith({
+      ownerId: principal.userId,
+      slug: 'strength-base-12345678',
+    });
   });
 
   it.each([

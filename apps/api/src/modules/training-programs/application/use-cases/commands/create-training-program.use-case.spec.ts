@@ -13,6 +13,7 @@ describe('CreateTrainingProgramUseCase', () => {
       },
       findOwnedPrivateBySlug: jest.fn(),
       update: jest.fn(),
+      deleteOwnedPrivateBySlug: jest.fn(),
     };
     const useCase = new CreateTrainingProgramUseCase(repository);
     const input: CreateTrainingProgramInput = {

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramDeletePersistenceError,
   TrainingProgramQueryError,
   TrainingProgramNotFoundError,
   TrainingProgramListAuthenticationError,
@@ -49,6 +50,11 @@ export function toTrainingProgramsHttpException(error: unknown): Error {
   if (error instanceof TrainingProgramPersistenceError) {
     return new InternalServerErrorException(
       'Failed to create training program.',
+    );
+  }
+  if (error instanceof TrainingProgramDeletePersistenceError) {
+    return new InternalServerErrorException(
+      'Failed to delete training program.',
     );
   }
   if (error instanceof TrainingProgramQueryError) {

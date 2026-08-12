@@ -3,6 +3,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compi
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramDeletePersistenceError,
   TrainingProgramQueryError,
   TrainingProgramNotFoundError,
   TrainingProgramRoutineUnavailableError,
@@ -243,6 +244,22 @@ export class PrismaTrainingProgramsRepository
         throw new TrainingProgramUpdateConflictError();
       }
       throw new TrainingProgramPersistenceError();
+    }
+  }
+
+  async deleteOwnedPrivateBySlug(slug: string, ownerId: string): Promise<void> {
+    try {
+      const result = await this.prisma.trainingProgram.deleteMany({
+        where: { slug, ownerId, visibility: 'PRIVATE' },
+      });
+      if (result.count === 0) {
+        throw new TrainingProgramNotFoundError();
+      }
+    } catch (error) {
+      if (error instanceof TrainingProgramNotFoundError) {
+        throw error;
+      }
+      throw new TrainingProgramDeletePersistenceError();
     }
   }
 

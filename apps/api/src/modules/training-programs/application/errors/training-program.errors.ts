@@ -63,6 +63,15 @@ export class TrainingProgramUpdateConflictError extends Error {
   }
 }
 
+export class TrainingProgramDeletePersistenceError extends Error {
+  readonly code = 'TRAINING_PROGRAM_DELETE_PERSISTENCE_FAILED';
+
+  constructor() {
+    super('Training program deletion failed.');
+    this.name = 'TrainingProgramDeletePersistenceError';
+  }
+}
+
 export class TrainingProgramListAuthenticationError extends Error {
   readonly code = 'TRAINING_PROGRAM_LIST_AUTHENTICATION_REQUIRED';
 

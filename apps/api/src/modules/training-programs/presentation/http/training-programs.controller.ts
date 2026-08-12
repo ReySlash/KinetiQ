@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Delete,
   Param,
   Patch,
   Post,
@@ -18,6 +19,7 @@ import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries
 import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
+import { DeleteTrainingProgramUseCase } from '../../application/use-cases/commands/delete-training-program.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { UpdateTrainingProgramDto } from './dto/update-training-program.dto';
 import { toTrainingProgramsHttpException } from './training-programs-exception.mapper';
@@ -30,6 +32,7 @@ export class TrainingProgramsController {
     private readonly getTrainingProgram: GetTrainingProgramUseCase,
     private readonly createTrainingProgram: CreateTrainingProgramUseCase,
     private readonly updateTrainingProgram: UpdateTrainingProgramUseCase,
+    private readonly deleteTrainingProgram: DeleteTrainingProgramUseCase,
   ) {}
 
   @Get()
@@ -90,6 +93,25 @@ export class TrainingProgramsController {
         slug,
         ...(principal ? { ownerId: principal.userId } : {}),
       });
+    } catch (error) {
+      throw toTrainingProgramsHttpException(error);
+    }
+  }
+
+  @Delete(':slug')
+  async delete(
+    @Param('slug') slug: string,
+    @CurrentPrincipal() principal: AuthenticatedPrincipal,
+  ) {
+    try {
+      const result = await this.deleteTrainingProgram.execute({
+        slug,
+        ownerId: principal.userId,
+      });
+      return {
+        message: 'Training program deleted successfully',
+        slug: result.slug,
+      };
     } catch (error) {
       throw toTrainingProgramsHttpException(error);
     }

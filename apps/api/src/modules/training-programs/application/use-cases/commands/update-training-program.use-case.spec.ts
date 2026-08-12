@@ -9,6 +9,7 @@ describe('UpdateTrainingProgramUseCase', () => {
     create: jest.fn(),
     findOwnedPrivateBySlug,
     update,
+    deleteOwnedPrivateBySlug: jest.fn(),
   };
   const useCase = new UpdateTrainingProgramUseCase(repository);
 

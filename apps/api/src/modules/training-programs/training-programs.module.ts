@@ -7,6 +7,7 @@ import { PrismaTrainingProgramsRepository } from './infrastructure/persistence/p
 import { TrainingProgramsController } from './presentation/http/training-programs.controller';
 import { CreateTrainingProgramUseCase } from './application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from './application/use-cases/commands/update-training-program.use-case';
+import { DeleteTrainingProgramUseCase } from './application/use-cases/commands/delete-training-program.use-case';
 import { TrainingProgramsQueryRepository } from './application/repositories/training-programs-query.repository';
 
 @Module({
@@ -33,6 +34,12 @@ import { TrainingProgramsQueryRepository } from './application/repositories/trai
       inject: [TrainingProgramsCommandRepository],
       useFactory: (repository: TrainingProgramsCommandRepository) =>
         new UpdateTrainingProgramUseCase(repository),
+    },
+    {
+      provide: DeleteTrainingProgramUseCase,
+      inject: [TrainingProgramsCommandRepository],
+      useFactory: (repository: TrainingProgramsCommandRepository) =>
+        new DeleteTrainingProgramUseCase(repository),
     },
     {
       provide: GetTrainingProgramUseCase,
