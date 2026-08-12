@@ -523,6 +523,136 @@ describe('HTTP authentication and authorization (e2e)', () => {
     });
   });
 
+  it('rejects updates to another user’s private program without changing it', async () => {
+    const ownerCookies = await signIn(secondUser);
+    const userCookies = await signIn(user);
+    const name = `Other user update target ${randomUUID()}`;
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', ownerCookies)
+      .send({ name, durationWeeks: 4 })
+      .expect(201);
+
+    const created = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true, durationWeeks: true },
+    });
+    await request(app.getHttpServer())
+      .patch(`/training-programs/${created.slug}`)
+      .set('Cookie', userCookies)
+      .send({ durationWeeks: 8 })
+      .expect(404);
+
+    await expect(
+      prisma.trainingProgram.findUniqueOrThrow({
+        where: { slug: created.slug },
+        select: { durationWeeks: true },
+      }),
+    ).resolves.toEqual({ durationWeeks: created.durationWeeks });
+  });
+
+  it('rejects updates to global training program templates', async () => {
+    const userCookies = await signIn(user);
+    const slug = `global-update-target-${randomUUID()}`;
+    await prisma.trainingProgram.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug,
+        name: `Global update target ${randomUUID()}`,
+        visibility: 'GLOBAL',
+        durationWeeks: 4,
+      },
+    });
+
+    await request(app.getHttpServer())
+      .patch(`/training-programs/${slug}`)
+      .set('Cookie', userCookies)
+      .send({ durationWeeks: 8 })
+      .expect(404);
+  });
+
+  it('rejects unavailable routines during update without changing the program', async () => {
+    const userCookies = await signIn(user);
+    const name = `Unavailable update target ${randomUUID()}`;
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({ name, durationWeeks: 4 })
+      .expect(201);
+
+    const created = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true, durationWeeks: true },
+    });
+    const response = await request(app.getHttpServer())
+      .patch(`/training-programs/${created.slug}`)
+      .set('Cookie', userCookies)
+      .send({
+        schedule: [
+          {
+            routineSlug: `missing-update-routine-${randomUUID()}`,
+            weekNumber: 1,
+            dayNumber: 1,
+          },
+        ],
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      message: 'One or more scheduled routines are unavailable.',
+    });
+    await expect(
+      prisma.trainingProgram.findUniqueOrThrow({
+        where: { slug: created.slug },
+        select: { durationWeeks: true, routines: true },
+      }),
+    ).resolves.toMatchObject({
+      durationWeeks: created.durationWeeks,
+      routines: [],
+    });
+  });
+
+  it('rejects invalid schedule updates before persistence', async () => {
+    const userCookies = await signIn(user);
+    const routineSlug = `invalid-update-routine-${randomUUID()}`;
+    const name = `Invalid update target ${randomUUID()}`;
+    await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug: routineSlug,
+        name: 'Invalid update routine',
+        visibility: 'PRIVATE',
+      },
+    });
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({ name, durationWeeks: 4 })
+      .expect(201);
+
+    const created = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true },
+    });
+    const response = await request(app.getHttpServer())
+      .patch(`/training-programs/${created.slug}`)
+      .set('Cookie', userCookies)
+      .send({
+        schedule: [
+          { routineSlug, weekNumber: 1, dayNumber: 1 },
+          { routineSlug, weekNumber: 1, dayNumber: 1 },
+        ],
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      message: 'Only one routine can occupy week 1, day 1.',
+    });
+  });
+
   it('rejects duplicate schedule slots before persistence', async () => {
     const userCookies = await signIn(user);
     const programName = `Duplicate slot HTTP program ${randomUUID()}`;

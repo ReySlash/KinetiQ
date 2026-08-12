@@ -4,9 +4,11 @@ import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramQueryError,
+  TrainingProgramNotFoundError,
   TrainingProgramRoutineUnavailableError,
   TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
+  TrainingProgramUpdateConflictError,
 } from '../../../application/errors/training-program.errors';
 import type { GetTrainingProgramQuery } from '../../../application/models/detail-training-program.model';
 import type { ListTrainingProgramsQuery } from '../../../application/models/list-training-programs.model';
@@ -212,6 +214,33 @@ export class PrismaTrainingProgramsRepository
     } catch (error) {
       if (error instanceof TrainingProgramRoutineUnavailableError) {
         throw error;
+      }
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new TrainingProgramNotFoundError();
+      }
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const target = error.meta?.target;
+        const targetFields =
+          typeof target === 'string'
+            ? [target]
+            : Array.isArray(target)
+              ? target.filter(
+                  (field): field is string => typeof field === 'string',
+                )
+              : [];
+        if (
+          targetFields.includes('weekNumber') ||
+          targetFields.includes('dayNumber')
+        ) {
+          throw new TrainingProgramScheduleConflictError();
+        }
+        throw new TrainingProgramUpdateConflictError();
       }
       throw new TrainingProgramPersistenceError();
     }

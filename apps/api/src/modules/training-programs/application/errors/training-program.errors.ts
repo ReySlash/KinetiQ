@@ -52,6 +52,17 @@ export class TrainingProgramScheduleConflictError extends Error {
   }
 }
 
+export class TrainingProgramUpdateConflictError extends Error {
+  readonly code = 'TRAINING_PROGRAM_UPDATE_CONFLICT';
+
+  constructor() {
+    super(
+      'The training program could not be updated because it changed concurrently.',
+    );
+    this.name = 'TrainingProgramUpdateConflictError';
+  }
+}
+
 export class TrainingProgramListAuthenticationError extends Error {
   readonly code = 'TRAINING_PROGRAM_LIST_AUTHENTICATION_REQUIRED';
 

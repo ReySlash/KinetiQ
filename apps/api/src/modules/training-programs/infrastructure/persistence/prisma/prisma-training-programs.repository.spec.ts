@@ -7,9 +7,12 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compi
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramNotFoundError,
   TrainingProgramQueryError,
   TrainingProgramRoutineUnavailableError,
+  TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
+  TrainingProgramUpdateConflictError,
 } from '../../../application/errors/training-program.errors';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
 import {
@@ -37,6 +40,19 @@ describe('PrismaTrainingProgramsRepository', () => {
       };
     };
   };
+  type ProgramUpdateQuery = {
+    where: { id: string };
+    data: {
+      routines: {
+        deleteMany: Record<string, never>;
+        create: Array<{
+          routineId: string;
+          weekNumber: number;
+          dayNumber: number;
+        }>;
+      };
+    };
+  };
   const programFindMany = jest.fn();
   const programFindFirst = jest.fn();
   const routineFindMany = jest.fn<
@@ -44,11 +60,12 @@ describe('PrismaTrainingProgramsRepository', () => {
     [RoutineQuery]
   >();
   const create = jest.fn<Promise<void>, [ProgramCreateQuery]>();
+  const update = jest.fn<Promise<void>, [ProgramUpdateQuery]>();
   const transaction = jest.fn(
     async (work: (client: object) => Promise<unknown>) =>
       work({
         routine: { findMany: routineFindMany },
-        trainingProgram: { create },
+        trainingProgram: { create, update },
       }),
   );
   let repository: PrismaTrainingProgramsRepository;
@@ -246,5 +263,144 @@ describe('PrismaTrainingProgramsRepository', () => {
         }),
       ),
     ).rejects.toBeInstanceOf(TrainingProgramPersistenceError);
+  });
+
+  it('replaces the persisted schedule during update', async () => {
+    let capturedUpdateQuery: ProgramUpdateQuery | undefined;
+    routineFindMany.mockResolvedValue([{ id: 'routine-id', slug: 'upper-a' }]);
+    update.mockImplementationOnce((query: ProgramUpdateQuery) => {
+      capturedUpdateQuery = query;
+      return Promise.resolve();
+    });
+
+    await repository.update(
+      TrainingProgram.create({
+        ownerId: '223e4567-e89b-12d3-a456-426614174000',
+        name: 'Strength Base',
+        description: null,
+        durationWeeks: 4,
+        schedule: [{ routineSlug: 'upper-a', weekNumber: 2, dayNumber: 1 }],
+      }),
+    );
+
+    expect(capturedUpdateQuery?.data.routines).toEqual({
+      deleteMany: {},
+      create: [
+        expect.objectContaining({
+          routineId: 'routine-id',
+          weekNumber: 2,
+          dayNumber: 1,
+        }),
+      ],
+    });
+  });
+
+  it('clears all persisted schedule rows when update receives an empty schedule', async () => {
+    let capturedUpdateQuery: ProgramUpdateQuery | undefined;
+    update.mockImplementationOnce((query: ProgramUpdateQuery) => {
+      capturedUpdateQuery = query;
+      return Promise.resolve();
+    });
+
+    await repository.update(
+      TrainingProgram.create({
+        ownerId: '223e4567-e89b-12d3-a456-426614174000',
+        name: 'Strength Base',
+        description: null,
+        durationWeeks: 4,
+        schedule: [],
+      }),
+    );
+
+    expect(routineFindMany).not.toHaveBeenCalled();
+    expect(capturedUpdateQuery?.data.routines).toEqual({
+      deleteMany: {},
+      create: [],
+    });
+  });
+
+  it('does not persist an update when a scheduled routine is unavailable', async () => {
+    routineFindMany.mockResolvedValue([]);
+
+    await expect(
+      repository.update(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+          schedule: [
+            { routineSlug: 'missing-routine', weekNumber: 1, dayNumber: 1 },
+          ],
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramRoutineUnavailableError);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('maps update persistence failures to a stable error', async () => {
+    update.mockRejectedValue(new Error('database unavailable'));
+
+    await expect(
+      repository.update(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramPersistenceError);
+  });
+
+  it('maps a missing update target to not found', async () => {
+    const missingError = Object.create(
+      PrismaClientKnownRequestError.prototype,
+    ) as PrismaClientKnownRequestError;
+    missingError.code = 'P2025';
+    update.mockRejectedValue(missingError);
+
+    await expect(
+      repository.update(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramNotFoundError);
+  });
+
+  it('maps update unique constraint failures to conflict errors', async () => {
+    const conflictError = Object.create(
+      PrismaClientKnownRequestError.prototype,
+    ) as PrismaClientKnownRequestError;
+    conflictError.code = 'P2002';
+    conflictError.meta = { target: ['weekNumber', 'dayNumber'] };
+    update.mockRejectedValue(conflictError);
+
+    await expect(
+      repository.update(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramScheduleConflictError);
+
+    conflictError.meta = { target: ['slug'] };
+    await expect(
+      repository.update(
+        TrainingProgram.create({
+          ownerId: '223e4567-e89b-12d3-a456-426614174000',
+          name: 'Strength Base',
+          description: null,
+          durationWeeks: 4,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(TrainingProgramUpdateConflictError);
   });
 });

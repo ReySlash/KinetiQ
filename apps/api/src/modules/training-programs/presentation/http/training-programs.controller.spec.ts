@@ -6,6 +6,7 @@ import { CreateTrainingProgramUseCase } from '../../application/use-cases/comman
 import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
 import {
   TrainingProgramPersistenceError,
+  TrainingProgramUpdateConflictError,
   TrainingProgramQueryError,
   TrainingProgramListAuthenticationError,
   TrainingProgramRoutineUnavailableError,
@@ -162,6 +163,7 @@ describe('TrainingProgramsController', () => {
     [new TrainingProgramScheduleValidationError('invalid schedule'), 422],
     [new TrainingProgramSlugConflictError(), 409],
     [new TrainingProgramRoutineUnavailableError(), 422],
+    [new TrainingProgramUpdateConflictError(), 409],
     [new TrainingProgramPersistenceError(), 500],
   ])('maps %p to HTTP status %s', async (error, status) => {
     create.mockRejectedValue(error);

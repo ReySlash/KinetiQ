@@ -14,6 +14,7 @@ import {
   TrainingProgramRoutineUnavailableError,
   TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
+  TrainingProgramUpdateConflictError,
 } from '../../application/errors/training-program.errors';
 import {
   TrainingProgramScheduleValidationError,
@@ -40,6 +41,9 @@ export function toTrainingProgramsHttpException(error: unknown): Error {
     return new ConflictException(error.message);
   }
   if (error instanceof TrainingProgramSlugConflictError) {
+    return new ConflictException(error.message);
+  }
+  if (error instanceof TrainingProgramUpdateConflictError) {
     return new ConflictException(error.message);
   }
   if (error instanceof TrainingProgramPersistenceError) {
