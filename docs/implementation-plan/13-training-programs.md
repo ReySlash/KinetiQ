@@ -5,12 +5,13 @@
 A `TrainingProgram` is a reusable multi-week template that schedules existing
 routine templates. The persistence model and migration are complete. The
 backend-only Clean Architecture/DDD vertical-slice pilot currently implements
-the approved `GET /api/training-programs` list, slug-based detail read, and authenticated
-`POST /api/training-programs` create. Create persists the complete aggregate,
+the approved `GET /api/training-programs` list, slug-based detail read, authenticated
+`POST /api/training-programs` create, and owner-scoped `PATCH` update. Create and
+update persist the complete aggregate,
 including its optional schedule, in one transaction. List supports the approved
 visibility scopes, search, sorting, limit, and offset through a bounded read
-projection. Detail, update, delete, Swagger expansion, and the other proposed
-backend operations remain unimplemented and require approval before coding.
+projection. Delete, Swagger expansion, and the other proposed backend operations
+remain unimplemented and require approval before coding.
 Frontend screens, seeds, activation, calendar placement,
 performed-training models, and duplication remain out of scope.
 
@@ -373,8 +374,8 @@ optional `schedule` that defaults to an empty array. Identity, owner,
 visibility, and timestamps are server-controlled. Whether supplied or omitted,
 the slug base is normalized and gets an eight-character UUID suffix.
 
-The remaining update and delete contracts below are proposals and still require
-explicit approval before implementation.
+The remaining delete contract below is a proposal and still requires explicit
+approval before implementation.
 
 ### Use cases
 
@@ -384,9 +385,12 @@ explicit approval before implementation.
    templates with search, sorting, limit, and offset.
 3. `GetTrainingProgram`: return an accessible private/global template and its
    ordered schedule with routine summaries. This read path is implemented;
-   update and delete remain deferred.
-4. `UpdateTrainingProgram`: update an owned private template and optionally
-   replace its complete schedule atomically.
+   delete remains deferred.
+4. `UpdateTrainingProgram`: update an owned PRIVATE template. Name,
+   description, and duration are optional patch fields; omitted values are
+   preserved. A supplied schedule replaces the complete schedule, including
+   an empty array to clear it. The slug is immutable and the parent plus child
+   rows are persisted atomically.
 5. `DeleteTrainingProgram`: delete an owned private template; database cascade
    removes only its schedule rows.
 
@@ -578,11 +582,7 @@ those checks. Do not seed Training Programs as part of the backend slice.
 
 ## Remaining decisions requiring explicit approval before coding
 
-1. Define and implement the detail endpoint and its accessible schedule
-   projection.
-2. Define PATCH behavior, including whether a supplied schedule replaces the
-   complete collection.
-3. Define delete behavior and include the Routine delete-conflict translation
+1. Define delete behavior and include the Routine delete-conflict translation
    when delete-related work is approved.
-4. Define any global-program management path; normal users currently create
+2. Define any global-program management path; normal users currently create
    PRIVATE programs only.

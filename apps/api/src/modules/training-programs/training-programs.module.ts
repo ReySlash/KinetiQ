@@ -6,6 +6,7 @@ import { TrainingProgramsCommandRepository } from './application/repositories/tr
 import { PrismaTrainingProgramsRepository } from './infrastructure/persistence/prisma/prisma-training-programs.repository';
 import { TrainingProgramsController } from './presentation/http/training-programs.controller';
 import { CreateTrainingProgramUseCase } from './application/use-cases/commands/create-training-programs.use-case';
+import { UpdateTrainingProgramUseCase } from './application/use-cases/commands/update-training-program.use-case';
 import { TrainingProgramsQueryRepository } from './application/repositories/training-programs-query.repository';
 
 @Module({
@@ -26,6 +27,12 @@ import { TrainingProgramsQueryRepository } from './application/repositories/trai
       inject: [TrainingProgramsQueryRepository],
       useFactory: (repository: TrainingProgramsQueryRepository) =>
         new ListTrainingProgramsUseCase(repository),
+    },
+    {
+      provide: UpdateTrainingProgramUseCase,
+      inject: [TrainingProgramsCommandRepository],
+      useFactory: (repository: TrainingProgramsCommandRepository) =>
+        new UpdateTrainingProgramUseCase(repository),
     },
     {
       provide: GetTrainingProgramUseCase,

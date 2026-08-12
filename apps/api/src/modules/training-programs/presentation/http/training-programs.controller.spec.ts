@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { AuthenticatedPrincipal } from '../../../../auth/principal';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
+import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramQueryError,
@@ -17,6 +18,7 @@ import {
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
 import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
+import { UpdateTrainingProgramDto } from './dto/update-training-program.dto';
 import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';
 import { TrainingProgramsController } from './training-programs.controller';
 
@@ -24,6 +26,7 @@ describe('TrainingProgramsController', () => {
   const execute = jest.fn();
   const create = jest.fn();
   const get = jest.fn();
+  const update = jest.fn();
   let controller: TrainingProgramsController;
 
   beforeEach(async () => {
@@ -32,6 +35,10 @@ describe('TrainingProgramsController', () => {
       providers: [
         { provide: ListTrainingProgramsUseCase, useValue: { execute } },
         { provide: GetTrainingProgramUseCase, useValue: { execute: get } },
+        {
+          provide: UpdateTrainingProgramUseCase,
+          useValue: { execute: update },
+        },
         {
           provide: CreateTrainingProgramUseCase,
           useValue: { execute: create },
@@ -44,6 +51,7 @@ describe('TrainingProgramsController', () => {
     execute.mockResolvedValue([]);
     create.mockResolvedValue({ slug: 'strength-base-12345678' });
     get.mockResolvedValue({});
+    update.mockResolvedValue({ slug: 'strength-base-12345678' });
   });
 
   it('delegates to the list use case', async () => {
@@ -113,6 +121,40 @@ describe('TrainingProgramsController', () => {
       durationWeeks: 4,
       schedule: dto.schedule,
     });
+  });
+
+  it('updates an owned program and rejects an empty patch body', async () => {
+    const principal: AuthenticatedPrincipal = {
+      userId: '123e4567-e89b-12d3-a456-426614174000',
+      role: 'USER',
+      sessionId: '223e4567-e89b-12d3-a456-426614174000',
+    };
+    const dto = Object.assign(new UpdateTrainingProgramDto(), {
+      durationWeeks: 6,
+    });
+
+    await expect(
+      controller.update('strength-base-12345678', principal, dto),
+    ).resolves.toEqual({
+      message: 'Training program updated successfully',
+      slug: 'strength-base-12345678',
+    });
+    expect(update).toHaveBeenCalledWith({
+      ownerId: principal.userId,
+      slug: 'strength-base-12345678',
+      name: undefined,
+      description: undefined,
+      durationWeeks: 6,
+      schedule: undefined,
+    });
+
+    await expect(
+      controller.update(
+        'strength-base-12345678',
+        principal,
+        new UpdateTrainingProgramDto(),
+      ),
+    ).rejects.toMatchObject({ status: 400 });
   });
 
   it.each([

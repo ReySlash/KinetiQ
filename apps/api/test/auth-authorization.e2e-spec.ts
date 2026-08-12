@@ -471,6 +471,58 @@ describe('HTTP authentication and authorization (e2e)', () => {
     ).resolves.toBeNull();
   });
 
+  it('updates an owned private program while preserving omitted fields', async () => {
+    const userCookies = await signIn(user);
+    const name = `Updatable HTTP program ${randomUUID()}`;
+    const routineSlug = `updatable-http-routine-${randomUUID()}`;
+    await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug: routineSlug,
+        name: 'Updatable HTTP routine',
+        visibility: 'PRIVATE',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name,
+        description: 'Keep this description.',
+        durationWeeks: 4,
+        schedule: [{ routineSlug, weekNumber: 1, dayNumber: 1 }],
+      })
+      .expect(201);
+
+    const created = await prisma.trainingProgram.findFirstOrThrow({
+      where: { name },
+      select: { slug: true },
+    });
+    await request(app.getHttpServer())
+      .patch(`/training-programs/${created.slug}`)
+      .set('Cookie', userCookies)
+      .send({ durationWeeks: 6, schedule: [] })
+      .expect(200);
+
+    const persisted = await prisma.trainingProgram.findUniqueOrThrow({
+      where: { slug: created.slug },
+      select: {
+        name: true,
+        description: true,
+        durationWeeks: true,
+        routines: true,
+      },
+    });
+    expect(persisted).toMatchObject({
+      name,
+      description: 'Keep this description.',
+      durationWeeks: 6,
+      routines: [],
+    });
+  });
+
   it('rejects duplicate schedule slots before persistence', async () => {
     const userCookies = await signIn(user);
     const programName = `Duplicate slot HTTP program ${randomUUID()}`;

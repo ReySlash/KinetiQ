@@ -1,6 +1,7 @@
 import type {
   CreateTrainingProgramAttributes,
   PrimitiveTrainingProgram,
+  UpdateTrainingProgramAttributes,
 } from './training-program.types';
 import { TrainingProgramDescription } from '../value-objects/training-program-description.vo';
 import { TrainingProgramDuration } from '../value-objects/training-program-duration.vo';
@@ -96,6 +97,39 @@ export class TrainingProgram {
 
   static reconstitute(attributes: PrimitiveTrainingProgram): TrainingProgram {
     return new TrainingProgram(attributes);
+  }
+
+  update(attributes: UpdateTrainingProgramAttributes): TrainingProgram {
+    const name = TrainingProgramName.create(attributes.name ?? this.name);
+    const description = TrainingProgramDescription.create(
+      attributes.description === undefined
+        ? this.description
+        : attributes.description,
+    );
+    const duration = TrainingProgramDuration.create(
+      attributes.durationWeeks ?? this.durationWeeks,
+    );
+    const schedule = (
+      attributes.schedule === undefined
+        ? this.schedule.map((entry) => entry.toValue())
+        : attributes.schedule.map((entry) =>
+            TrainingProgramScheduleEntry.create(entry).toValue(),
+          )
+    ).map((entry) => TrainingProgramScheduleEntry.reconstitute(entry));
+    TrainingProgram.validateSchedule(schedule, duration.value);
+
+    return new TrainingProgram({
+      id: this.id,
+      ownerId: this.ownerId,
+      slug: this.slug,
+      name: name.value,
+      description: description.value,
+      visibility: this.visibility,
+      durationWeeks: duration.value,
+      createdAt: this.createdAt,
+      updatedAt: new Date(),
+      schedule: schedule.map((entry) => entry.toValue()),
+    });
   }
 
   toValue(): PrimitiveTrainingProgram {

@@ -16,6 +16,8 @@ import { TrainingProgramsCommandRepository } from '../../../application/reposito
 import {
   toListItem,
   toDetail,
+  toDomain,
+  trainingProgramAggregateSelect,
   trainingProgramDetailSelect,
   trainingProgramListSelect,
 } from './prisma-training-program.mapper';
@@ -144,6 +146,74 @@ export class PrismaTrainingProgramsRepository
       return rows.map(toListItem);
     } catch {
       throw new TrainingProgramQueryError();
+    }
+  }
+
+  async findOwnedPrivateBySlug(slug: string, ownerId: string) {
+    try {
+      const row = await this.prisma.trainingProgram.findFirst({
+        where: { slug, ownerId, visibility: 'PRIVATE' },
+        select: trainingProgramAggregateSelect,
+      });
+      return row ? toDomain(row) : null;
+    } catch {
+      throw new TrainingProgramQueryError();
+    }
+  }
+
+  async update(trainingProgram: TrainingProgram): Promise<void> {
+    try {
+      const { schedule, ...program } = trainingProgram.toValue();
+      const routineSlugs = [
+        ...new Set(schedule.map((entry) => entry.routineSlug)),
+      ];
+
+      await this.prisma.$transaction(async (transaction) => {
+        const routines = routineSlugs.length
+          ? await transaction.routine.findMany({
+              where: {
+                slug: { in: routineSlugs },
+                OR: [
+                  { visibility: 'GLOBAL' },
+                  { visibility: 'PRIVATE', ownerId: program.ownerId },
+                ],
+              },
+              select: { id: true, slug: true },
+            })
+          : [];
+        if (routines.length !== routineSlugs.length) {
+          throw new TrainingProgramRoutineUnavailableError();
+        }
+        const routineIds = new Map(
+          routines.map((routine) => [routine.slug, routine.id]),
+        );
+        await transaction.trainingProgram.update({
+          where: { id: program.id },
+          data: {
+            name: program.name,
+            description: program.description,
+            durationWeeks: program.durationWeeks,
+            updatedAt: program.updatedAt,
+            routines: {
+              deleteMany: {},
+              create: schedule.map((entry) => ({
+                id: entry.id,
+                routineId: routineIds.get(entry.routineSlug)!,
+                weekNumber: entry.weekNumber,
+                dayNumber: entry.dayNumber,
+                notes: entry.notes,
+                createdAt: entry.createdAt,
+                updatedAt: entry.updatedAt,
+              })),
+            },
+          },
+        });
+      });
+    } catch (error) {
+      if (error instanceof TrainingProgramRoutineUnavailableError) {
+        throw error;
+      }
+      throw new TrainingProgramPersistenceError();
     }
   }
 

@@ -11,6 +11,8 @@ describe('CreateTrainingProgramUseCase', () => {
         persisted = program;
         return Promise.resolve();
       },
+      findOwnedPrivateBySlug: jest.fn(),
+      update: jest.fn(),
     };
     const useCase = new CreateTrainingProgramUseCase(repository);
     const input: CreateTrainingProgramInput = {

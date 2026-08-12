@@ -38,3 +38,10 @@ export type CreateTrainingProgramAttributes = {
   durationWeeks: number;
   schedule?: CreateTrainingProgramScheduleEntryAttributes[];
 };
+
+export type UpdateTrainingProgramAttributes = {
+  name?: string;
+  description?: string | null;
+  durationWeeks?: number;
+  schedule?: CreateTrainingProgramScheduleEntryAttributes[];
+};
