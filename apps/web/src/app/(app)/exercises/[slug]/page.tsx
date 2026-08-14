@@ -1,4 +1,5 @@
 import { buildApiUrl } from "@/lib/url";
+import { getLocalImageSrc } from "@/lib/local-image";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ExerciseDetails } from "@/types/exercise-types";
@@ -52,7 +53,10 @@ export default async function ExerciseDetailsPage(props: {
         <div className="hidden flex-row gap-2 rounded-3xl lg:flex">
           <div className="flex w-1/2 flex-col gap-2">
             <HeroCard
-              thumbnailUrl={exerciseDetails.thumbnailUrl}
+              thumbnailUrl={
+                exerciseDetails.thumbnailUrl ??
+                getLocalImageSrc("exercises", exerciseDetails.slug)
+              }
               imageAltText={exerciseDetails.imageAltText}
               fallbackSrc="/empty-state-exercises.webp"
             />
@@ -88,7 +92,10 @@ export default async function ExerciseDetailsPage(props: {
         {/* Mobile View */}
         <div className="flex flex-col gap-2 rounded-3xl lg:hidden">
           <HeroCard
-            thumbnailUrl={exerciseDetails.thumbnailUrl}
+            thumbnailUrl={
+              exerciseDetails.thumbnailUrl ??
+              getLocalImageSrc("exercises", exerciseDetails.slug)
+            }
             imageAltText={exerciseDetails.imageAltText}
             fallbackSrc="/empty-state-exercises.webp"
           />

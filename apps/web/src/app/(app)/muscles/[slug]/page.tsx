@@ -1,11 +1,12 @@
 import { buildApiUrl } from "@/lib/url";
 import { Muscle } from "@/types/muscle-types";
-import Image from "next/image";
+import ImageWithFallback from "@/components/image-with-fallback";
 import { Card, CardContent } from "@/components/ui/card";
 import { MuscleBreadcrumb } from "@/app/(app)/muscle-groups/components/muscle-breadcrumb";
 import { PageHeader } from "@/components/page-header";
 import MuscleOverviewCard from "./components/muscle-overview-card";
 import ExercisesMusclesCard from "./components/exercises-muscles-card";
+import { getLocalImageSrc } from "@/lib/local-image";
 
 export const dynamic = "force-dynamic";
 
@@ -44,14 +45,15 @@ export default async function MuscleGroupPage(props: {
         <div className="grid grid-cols-1 gap-2 justify-center rounded-3xl lg:grid-cols-2">
           <Card className="p-2 col-span-1 w-full aspect-square">
             <CardContent className="relative h-full aspect-square">
-              <Image
+              <ImageWithFallback
                 src={
                   muscleDetails.thumbnailUrl ??
-                  "/empty-state-muscles.webp"
+                  getLocalImageSrc("muscles", muscleDetails.slug)
                 }
                 alt={muscleDetails.imageAltText ?? "Event cover"}
                 className="z-20 object-cover rounded-3xl"
                 fill
+                fallbackSrc="/empty-state-muscles.webp"
               />
             </CardContent>
           </Card>

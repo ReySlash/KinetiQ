@@ -9,8 +9,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExerciseMuscleSummary } from "@/types/exercise-types";
-import Image from "next/image";
+import ImageWithFallback from "@/components/image-with-fallback";
 import { MoreHorizontal } from "lucide-react";
+import { getLocalImageSrc } from "@/lib/local-image";
 import {
   Tooltip,
   TooltipContent,
@@ -38,12 +39,16 @@ export default function MuscleSCard(props: MuscleSCardProps) {
             {muscles.map((m) => (
               <TableRow key={m.slug}>
                 <TableCell>
-                  <Image
+                  <ImageWithFallback
                     className="rounded-xl"
-                    src={m.thumbnailUrl ?? "/empty-state-muscles.webp"}
+                    src={
+                      m.thumbnailUrl ??
+                      getLocalImageSrc("muscles", m.slug)
+                    }
                     alt={m.imageAltText ?? "Not image description found."}
                     width={70}
                     height={70}
+                    fallbackSrc="/empty-state-muscles.webp"
                   />
                 </TableCell>
                 <TableCell className="text-wrap whitespace-normal">

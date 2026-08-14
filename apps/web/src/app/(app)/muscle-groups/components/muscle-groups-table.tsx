@@ -14,8 +14,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MuscleGroup } from "@/types/muscle-types";
-import Image from "next/image";
+import ImageWithFallback from "@/components/image-with-fallback";
 import { MoreHorizontal } from "lucide-react";
+import { getLocalImageSrc } from "@/lib/local-image";
 import {
   Tooltip,
   TooltipContent,
@@ -69,11 +70,11 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
               muscleGroups.map((muscleGroup) => (
                 <TableRow key={muscleGroup.slug}>
                   <TableCell className="font-medium">
-                    <Image
+                    <ImageWithFallback
                       className="border rounded-xl"
                       src={
                         muscleGroup.thumbnailUrl ??
-                        "/empty-state-muscles.webp"
+                        getLocalImageSrc("muscle-groups", muscleGroup.slug)
                       }
                       alt={
                         muscleGroup.imageAltText ??
@@ -81,6 +82,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                       }
                       width={70}
                       height={70}
+                      fallbackSrc="/empty-state-muscles.webp"
                     />
                   </TableCell>
                   <TableCell>{muscleGroup.name}</TableCell>
@@ -126,15 +128,16 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
               className="flex flex-col justify-center w-full px-4 py-1"
             >
               <CardContent className="flex flex-row items-center justify-between">
-                <Image
+                <ImageWithFallback
                   className="col-span-1 rounded-xl"
                   src={
                     muscleGroup.thumbnailUrl ??
-                    "/empty-state-muscles.webp"
+                    getLocalImageSrc("muscle-groups", muscleGroup.slug)
                   }
                   alt={muscleGroup.imageAltText ?? "Event cover"}
                   width={70}
                   height={70}
+                  fallbackSrc="/empty-state-muscles.webp"
                 />
 
                 <div>

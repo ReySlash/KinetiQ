@@ -1,5 +1,6 @@
 import { MuscleGroupDetails } from "@/types/muscle-types";
 import { buildApiUrl } from "@/lib/url";
+import { getLocalImageSrc } from "@/lib/local-image";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import MuscleGroupOverviewCard from "../muscle-group-overview-card";
@@ -49,7 +50,10 @@ export default async function MuscleGroupDetailsPage(props: {
         <div className="hidden flex-row gap-2 rounded-3xl lg:flex">
           <div className="flex w-1/2 flex-col gap-2">
             <HeroCard
-              thumbnailUrl={muscleGroupDetails.thumbnailUrl}
+              thumbnailUrl={
+                muscleGroupDetails.thumbnailUrl ??
+                getLocalImageSrc("muscle-groups", muscleGroupDetails.slug)
+              }
               imageAltText={muscleGroupDetails.imageAltText}
               fallbackSrc="/empty-state-muscles.webp"
             />
@@ -63,7 +67,10 @@ export default async function MuscleGroupDetailsPage(props: {
         {/* Mobile View */}
         <div className="flex flex-col gap-2 rounded-3xl lg:hidden">
           <HeroCard
-            thumbnailUrl={muscleGroupDetails.thumbnailUrl}
+            thumbnailUrl={
+              muscleGroupDetails.thumbnailUrl ??
+              getLocalImageSrc("muscle-groups", muscleGroupDetails.slug)
+            }
             imageAltText={muscleGroupDetails.imageAltText}
             fallbackSrc="/empty-state-muscles.webp"
           />

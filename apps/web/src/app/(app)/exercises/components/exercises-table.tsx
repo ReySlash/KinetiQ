@@ -14,9 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Exercise } from "@/types/exercise-types";
-import Image from "next/image";
+import ImageWithFallback from "@/components/image-with-fallback";
 import { MoreHorizontal } from "lucide-react";
 import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
+import { getLocalImageSrc } from "@/lib/local-image";
 import {
   Tooltip,
   TooltipContent,
@@ -48,17 +49,18 @@ export function ExercisesTable(props: ExercisesTableProps) {
               exercises.map((exercise) => (
                 <TableRow key={exercise.slug}>
                   <TableCell className="font-medium">
-                    <Image
+                    <ImageWithFallback
                       className="border rounded-xl"
                       src={
                         exercise.thumbnailUrl ??
-                        "/empty-state-exercises.webp"
+                        getLocalImageSrc("exercises", exercise.slug)
                       }
                       alt={
                         exercise.imageAltText ?? "Image description not found"
                       }
                       width={70}
                       height={70}
+                      fallbackSrc="/empty-state-exercises.webp"
                     />
                   </TableCell>
                   <TableCell>{exercise.name}</TableCell>
@@ -108,14 +110,16 @@ export function ExercisesTable(props: ExercisesTableProps) {
               className="flex flex-col justify-center w-full py-1"
             >
               <CardContent className="flex flex-row items-center justify-between px-1">
-                <Image
+                <ImageWithFallback
                   className="col-span-1 rounded-xl"
                   src={
-                    exercise.thumbnailUrl ?? "/empty-state-exercises.webp"
+                    exercise.thumbnailUrl ??
+                    getLocalImageSrc("exercises", exercise.slug)
                   }
                   alt={exercise.imageAltText ?? "Event cover"}
                   width={70}
                   height={70}
+                  fallbackSrc="/empty-state-exercises.webp"
                 />
 
                 <div className="text-wrap text-center">

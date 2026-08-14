@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
+import ImageWithFallback from "@/components/image-with-fallback";
 
 type HeroCardProps = {
   thumbnailUrl: string | null;
@@ -16,8 +16,9 @@ export default function HeroCard(props: HeroCardProps) {
   return (
     <Card className="aspect-square w-full border-border/70 bg-card/80 p-2">
       <CardContent className="p-2">
-        <Image
+        <ImageWithFallback
           src={thumbnailUrl ?? fallbackSrc}
+          fallbackSrc={fallbackSrc}
           alt={imageAltText ?? "Not image description found."}
           className="z-20 rounded-2xl object-cover"
           width={3000}

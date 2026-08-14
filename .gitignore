@@ -49,6 +49,7 @@ next-env.d.ts
 # temporary files
 .temp/
 .tmp/
+apps/web/public/temp/
 
 # runtime data
 data/*

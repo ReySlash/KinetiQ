@@ -9,7 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExerciseMuscleSummary } from "@/types/exercise-types";
-import Image from "next/image";
+import ImageWithFallback from "@/components/image-with-fallback";
+import { getLocalImageSrc } from "@/lib/local-image";
 import { MoreHorizontal } from "lucide-react";
 import {
   Tooltip,
@@ -38,17 +39,18 @@ export default function ExercisesMusclesCard(props: ExercisesMusclesCardProps) {
             {exercises.map((exercise) => (
               <TableRow key={exercise.slug}>
                 <TableCell>
-                  <Image
+                  <ImageWithFallback
                     className="rounded-xl"
                     src={
                       exercise.thumbnailUrl ??
-                      "/empty-state-exercises.webp"
+                      getLocalImageSrc("exercises", exercise.slug)
                     }
                     alt={
                       exercise.imageAltText ?? "Not image description found."
                     }
                     width={70}
                     height={70}
+                    fallbackSrc="/empty-state-exercises.webp"
                   />
                 </TableCell>
                 <TableCell>{exercise.name}</TableCell>
