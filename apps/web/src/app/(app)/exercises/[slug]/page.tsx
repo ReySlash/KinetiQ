@@ -4,7 +4,8 @@ import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ExerciseDetails } from "@/types/exercise-types";
 
-import StatsCard from "../components/stats-card";
+// import StatsCard from "../components/stats-card";
+import StatsBarChart from "../components/stats-bar-chart";
 import OverviewCard from "../components/overview-card";
 
 import HeroCard from "../../../../components/hero-card";
@@ -61,7 +62,21 @@ export default async function ExerciseDetailsPage(props: {
               fallbackSrc="/empty-state-exercises.webp"
             />
 
+            {/* Previous table presentation:
             <StatsCard
+              capabilities={
+                exerciseDetails.capabilities
+                  ? Object.values(exerciseDetails.capabilities)
+                  : []
+              }
+              demands={
+                exerciseDetails.demands
+                  ? Object.values(exerciseDetails.demands)
+                : []
+              }
+            />
+            */}
+            <StatsBarChart
               capabilities={
                 exerciseDetails.capabilities
                   ? Object.values(exerciseDetails.capabilities)
@@ -109,7 +124,21 @@ export default async function ExerciseDetailsPage(props: {
               />
             }
           />
+          {/* Previous table presentation:
           <StatsCard
+            capabilities={
+              exerciseDetails.capabilities
+                ? Object.values(exerciseDetails.capabilities)
+                : []
+            }
+            demands={
+              exerciseDetails.demands
+                ? Object.values(exerciseDetails.demands)
+              : []
+            }
+          />
+          */}
+          <StatsBarChart
             capabilities={
               exerciseDetails.capabilities
                 ? Object.values(exerciseDetails.capabilities)
