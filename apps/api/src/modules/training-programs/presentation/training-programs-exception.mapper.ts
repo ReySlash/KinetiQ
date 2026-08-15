@@ -16,11 +16,11 @@ import {
   TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
   TrainingProgramUpdateConflictError,
-} from '../../application/errors/training-program.errors';
+} from '../application/errors/training-program.errors';
 import {
   TrainingProgramScheduleValidationError,
   TrainingProgramValidationError,
-} from '../../domain/errors/training-program.errors';
+} from '../domain/errors/training-program.errors';
 
 export function toTrainingProgramsHttpException(error: unknown): Error {
   if (error instanceof TrainingProgramNotFoundError) {

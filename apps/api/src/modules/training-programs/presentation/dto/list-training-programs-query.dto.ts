@@ -13,7 +13,7 @@ import {
   TRAINING_PROGRAM_SORTS,
   type TrainingProgramScope,
   type TrainingProgramSort,
-} from '../../../application/models/list-training-programs.model';
+} from '../../application/models/list-training-programs.model';
 
 export class ListTrainingProgramsQueryDto {
   @IsOptional()

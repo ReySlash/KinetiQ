@@ -74,7 +74,7 @@ apps/api/src/modules/training-programs/
   infrastructure/
     prisma/
   presentation/
-    http/dto/
+    dto/
   training-programs.module.ts
 ```
 

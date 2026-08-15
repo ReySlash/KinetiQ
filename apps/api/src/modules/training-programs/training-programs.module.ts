@@ -4,7 +4,7 @@ import { ListTrainingProgramsUseCase } from './application/use-cases/queries/lis
 import { GetTrainingProgramUseCase } from './application/use-cases/queries/get-training-program.use-case';
 import { TrainingProgramsCommandRepository } from './application/ports/training-programs-command.port';
 import { PrismaTrainingProgramsRepository } from './infrastructure/prisma/prisma-training-programs.repository';
-import { TrainingProgramsController } from './presentation/http/training-programs.controller';
+import { TrainingProgramsController } from './presentation/training-programs.controller';
 import { CreateTrainingProgramUseCase } from './application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from './application/use-cases/commands/update-training-program.use-case';
 import { DeleteTrainingProgramUseCase } from './application/use-cases/commands/delete-training-program.use-case';

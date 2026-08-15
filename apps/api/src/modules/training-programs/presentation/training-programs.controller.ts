@@ -14,12 +14,12 @@ import {
   CurrentPrincipal,
   CurrentOptionalPrincipal,
   type AuthenticatedPrincipal,
-} from '../../../shared/infrastructure/auth/principal';
-import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
-import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
-import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
-import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
-import { DeleteTrainingProgramUseCase } from '../../application/use-cases/commands/delete-training-program.use-case';
+} from '../../shared/infrastructure/auth/principal';
+import { ListTrainingProgramsUseCase } from '../application/use-cases/queries/list-training-programs.use-case';
+import { GetTrainingProgramUseCase } from '../application/use-cases/queries/get-training-program.use-case';
+import { CreateTrainingProgramUseCase } from '../application/use-cases/commands/create-training-programs.use-case';
+import { UpdateTrainingProgramUseCase } from '../application/use-cases/commands/update-training-program.use-case';
+import { DeleteTrainingProgramUseCase } from '../application/use-cases/commands/delete-training-program.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { UpdateTrainingProgramDto } from './dto/update-training-program.dto';
 import { toTrainingProgramsHttpException } from './training-programs-exception.mapper';

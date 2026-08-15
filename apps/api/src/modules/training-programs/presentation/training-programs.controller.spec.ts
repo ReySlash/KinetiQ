@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import type { AuthenticatedPrincipal } from '../../../shared/infrastructure/auth/principal';
-import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
-import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
-import { DeleteTrainingProgramUseCase } from '../../application/use-cases/commands/delete-training-program.use-case';
+import type { AuthenticatedPrincipal } from '../../shared/infrastructure/auth/principal';
+import { CreateTrainingProgramUseCase } from '../application/use-cases/commands/create-training-programs.use-case';
+import { UpdateTrainingProgramUseCase } from '../application/use-cases/commands/update-training-program.use-case';
+import { DeleteTrainingProgramUseCase } from '../application/use-cases/commands/delete-training-program.use-case';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramUpdateConflictError,
@@ -12,13 +12,13 @@ import {
   TrainingProgramListAuthenticationError,
   TrainingProgramRoutineUnavailableError,
   TrainingProgramSlugConflictError,
-} from '../../application/errors/training-program.errors';
+} from '../application/errors/training-program.errors';
 import {
   TrainingProgramScheduleValidationError,
   TrainingProgramValidationError,
-} from '../../domain/errors/training-program.errors';
-import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
-import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
+} from '../domain/errors/training-program.errors';
+import { ListTrainingProgramsUseCase } from '../application/use-cases/queries/list-training-programs.use-case';
+import { GetTrainingProgramUseCase } from '../application/use-cases/queries/get-training-program.use-case';
 import { CreateTrainingProgramDto } from './dto/create-training-program.dto';
 import { UpdateTrainingProgramDto } from './dto/update-training-program.dto';
 import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';
