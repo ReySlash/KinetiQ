@@ -1,4 +1,4 @@
-import type { TrainingProgramId } from './training-program-id.vo';
+import type { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
 import type { TrainingProgramName } from './training-program-name.vo';
 import { TrainingProgramValidationError } from '../errors/training-program.errors';
 
@@ -11,7 +11,7 @@ export class TrainingProgramSlug {
   static create(
     value: string | undefined,
     name: TrainingProgramName,
-    id: TrainingProgramId,
+    id: UniqueId,
   ): TrainingProgramSlug {
     const base = TrainingProgramSlug.normalize(value?.trim() || name.value);
     if (!base) {

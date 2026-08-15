@@ -42,8 +42,10 @@ Prefer same-site deployment (`app.example.com` with `/api` proxying) to simplify
 ## Backend modules
 
 - `ConfigModule`: validated environment configuration
-- `PrismaModule`: database client and transaction boundary
-- `AuthModule`: Better Auth request/session integration
+- `SharedInfrastructureModule`: composed shared infrastructure boundary
+- `SharedConfigModule`: validated environment configuration
+- `SharedDatabaseModule`: Prisma client and transaction boundary
+- `SharedAuthModule`: Better Auth request/session integration
 - `UsersModule`: minimal application user/profile and roles
 - `MusclesModule`: public controlled reference reads
 - `ExercisesModule`: exercise identity and composed profile operations
@@ -70,7 +72,7 @@ apps/api/src/modules/training-programs/
     use-cases/
     models/
   infrastructure/
-    persistence/prisma/
+    prisma/
   presentation/
     http/dto/
   training-programs.module.ts
@@ -93,11 +95,11 @@ infrastructure ──────────┘
 
 Keep the pilot lean:
 
-- Do not create generic base entities, repositories, use cases, result wrappers, event buses, or a CQRS dependency.
+- Keep shared domain primitives limited to the proven `Entity` and `UniqueId` kernel; do not add generic repositories, use cases, result wrappers, event buses, or a CQRS dependency.
 - Introduce a value object only when it protects a meaningful compound invariant or behavior. Do not wrap `ownerId`, name, or description merely to avoid primitives.
 - Repository methods are aggregate/use-case specific and preserve ownership and transaction guarantees; do not expose generic unscoped CRUD.
 - Prisma types and generated enums do not cross the infrastructure boundary.
-- Continue using the existing global `PrismaModule` and Better Auth integration. Moving them into a new `shared/` hierarchy is a separate repository-wide decision.
+- Shared database, authentication, and configuration infrastructure lives under `modules/shared/infrastructure`; feature modules import focused shared modules explicitly, while `AppModule` composes them through `SharedInfrastructureModule`.
 - Cross-feature access uses narrow ports or feature-owned repository operations; a module never imports another feature’s Prisma implementation.
 
 After the backend slice is complete, evaluate file count, rule placement, test clarity, transaction handling, and change cost. Migrate another feature only with a separate approved decision.

@@ -1,7 +1,7 @@
-import { Prisma } from '../../../../../../generated/prisma/client';
-import type { TrainingProgramDetail } from '../../../application/models/detail-training-program.model';
-import type { TrainingProgramListItem } from '../../../application/models/list-training-programs.model';
-import { TrainingProgram } from '../../../domain/entities/training-program.entity';
+import { Prisma } from '../../../../../generated/prisma/client';
+import type { TrainingProgramDetail } from '../../application/models/detail-training-program.model';
+import type { TrainingProgramListItem } from '../../application/models/list-training-programs.model';
+import { TrainingProgram } from '../../domain/entities/training-program.entity';
 
 export const trainingProgramListSelect = {
   slug: true,

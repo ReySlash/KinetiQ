@@ -1,5 +1,5 @@
 jest.mock(
-  '../../../../shared/infrastructure/database/prisma/prisma.service',
+  '../../../shared/infrastructure/database/prisma/prisma.service',
   () => ({
     PrismaService: class PrismaService {},
   }),
@@ -7,7 +7,7 @@ jest.mock(
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
-import { PrismaService } from '../../../../shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramDeletePersistenceError,
@@ -17,8 +17,8 @@ import {
   TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
   TrainingProgramUpdateConflictError,
-} from '../../../application/errors/training-program.errors';
-import { TrainingProgram } from '../../../domain/entities/training-program.entity';
+} from '../../application/errors/training-program.errors';
+import { TrainingProgram } from '../../domain/entities/training-program.entity';
 import {
   trainingProgramDetailSelect,
   trainingProgramListSelect,

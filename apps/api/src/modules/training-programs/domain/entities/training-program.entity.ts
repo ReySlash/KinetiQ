@@ -3,16 +3,16 @@ import type {
   PrimitiveTrainingProgram,
   UpdateTrainingProgramAttributes,
 } from './training-program.types';
+import { Entity } from '../../../shared/domain/entity';
+import { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
 import { TrainingProgramDescription } from '../value-objects/training-program-description.vo';
 import { TrainingProgramDuration } from '../value-objects/training-program-duration.vo';
-import { TrainingProgramId } from '../value-objects/training-program-id.vo';
 import { TrainingProgramName } from '../value-objects/training-program-name.vo';
 import { TrainingProgramSlug } from '../value-objects/training-program-slug.vo';
 import { TrainingProgramScheduleValidationError } from '../errors/training-program.errors';
 import { TrainingProgramScheduleEntry } from './training-program-schedule-entry.entity';
 
-export class TrainingProgram {
-  public readonly id: string;
+export class TrainingProgram extends Entity<UniqueId> {
   public readonly ownerId: string;
   public readonly slug: string;
   public readonly name: string;
@@ -24,7 +24,7 @@ export class TrainingProgram {
   public readonly schedule: readonly TrainingProgramScheduleEntry[];
 
   private constructor(attributes: PrimitiveTrainingProgram) {
-    this.id = attributes.id;
+    super(UniqueId.create(attributes.id));
     this.ownerId = attributes.ownerId;
     this.slug = attributes.slug;
     this.name = attributes.name;
@@ -64,7 +64,7 @@ export class TrainingProgram {
   }
 
   static create(attributes: CreateTrainingProgramAttributes): TrainingProgram {
-    const id = TrainingProgramId.create();
+    const id = UniqueId.create();
     const name = TrainingProgramName.create(attributes.name);
     const description = TrainingProgramDescription.create(
       attributes.description,
@@ -119,7 +119,7 @@ export class TrainingProgram {
     TrainingProgram.validateSchedule(schedule, duration.value);
 
     return new TrainingProgram({
-      id: this.id,
+      id: this.id.value,
       ownerId: this.ownerId,
       slug: this.slug,
       name: name.value,
@@ -134,7 +134,7 @@ export class TrainingProgram {
 
   toValue(): PrimitiveTrainingProgram {
     return {
-      id: this.id,
+      id: this.id.value,
       ownerId: this.ownerId,
       slug: this.slug,
       name: this.name,

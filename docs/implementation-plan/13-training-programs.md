@@ -272,7 +272,7 @@ apps/api/src/modules/training-programs/
     models/
       training-program.models.ts
   infrastructure/
-    persistence/prisma/
+    prisma/
       prisma-training-programs.repository.ts
       prisma-training-program.mapper.ts
   presentation/
@@ -301,8 +301,12 @@ responsibility.
   class-validator/class-transformer request DTOs, Swagger response DTOs, and
   HTTP error translation.
 - `training-programs.module.ts` is the composition root for this feature. It
-  imports the existing `PrismaModule`; the pilot does not relocate shared auth
-  or database infrastructure.
+  imports `SharedDatabaseModule`; shared authentication, configuration, and
+  database infrastructure is composed by `SharedInfrastructureModule`.
+
+The Training Programs aggregate and schedule-entry entity use the shared
+domain `Entity` and `UniqueId` primitives. Their primitive persistence models
+remain string-based at the infrastructure boundary.
 
 The repository ports are feature-specific rather than generic and belong to the
 application boundary. The command port persists the complete aggregate

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
-import { PrismaService } from '../../../../shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
   TrainingProgramPersistenceError,
   TrainingProgramDeletePersistenceError,
@@ -10,12 +10,12 @@ import {
   TrainingProgramScheduleConflictError,
   TrainingProgramSlugConflictError,
   TrainingProgramUpdateConflictError,
-} from '../../../application/errors/training-program.errors';
-import type { GetTrainingProgramQuery } from '../../../application/models/detail-training-program.model';
-import type { ListTrainingProgramsQuery } from '../../../application/models/list-training-programs.model';
-import { TrainingProgramsQueryRepository } from '../../../application/ports/training-programs-query.port';
-import type { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsCommandRepository } from '../../../application/ports/training-programs-command.port';
+} from '../../application/errors/training-program.errors';
+import type { GetTrainingProgramQuery } from '../../application/models/detail-training-program.model';
+import type { ListTrainingProgramsQuery } from '../../application/models/list-training-programs.model';
+import { TrainingProgramsQueryRepository } from '../../application/ports/training-programs-query.port';
+import type { TrainingProgram } from '../../domain/entities/training-program.entity';
+import { TrainingProgramsCommandRepository } from '../../application/ports/training-programs-command.port';
 import {
   toListItem,
   toDetail,

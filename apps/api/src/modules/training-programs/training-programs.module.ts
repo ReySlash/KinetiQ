@@ -3,7 +3,7 @@ import { SharedDatabaseModule } from '../shared/infrastructure/database/shared-d
 import { ListTrainingProgramsUseCase } from './application/use-cases/queries/list-training-programs.use-case';
 import { GetTrainingProgramUseCase } from './application/use-cases/queries/get-training-program.use-case';
 import { TrainingProgramsCommandRepository } from './application/ports/training-programs-command.port';
-import { PrismaTrainingProgramsRepository } from './infrastructure/persistence/prisma/prisma-training-programs.repository';
+import { PrismaTrainingProgramsRepository } from './infrastructure/prisma/prisma-training-programs.repository';
 import { TrainingProgramsController } from './presentation/http/training-programs.controller';
 import { CreateTrainingProgramUseCase } from './application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from './application/use-cases/commands/update-training-program.use-case';

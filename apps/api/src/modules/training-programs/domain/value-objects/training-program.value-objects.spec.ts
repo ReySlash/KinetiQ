@@ -1,6 +1,6 @@
 import { TrainingProgramDescription } from './training-program-description.vo';
 import { TrainingProgramDuration } from './training-program-duration.vo';
-import { TrainingProgramId } from './training-program-id.vo';
+import { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
 import { TrainingProgramName } from './training-program-name.vo';
 import { TrainingProgramSlug } from './training-program-slug.vo';
 
@@ -23,7 +23,7 @@ describe('Training Program value objects', () => {
 
   it('normalizes supplied slugs and generates omitted slugs', () => {
     const name = TrainingProgramName.create('Upper / Lower');
-    const id = TrainingProgramId.create();
+    const id = UniqueId.create();
 
     expect(
       TrainingProgramSlug.create('  Upper Program  ', name, id).value,

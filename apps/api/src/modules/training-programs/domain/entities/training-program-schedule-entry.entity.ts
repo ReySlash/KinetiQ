@@ -1,4 +1,5 @@
-import { randomUUID } from 'node:crypto';
+import { Entity } from '../../../shared/domain/entity';
+import { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
 import { TrainingProgramScheduleValidationError } from '../errors/training-program.errors';
 import { TrainingProgramScheduleSlot } from '../value-objects/training-program-schedule-slot.vo';
 import type {
@@ -6,15 +7,17 @@ import type {
   PrimitiveTrainingProgramScheduleEntry,
 } from './training-program.types';
 
-export class TrainingProgramScheduleEntry {
+export class TrainingProgramScheduleEntry extends Entity<UniqueId> {
   private constructor(
-    public readonly id: string,
+    id: UniqueId,
     public readonly routineSlug: string,
     public readonly slot: TrainingProgramScheduleSlot,
     public readonly notes: string | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
-  ) {}
+  ) {
+    super(id);
+  }
 
   static create(
     attributes: CreateTrainingProgramScheduleEntryAttributes,
@@ -35,7 +38,7 @@ export class TrainingProgramScheduleEntry {
 
     const now = new Date();
     return new TrainingProgramScheduleEntry(
-      randomUUID(),
+      UniqueId.create(),
       routineSlug,
       TrainingProgramScheduleSlot.create(
         attributes.weekNumber,
@@ -51,7 +54,7 @@ export class TrainingProgramScheduleEntry {
     attributes: PrimitiveTrainingProgramScheduleEntry,
   ): TrainingProgramScheduleEntry {
     return new TrainingProgramScheduleEntry(
-      attributes.id,
+      UniqueId.create(attributes.id),
       attributes.routineSlug,
       TrainingProgramScheduleSlot.create(
         attributes.weekNumber,
@@ -65,7 +68,7 @@ export class TrainingProgramScheduleEntry {
 
   toValue(): PrimitiveTrainingProgramScheduleEntry {
     return {
-      id: this.id,
+      id: this.id.value,
       routineSlug: this.routineSlug,
       weekNumber: this.slot.weekNumber,
       dayNumber: this.slot.dayNumber,
