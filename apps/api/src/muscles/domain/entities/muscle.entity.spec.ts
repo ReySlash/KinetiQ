@@ -1,4 +1,5 @@
 import { Muscle } from './muscle.entity';
+import { MuscleValidationError } from '../errors/muscle.errors';
 
 describe('Muscle', () => {
   const attributes = {
@@ -41,5 +42,25 @@ describe('Muscle', () => {
     };
 
     expect(Muscle.reconstitute(persisted).toValue()).toEqual(persisted);
+  });
+
+  it.each([
+    ['name', { ...attributes, name: 'x' }],
+    ['description', { ...attributes, description: 'short' }],
+    ['muscleGroupId', { ...attributes, muscleGroupId: 'not-a-uuid' }],
+    ['sortOrder', { ...attributes, sortOrder: -1 }],
+  ])('rejects invalid %s values during creation', (_, invalidAttributes) => {
+    expect(() => Muscle.create(invalidAttributes)).toThrow(
+      MuscleValidationError,
+    );
+  });
+
+  it('rejects oversized media fields during creation', () => {
+    expect(() =>
+      Muscle.create({
+        ...attributes,
+        thumbnailUrl: 'x'.repeat(2049),
+      }),
+    ).toThrow(MuscleValidationError);
   });
 });

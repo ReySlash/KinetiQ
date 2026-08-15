@@ -1,21 +1,22 @@
 import { Entity } from '../../../modules/shared/domain/entity';
 import { UniqueId } from '../../../modules/shared/domain/value-objects/unique-id.vo';
+import { MuscleBodyRegion as MuscleBodyRegionValue } from '../value-objects/muscle-body-region.vo';
+import { MuscleDescription } from '../value-objects/muscle-description.vo';
+import { MuscleGroupId } from '../value-objects/muscle-group-id.vo';
+import { MuscleImageAltText } from '../value-objects/muscle-image-alt-text.vo';
+import { MuscleName } from '../value-objects/muscle-name.vo';
+import { MuscleParentId } from '../value-objects/muscle-parent-id.vo';
+import { MuscleSortOrder } from '../value-objects/muscle-sort-order.vo';
 import { MuscleSlug } from '../value-objects/muscle-slug.vo';
-import type {
-  CreateMuscleAttributes,
-  MuscleBodyRegion,
-  PrimitiveMuscle,
-} from './muscle.types';
-
-function capitalizeFirstCharacter(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
+import { MuscleThumbnailStorageKey } from '../value-objects/muscle-thumbnail-storage-key.vo';
+import { MuscleThumbnailUrl } from '../value-objects/muscle-thumbnail-url.vo';
+import type { CreateMuscleAttributes, PrimitiveMuscle } from './muscle.types';
 
 export class Muscle extends Entity<UniqueId> {
   public readonly name: string;
   public readonly slug: string;
   public readonly description: string;
-  public readonly bodyRegion: MuscleBodyRegion;
+  public readonly bodyRegion: PrimitiveMuscle['bodyRegion'];
   public readonly muscleGroupId: string | null;
   public readonly parentId: string | null;
   public readonly thumbnailUrl: string | null;
@@ -44,24 +45,46 @@ export class Muscle extends Entity<UniqueId> {
   }
 
   static create(attributes: CreateMuscleAttributes): Muscle {
-    const name = capitalizeFirstCharacter(attributes.name);
-    const description = capitalizeFirstCharacter(attributes.description);
-    const slug = MuscleSlug.create(attributes.slug ?? name);
+    const name = MuscleName.create(attributes.name);
+    const description = MuscleDescription.create(attributes.description);
+    const bodyRegion = MuscleBodyRegionValue.create(attributes.bodyRegion);
+    const slug = MuscleSlug.create(attributes.slug ?? name.value);
+    const muscleGroupId =
+      attributes.muscleGroupId !== undefined
+        ? MuscleGroupId.create(attributes.muscleGroupId)
+        : null;
+    const parentId =
+      attributes.parentId !== undefined
+        ? MuscleParentId.create(attributes.parentId)
+        : null;
+    const thumbnailUrl =
+      attributes.thumbnailUrl !== undefined
+        ? MuscleThumbnailUrl.create(attributes.thumbnailUrl)
+        : null;
+    const thumbnailStorageKey =
+      attributes.thumbnailStorageKey !== undefined
+        ? MuscleThumbnailStorageKey.create(attributes.thumbnailStorageKey)
+        : null;
+    const imageAltText =
+      attributes.imageAltText !== undefined
+        ? MuscleImageAltText.create(attributes.imageAltText)
+        : null;
+    const sortOrder = MuscleSortOrder.create(attributes.sortOrder ?? 0);
     const now = new Date();
 
     return new Muscle({
       id: UniqueId.create().value,
-      name,
+      name: name.value,
       slug: slug.value,
-      description,
-      bodyRegion: attributes.bodyRegion,
-      muscleGroupId: attributes.muscleGroupId ?? null,
-      parentId: attributes.parentId ?? null,
-      thumbnailUrl: attributes.thumbnailUrl ?? null,
-      thumbnailStorageKey: attributes.thumbnailStorageKey ?? null,
-      imageAltText: attributes.imageAltText ?? null,
+      description: description.value,
+      bodyRegion: bodyRegion.value,
+      muscleGroupId: muscleGroupId?.value ?? null,
+      parentId: parentId?.value ?? null,
+      thumbnailUrl: thumbnailUrl?.value ?? null,
+      thumbnailStorageKey: thumbnailStorageKey?.value ?? null,
+      imageAltText: imageAltText?.value ?? null,
       isActive: attributes.isActive ?? true,
-      sortOrder: attributes.sortOrder ?? 0,
+      sortOrder: sortOrder.value,
       createdAt: now,
       updatedAt: now,
     });

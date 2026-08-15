@@ -7,8 +7,14 @@ export class MuscleSlug extends ValueObject<string> {
   }
 
   static create(value: string): MuscleSlug {
-    const normalized = value
-      .trim()
+    const trimmed = value.trim();
+    if (trimmed.length < 2 || trimmed.length > 120) {
+      throw new MuscleValidationError(
+        'Muscle slug must contain between 2 and 120 characters.',
+      );
+    }
+
+    const normalized = trimmed
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
