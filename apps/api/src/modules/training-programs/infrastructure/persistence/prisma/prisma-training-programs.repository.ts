@@ -13,9 +13,9 @@ import {
 } from '../../../application/errors/training-program.errors';
 import type { GetTrainingProgramQuery } from '../../../application/models/detail-training-program.model';
 import type { ListTrainingProgramsQuery } from '../../../application/models/list-training-programs.model';
-import { TrainingProgramsQueryRepository } from '../../../application/repositories/training-programs-query.repository';
+import { TrainingProgramsQueryRepository } from '../../../application/ports/training-programs-query.port';
 import type { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsCommandRepository } from '../../../application/repositories/training-programs-command.repository';
+import { TrainingProgramsCommandRepository } from '../../../application/ports/training-programs-command.port';
 import {
   toListItem,
   toDetail,

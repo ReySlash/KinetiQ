@@ -1,4 +1,4 @@
-import type { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
+import type { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
 import { DeleteTrainingProgramUseCase } from './delete-training-program.use-case';
 
 describe('DeleteTrainingProgramUseCase', () => {

@@ -258,9 +258,9 @@ apps/api/src/modules/training-programs/
     errors/
       training-program.errors.ts
   application/
-    repositories/
-      training-programs-command.repository.ts
-      training-programs-query.repository.ts
+    ports/
+      training-programs-command.port.ts
+      training-programs-query.port.ts
     use-cases/
       commands/
         create-training-programs.use-case.ts

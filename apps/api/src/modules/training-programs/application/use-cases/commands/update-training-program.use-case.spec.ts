@@ -1,5 +1,5 @@
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import type { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
+import type { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
 import { UpdateTrainingProgramUseCase } from './update-training-program.use-case';
 
 describe('UpdateTrainingProgramUseCase', () => {

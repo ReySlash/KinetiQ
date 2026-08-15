@@ -1,6 +1,6 @@
 import { TrainingProgramNotFoundError } from '../../errors/training-program.errors';
 import type { UpdateTrainingProgramInput } from '../../models/update-training-program.input';
-import { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
+import { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
 
 export class UpdateTrainingProgramUseCase {
   constructor(

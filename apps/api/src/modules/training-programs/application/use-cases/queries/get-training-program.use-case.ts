@@ -3,7 +3,7 @@ import type {
   GetTrainingProgramQuery,
   TrainingProgramDetail,
 } from '../../models/detail-training-program.model';
-import type { TrainingProgramsQueryRepository } from '../../repositories/training-programs-query.repository';
+import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
 
 export class GetTrainingProgramUseCase {
   constructor(

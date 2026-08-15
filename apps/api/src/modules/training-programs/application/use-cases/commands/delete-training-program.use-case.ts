@@ -1,4 +1,4 @@
-import { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
+import { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
 
 export class DeleteTrainingProgramUseCase {
   constructor(

@@ -1,6 +1,6 @@
 import { TrainingProgramNotFoundError } from '../../errors/training-program.errors';
 import type { TrainingProgramDetail } from '../../models/detail-training-program.model';
-import type { TrainingProgramsQueryRepository } from '../../repositories/training-programs-query.repository';
+import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
 import { GetTrainingProgramUseCase } from './get-training-program.use-case';
 
 describe('GetTrainingProgramUseCase', () => {

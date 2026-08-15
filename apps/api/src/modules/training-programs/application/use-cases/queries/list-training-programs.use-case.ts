@@ -3,7 +3,7 @@ import type {
   ListTrainingProgramsInput,
   TrainingProgramListItem,
 } from '../../models/list-training-programs.model';
-import type { TrainingProgramsQueryRepository } from '../../repositories/training-programs-query.repository';
+import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
 
 export class ListTrainingProgramsUseCase {
   constructor(

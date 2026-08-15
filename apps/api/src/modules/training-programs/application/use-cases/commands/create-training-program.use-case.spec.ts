@@ -1,5 +1,5 @@
 import type { CreateTrainingProgramInput } from '../../models/create-training-program.input';
-import type { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
+import type { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
 import { CreateTrainingProgramUseCase } from './create-training-programs.use-case';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
 

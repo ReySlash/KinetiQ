@@ -1,6 +1,6 @@
 import type { CreateTrainingProgramInput } from '../../models/create-training-program.input';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsCommandRepository } from '../../repositories/training-programs-command.repository';
+import { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
 
 export class CreateTrainingProgramUseCase {
   constructor(
