@@ -1,12 +1,15 @@
-jest.mock('../prisma/prisma.service', () => ({
-  PrismaService: class PrismaService {},
-}));
+jest.mock(
+  '../modules/shared/infrastructure/database/prisma/prisma.service',
+  () => ({
+    PrismaService: class PrismaService {},
+  }),
+);
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 import type { MuscleModel } from '../../generated/prisma/models/Muscle';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
 import { MusclesService } from './muscles.service';
 
 describe('MusclesService', () => {

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../prisma/prisma.module';
+import { SharedDatabaseModule } from '../modules/shared/infrastructure/database/shared-database.module';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [SharedDatabaseModule],
   controllers: [HealthController],
   providers: [HealthService],
 })

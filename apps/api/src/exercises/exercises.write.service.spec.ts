@@ -1,6 +1,9 @@
-jest.mock('../prisma/prisma.service', () => ({
-  PrismaService: class PrismaService {},
-}));
+jest.mock(
+  '../modules/shared/infrastructure/database/prisma/prisma.service',
+  () => ({
+    PrismaService: class PrismaService {},
+  }),
+);
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -13,7 +16,7 @@ import {
   MuscleRole,
   SkillLevel,
 } from '../../generated/prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
 import {
   CreateExerciseDto,
   ExerciseCapabilityProfileDto,

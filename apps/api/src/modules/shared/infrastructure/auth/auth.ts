@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import type { ConfigService } from '@nestjs/config';
-import type { PrismaService } from '../prisma/prisma.service';
+import type { PrismaService } from '../database/prisma/prisma.service';
 
 type AuthConfig = {
   apiUrl: string;

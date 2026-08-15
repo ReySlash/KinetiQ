@@ -3,10 +3,10 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { toPrismaUniqueConstraintBadRequest } from '../common/prisma/prisma-unique-constraint';
+import { toPrismaUniqueConstraintBadRequest } from '../modules/shared/infrastructure/database/prisma/common/prisma-unique-constraint';
 import { CreateMuscleDto } from './dto/create-muscle.dto';
 import { buildMuscleCreateData } from './mappers/create-muscle.mapper';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
 import { PaginationDto } from './dto/pagination-muscle.dto';
 import { UpdateMuscleDto } from './dto/update-muscle.dto';
 import { buildMuscleUpdateData } from './mappers/update-muscle.mapper';

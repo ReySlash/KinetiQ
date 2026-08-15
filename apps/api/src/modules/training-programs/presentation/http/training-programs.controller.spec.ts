@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import type { AuthenticatedPrincipal } from '../../../../auth/principal';
+import type { AuthenticatedPrincipal } from '../../../shared/infrastructure/auth/principal';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from '../../application/use-cases/commands/update-training-program.use-case';
 import { DeleteTrainingProgramUseCase } from '../../application/use-cases/commands/delete-training-program.use-case';

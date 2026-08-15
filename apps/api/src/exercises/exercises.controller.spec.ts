@@ -1,6 +1,9 @@
-jest.mock('../prisma/prisma.service', () => ({
-  PrismaService: class PrismaService {},
-}));
+jest.mock(
+  '../modules/shared/infrastructure/database/prisma/prisma.service',
+  () => ({
+    PrismaService: class PrismaService {},
+  }),
+);
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExercisesController } from './exercises.controller';

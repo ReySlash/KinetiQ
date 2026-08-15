@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
-import { PrismaService } from '../prisma/prisma.service';
-import { type AuthenticatedPrincipal } from '../auth/principal';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
+import { type AuthenticatedPrincipal } from '../modules/shared/infrastructure/auth/principal';
 import {
   CreateRoutineDto,
   normalizeRoutineStrings,

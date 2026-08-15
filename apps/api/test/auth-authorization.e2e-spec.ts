@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { PrismaService } from '../src/modules/shared/infrastructure/database/prisma/prisma.service';
 import { PlatformRole } from '../generated/prisma/client';
 import request from 'supertest';
 import type { App } from 'supertest/types';

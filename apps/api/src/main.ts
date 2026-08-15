@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { PrismaService } from './prisma/prisma.service';
-import { type EnvironmentVariables } from './config/env.validation';
+import { PrismaService } from './modules/shared/infrastructure/database/prisma/prisma.service';
+import { type EnvironmentVariables } from './modules/shared/infrastructure/config/env.validation';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });

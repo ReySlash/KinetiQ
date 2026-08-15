@@ -1,11 +1,14 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-jest.mock('../prisma/prisma.service', () => ({
-  PrismaService: class PrismaService {},
-}));
+jest.mock(
+  '../modules/shared/infrastructure/database/prisma/prisma.service',
+  () => ({
+    PrismaService: class PrismaService {},
+  }),
+);
 
 import { MuscleGroupsService } from './muscle-groups.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
 
 describe('MuscleGroupsService', () => {
   let service: MuscleGroupsService;

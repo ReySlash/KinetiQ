@@ -1,11 +1,14 @@
-jest.mock('../prisma/prisma.service', () => ({
-  PrismaService: class PrismaService {},
-}));
+jest.mock(
+  '../modules/shared/infrastructure/database/prisma/prisma.service',
+  () => ({
+    PrismaService: class PrismaService {},
+  }),
+);
 
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../prisma/prisma.service';
-import type { AuthenticatedPrincipal } from '../auth/principal';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
+import type { AuthenticatedPrincipal } from '../modules/shared/infrastructure/auth/principal';
 import type { CreateRoutineDto } from './dto/create-routine.dto';
 import { FindRoutinesQueryDto } from './dto/find-routines-query.dto';
 import { RoutinesService } from './routines.service';

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { SharedDatabaseModule } from '../shared/infrastructure/database/shared-database.module';
 import { ListTrainingProgramsUseCase } from './application/use-cases/queries/list-training-programs.use-case';
 import { GetTrainingProgramUseCase } from './application/use-cases/queries/get-training-program.use-case';
 import { TrainingProgramsCommandRepository } from './application/ports/training-programs-command.port';
@@ -11,7 +11,7 @@ import { DeleteTrainingProgramUseCase } from './application/use-cases/commands/d
 import { TrainingProgramsQueryRepository } from './application/ports/training-programs-query.port';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [SharedDatabaseModule],
   controllers: [TrainingProgramsController],
   providers: [
     PrismaTrainingProgramsRepository,

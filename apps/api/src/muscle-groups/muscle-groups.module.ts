@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MuscleGroupsService } from './muscle-groups.service';
 import { MuscleGroupsController } from './muscle-groups.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { SharedDatabaseModule } from '../modules/shared/infrastructure/database/shared-database.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [SharedDatabaseModule],
   controllers: [MuscleGroupsController],
   providers: [MuscleGroupsService],
 })

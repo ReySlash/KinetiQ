@@ -90,7 +90,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@thallesp/nestjs-better-auth$": "<rootDir>/auth/test-auth-decorators.ts",
+      "^@thallesp/nestjs-better-auth$": "<rootDir>/modules/shared/infrastructure/auth/test-auth-decorators.ts",
       "^(\\.{1,2}/.*)\\.js$": "$1"
     }
   }

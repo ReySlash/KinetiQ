@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { RoutinesService } from './routines.service';
 import { RoutinesController } from './routines.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { SharedDatabaseModule } from '../modules/shared/infrastructure/database/shared-database.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [SharedDatabaseModule],
   controllers: [RoutinesController],
   providers: [RoutinesService],
 })

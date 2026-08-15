@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
 import { buildMuscleGroupsFindAllQuery } from './helpers/find-all-muscle-groups-query';
 import { buildMuscleGroupsFindOneQuery } from './helpers/find-one-muscle-group-query';
 

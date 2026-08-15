@@ -7,9 +7,9 @@ import {
 import { randomUUID } from 'crypto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 
-import { toPrismaUniqueConstraintBadRequest } from '../common/prisma/prisma-unique-constraint';
+import { toPrismaUniqueConstraintBadRequest } from '../modules/shared/infrastructure/database/prisma/common/prisma-unique-constraint';
 import { Prisma } from '../../generated/prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../modules/shared/infrastructure/database/prisma/prisma.service';
 import {
   CreateExerciseDto,
   ExerciseCapabilityProfileDto,

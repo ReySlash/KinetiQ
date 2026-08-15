@@ -21,7 +21,7 @@ import {
   CurrentOptionalPrincipal,
   CurrentPrincipal,
   type AuthenticatedPrincipal,
-} from '../auth/principal';
+} from '../modules/shared/infrastructure/auth/principal';
 import { CreateRoutineDto } from './dto/create-routine.dto';
 import { FindRoutinesQueryDto } from './dto/find-routines-query.dto';
 import { UpdateRoutineDto } from './dto/update-routine.dto';

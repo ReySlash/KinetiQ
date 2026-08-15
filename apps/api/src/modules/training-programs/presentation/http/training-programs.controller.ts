@@ -14,7 +14,7 @@ import {
   CurrentPrincipal,
   CurrentOptionalPrincipal,
   type AuthenticatedPrincipal,
-} from '../../../../auth/principal';
+} from '../../../shared/infrastructure/auth/principal';
 import { ListTrainingProgramsUseCase } from '../../application/use-cases/queries/list-training-programs.use-case';
 import { GetTrainingProgramUseCase } from '../../application/use-cases/queries/get-training-program.use-case';
 import { CreateTrainingProgramUseCase } from '../../application/use-cases/commands/create-training-programs.use-case';
