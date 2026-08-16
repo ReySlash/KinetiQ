@@ -1,5 +1,5 @@
 import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
-import type { MuscleBodyRegion as MuscleBodyRegionType } from '../entities/muscle.types';
+import type { BodyRegion as MuscleBodyRegionType } from '../entities/muscle.types';
 import { MuscleValidationError } from '../errors/muscle.errors';
 
 const BODY_REGIONS = new Set<MuscleBodyRegionType>([
@@ -10,16 +10,16 @@ const BODY_REGIONS = new Set<MuscleBodyRegionType>([
   'OTHER',
 ]);
 
-export class MuscleBodyRegion extends ValueObject<MuscleBodyRegionType> {
+export class BodyRegion extends ValueObject<MuscleBodyRegionType> {
   private constructor(value: MuscleBodyRegionType) {
     super(value);
   }
 
-  static create(value: MuscleBodyRegionType): MuscleBodyRegion {
+  static create(value: MuscleBodyRegionType): BodyRegion {
     if (!BODY_REGIONS.has(value)) {
       throw new MuscleValidationError('Muscle bodyRegion is invalid.');
     }
 
-    return new MuscleBodyRegion(value);
+    return new BodyRegion(value);
   }
 }

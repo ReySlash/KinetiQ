@@ -1,6 +1,6 @@
 import { Entity } from '../../../modules/shared/domain/entity';
 import { UniqueId } from '../../../modules/shared/domain/value-objects/unique-id.vo';
-import { MuscleBodyRegion as MuscleBodyRegionValue } from '../value-objects/muscle-body-region.vo';
+import { BodyRegion as BodyRegionValue } from '../value-objects/muscle-body-region.vo';
 import { MuscleDescription } from '../value-objects/muscle-description.vo';
 import { MuscleGroupId } from '../value-objects/muscle-group-id.vo';
 import { MuscleImageAltText } from '../value-objects/muscle-image-alt-text.vo';
@@ -10,7 +10,11 @@ import { MuscleSortOrder } from '../value-objects/muscle-sort-order.vo';
 import { MuscleSlug } from '../value-objects/muscle-slug.vo';
 import { MuscleThumbnailStorageKey } from '../value-objects/muscle-thumbnail-storage-key.vo';
 import { MuscleThumbnailUrl } from '../value-objects/muscle-thumbnail-url.vo';
-import type { CreateMuscleAttributes, PrimitiveMuscle } from './muscle.types';
+import type {
+  CreateMuscleAttributes,
+  PrimitiveMuscle,
+  UpdateMuscleAttributes,
+} from './muscle.types';
 
 export class Muscle extends Entity<UniqueId> {
   public readonly name: string;
@@ -47,7 +51,7 @@ export class Muscle extends Entity<UniqueId> {
   static create(attributes: CreateMuscleAttributes): Muscle {
     const name = MuscleName.create(attributes.name);
     const description = MuscleDescription.create(attributes.description);
-    const bodyRegion = MuscleBodyRegionValue.create(attributes.bodyRegion);
+    const bodyRegion = BodyRegionValue.create(attributes.bodyRegion);
     const slug = MuscleSlug.create(attributes.slug ?? name.value);
     const muscleGroupId =
       attributes.muscleGroupId !== undefined
@@ -92,6 +96,73 @@ export class Muscle extends Entity<UniqueId> {
 
   static reconstitute(attributes: PrimitiveMuscle): Muscle {
     return new Muscle(attributes);
+  }
+
+  update(attributes: UpdateMuscleAttributes): Muscle {
+    const name =
+      attributes.name === undefined
+        ? this.name
+        : MuscleName.create(attributes.name).value;
+    const description =
+      attributes.description === undefined
+        ? this.description
+        : MuscleDescription.create(attributes.description).value;
+    const bodyRegion =
+      attributes.bodyRegion === undefined
+        ? this.bodyRegion
+        : BodyRegionValue.create(attributes.bodyRegion).value;
+    const muscleGroupId =
+      attributes.muscleGroupId === undefined
+        ? this.muscleGroupId
+        : attributes.muscleGroupId === null
+          ? null
+          : MuscleGroupId.create(attributes.muscleGroupId).value;
+    const parentId =
+      attributes.parentId === undefined
+        ? this.parentId
+        : attributes.parentId === null
+          ? null
+          : MuscleParentId.create(attributes.parentId).value;
+    const thumbnailUrl =
+      attributes.thumbnailUrl === undefined
+        ? this.thumbnailUrl
+        : attributes.thumbnailUrl === null
+          ? null
+          : MuscleThumbnailUrl.create(attributes.thumbnailUrl).value;
+    const thumbnailStorageKey =
+      attributes.thumbnailStorageKey === undefined
+        ? this.thumbnailStorageKey
+        : attributes.thumbnailStorageKey === null
+          ? null
+          : MuscleThumbnailStorageKey.create(attributes.thumbnailStorageKey)
+              .value;
+    const imageAltText =
+      attributes.imageAltText === undefined
+        ? this.imageAltText
+        : attributes.imageAltText === null
+          ? null
+          : MuscleImageAltText.create(attributes.imageAltText).value;
+    const sortOrder =
+      attributes.sortOrder === undefined
+        ? this.sortOrder
+        : MuscleSortOrder.create(attributes.sortOrder).value;
+
+    return new Muscle({
+      id: this.id.value,
+      name,
+      slug: this.slug,
+      description,
+      bodyRegion,
+      muscleGroupId,
+      parentId,
+      thumbnailUrl,
+      thumbnailStorageKey,
+      imageAltText,
+      isActive: this.isActive,
+      sortOrder,
+      createdAt: this.createdAt,
+      updatedAt: new Date(),
+    });
   }
 
   toValue(): PrimitiveMuscle {

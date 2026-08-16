@@ -44,6 +44,17 @@ describe('Muscle', () => {
     expect(Muscle.reconstitute(persisted).toValue()).toEqual(persisted);
   });
 
+  it('updates supplied fields and preserves omitted fields', () => {
+    const muscle = Muscle.create(attributes);
+    const updated = muscle.update({ name: 'triceps' });
+
+    expect(updated.name).toBe('Triceps');
+    expect(updated.slug).toBe(muscle.slug);
+    expect(updated.description).toBe(muscle.description);
+    expect(updated.sortOrder).toBe(muscle.sortOrder);
+    expect(updated.id.value).toBe(muscle.id.value);
+  });
+
   it.each([
     ['name', { ...attributes, name: 'x' }],
     ['description', { ...attributes, description: 'short' }],
