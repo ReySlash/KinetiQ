@@ -1,5 +1,5 @@
-import { Entity } from '../../../modules/shared/domain/entity';
-import { UniqueId } from '../../../modules/shared/domain/value-objects/unique-id.vo';
+import { Entity } from '../../../shared/domain/entity';
+import { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
 import { BodyRegion as BodyRegionValue } from '../value-objects/muscle-body-region.vo';
 import { MuscleDescription } from '../value-objects/muscle-description.vo';
 import { MuscleGroupId } from '../value-objects/muscle-group-id.vo';

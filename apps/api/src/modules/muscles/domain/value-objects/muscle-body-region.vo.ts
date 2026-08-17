@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
+import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import type { BodyRegion as MuscleBodyRegionType } from '../entities/muscle.types';
 import { MuscleValidationError } from '../errors/muscle.errors';
 

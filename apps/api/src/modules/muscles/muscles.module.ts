@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AdminMusclesController } from './presentation/admin-muscles.controller';
 import { MusclesController } from './presentation/muscles.controller';
-import { SharedDatabaseModule } from '../modules/shared/infrastructure/database/shared-database.module';
+import { SharedDatabaseModule } from '../shared/infrastructure/database/shared-database.module';
 import { PrismaMusclesAdapter } from './infrastructure/prisma/prisma-muscles.adapter';
 import { MusclesCommandPort } from './application/ports/muscles-command.port';
 import { MusclesQueriesPort } from './application/ports/muscles-queries.port';

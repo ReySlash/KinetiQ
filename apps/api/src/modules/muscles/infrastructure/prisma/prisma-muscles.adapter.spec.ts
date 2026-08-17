@@ -1,5 +1,5 @@
 jest.mock(
-  '../../../modules/shared/infrastructure/database/prisma/prisma.service',
+  '../../../shared/infrastructure/database/prisma/prisma.service',
   () => ({ PrismaService: class PrismaService {} }),
 );
 
@@ -8,7 +8,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compi
 import { MuscleNotFoundError } from '../../application/errors/muscle.errors';
 import type { MusclesCommandPort } from '../../application/ports/muscles-command.port';
 import { Muscle } from '../../domain/entities/muscle.entity';
-import { PrismaService } from '../../../modules/shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import { PrismaMusclesAdapter } from './prisma-muscles.adapter';
 
 describe('PrismaMusclesAdapter', () => {

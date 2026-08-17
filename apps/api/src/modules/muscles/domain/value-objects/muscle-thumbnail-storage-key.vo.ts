@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
+import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { MuscleValidationError } from '../errors/muscle.errors';
 
 export class MuscleThumbnailStorageKey extends ValueObject<string> {

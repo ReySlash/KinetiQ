@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
-import { PrismaService } from '../../../modules/shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
   MuscleNameConflictError,
   MuscleNotFoundError,

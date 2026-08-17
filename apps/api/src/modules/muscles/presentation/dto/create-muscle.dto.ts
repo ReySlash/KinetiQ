@@ -9,7 +9,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Transform, type TransformFnParams } from 'class-transformer';
-import type { BodyRegion as BodyRegionValue } from '../../../../generated/prisma/enums';
+import type { BodyRegion as BodyRegionValue } from '../../../../../generated/prisma/enums';
 
 const bodyRegionValues = [
   'UPPER_BODY',
