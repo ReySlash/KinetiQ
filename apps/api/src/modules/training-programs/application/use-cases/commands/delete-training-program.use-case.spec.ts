@@ -1,10 +1,10 @@
-import type { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
+import type { TrainingProgramsCommandPort } from '../../ports/training-programs-command.port';
 import { DeleteTrainingProgramUseCase } from './delete-training-program.use-case';
 
 describe('DeleteTrainingProgramUseCase', () => {
   it('deletes using the authenticated owner scope', async () => {
     const deleteOwnedPrivateBySlug = jest.fn().mockResolvedValue(undefined);
-    const repository: TrainingProgramsCommandRepository = {
+    const repository: TrainingProgramsCommandPort = {
       create: jest.fn(),
       findOwnedPrivateBySlug: jest.fn(),
       update: jest.fn(),

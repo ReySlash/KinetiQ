@@ -1,6 +1,6 @@
 import type { TrainingProgram } from '../../domain/entities/training-program.entity';
 
-export abstract class TrainingProgramsCommandRepository {
+export abstract class TrainingProgramsCommandPort {
   abstract create(trainingProgram: TrainingProgram): Promise<void>;
   abstract findOwnedPrivateBySlug(
     slug: string,

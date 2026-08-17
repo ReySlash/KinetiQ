@@ -3,12 +3,10 @@ import type {
   ListTrainingProgramsInput,
   TrainingProgramListItem,
 } from '../../models/list-training-programs.model';
-import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
+import type { TrainingProgramsQueryPort } from '../../ports/training-programs-query.port';
 
 export class ListTrainingProgramsUseCase {
-  constructor(
-    private readonly trainingPrograms: TrainingProgramsQueryRepository,
-  ) {}
+  constructor(private readonly trainingPrograms: TrainingProgramsQueryPort) {}
 
   execute(
     input: ListTrainingProgramsInput,

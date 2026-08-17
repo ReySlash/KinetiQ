@@ -23,9 +23,9 @@ import {
   trainingProgramDetailSelect,
   trainingProgramListSelect,
 } from './prisma-training-program.mapper';
-import { PrismaTrainingProgramsRepository } from './prisma-training-programs.repository';
+import { PrismaTrainingProgramsAdapter } from './prisma-training-programs.adapter';
 
-describe('PrismaTrainingProgramsRepository', () => {
+describe('PrismaTrainingProgramsAdapter', () => {
   type RoutineQuery = {
     where: {
       slug: { in: string[] };
@@ -73,12 +73,12 @@ describe('PrismaTrainingProgramsRepository', () => {
         trainingProgram: { create, update },
       }),
   );
-  let repository: PrismaTrainingProgramsRepository;
+  let repository: PrismaTrainingProgramsAdapter;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        PrismaTrainingProgramsRepository,
+        PrismaTrainingProgramsAdapter,
         {
           provide: PrismaService,
           useValue: {
@@ -93,7 +93,7 @@ describe('PrismaTrainingProgramsRepository', () => {
       ],
     }).compile();
 
-    repository = module.get(PrismaTrainingProgramsRepository);
+    repository = module.get(PrismaTrainingProgramsAdapter);
     jest.clearAllMocks();
   });
 

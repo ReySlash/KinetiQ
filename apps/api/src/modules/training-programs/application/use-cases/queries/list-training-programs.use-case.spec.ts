@@ -1,10 +1,10 @@
 import { TrainingProgramListAuthenticationError } from '../../errors/training-program.errors';
-import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
+import type { TrainingProgramsQueryPort } from '../../ports/training-programs-query.port';
 import { ListTrainingProgramsUseCase } from './list-training-programs.use-case';
 
 describe('ListTrainingProgramsUseCase', () => {
   const findAll = jest.fn();
-  const repository: TrainingProgramsQueryRepository = {
+  const repository: TrainingProgramsQueryPort = {
     findAll,
   };
   const useCase = new ListTrainingProgramsUseCase(repository);

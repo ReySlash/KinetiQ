@@ -4,7 +4,7 @@ import {
   MusclesListItem,
 } from '../models/list-muscles.models';
 
-export abstract class MusclesQueriesRepository {
+export abstract class MusclesQueriesPort {
   abstract findBySlug(slug: string): Promise<MuscleDetails | null>;
   abstract list(params: ListMusclesQueryParams): Promise<MusclesListItem[]>;
 }

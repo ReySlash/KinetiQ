@@ -2,10 +2,10 @@ import type {
   ListMusclesQueryParams,
   MusclesListItem,
 } from '../../models/list-muscles.models';
-import type { MusclesQueriesRepository } from '../../ports/muscles-queries.port';
+import type { MusclesQueriesPort } from '../../ports/muscles-queries.port';
 
 export class ListMusclesUseCase {
-  constructor(private readonly muscles: MusclesQueriesRepository) {}
+  constructor(private readonly muscles: MusclesQueriesPort) {}
 
   execute(input: ListMusclesQueryParams = {}): Promise<MusclesListItem[]> {
     return this.muscles.list({

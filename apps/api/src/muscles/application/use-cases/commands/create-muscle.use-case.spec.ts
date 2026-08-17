@@ -1,5 +1,5 @@
 import type { CreateMuscleInput } from '../../models/create-muscle.input';
-import type { MusclesCommandRepository } from '../../ports/muscles-command.port';
+import type { MusclesCommandPort } from '../../ports/muscles-command.port';
 import { CreateMuscleUseCase } from './create-muscle.use-case';
 
 describe('CreateMuscleUseCase', () => {
@@ -9,7 +9,7 @@ describe('CreateMuscleUseCase', () => {
       create,
       updateBySlug: jest.fn(),
       deactivateById: jest.fn(),
-    } satisfies MusclesCommandRepository);
+    } satisfies MusclesCommandPort);
     const input: CreateMuscleInput = {
       name: 'biceps brachii',
       description: 'primary elbow flexor of the upper arm.',

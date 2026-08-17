@@ -13,9 +13,9 @@ import {
 } from '../../application/errors/training-program.errors';
 import type { GetTrainingProgramQuery } from '../../application/models/detail-training-program.model';
 import type { ListTrainingProgramsQuery } from '../../application/models/list-training-programs.model';
-import { TrainingProgramsQueryRepository } from '../../application/ports/training-programs-query.port';
+import { TrainingProgramsQueryPort } from '../../application/ports/training-programs-query.port';
 import type { TrainingProgram } from '../../domain/entities/training-program.entity';
-import { TrainingProgramsCommandRepository } from '../../application/ports/training-programs-command.port';
+import { TrainingProgramsCommandPort } from '../../application/ports/training-programs-command.port';
 import {
   toListItem,
   toDetail,
@@ -33,8 +33,8 @@ const TRAINING_PROGRAM_ORDER_BY = {
 } as const;
 
 @Injectable()
-export class PrismaTrainingProgramsRepository
-  implements TrainingProgramsCommandRepository, TrainingProgramsQueryRepository
+export class PrismaTrainingProgramsAdapter
+  implements TrainingProgramsCommandPort, TrainingProgramsQueryPort
 {
   constructor(private readonly prisma: PrismaService) {}
   async create(trainingProgram: TrainingProgram): Promise<void> {

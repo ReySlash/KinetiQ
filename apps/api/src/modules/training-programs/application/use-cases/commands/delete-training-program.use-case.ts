@@ -1,9 +1,7 @@
-import { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
+import { TrainingProgramsCommandPort } from '../../ports/training-programs-command.port';
 
 export class DeleteTrainingProgramUseCase {
-  constructor(
-    private readonly trainingPrograms: TrainingProgramsCommandRepository,
-  ) {}
+  constructor(private readonly trainingPrograms: TrainingProgramsCommandPort) {}
 
   async execute(input: {
     ownerId: string;

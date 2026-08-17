@@ -1,4 +1,4 @@
-import type { MusclesQueriesRepository } from '../../ports/muscles-queries.port';
+import type { MusclesQueriesPort } from '../../ports/muscles-queries.port';
 import { ListMusclesUseCase } from './list-muscles.use-case';
 
 describe('ListMusclesUseCase', () => {
@@ -7,7 +7,7 @@ describe('ListMusclesUseCase', () => {
     const useCase = new ListMusclesUseCase({
       list,
       findBySlug: jest.fn(),
-    } satisfies MusclesQueriesRepository);
+    } satisfies MusclesQueriesPort);
 
     await expect(useCase.execute()).resolves.toEqual([]);
     expect(list).toHaveBeenCalledWith({ limit: 20, offset: 0 });

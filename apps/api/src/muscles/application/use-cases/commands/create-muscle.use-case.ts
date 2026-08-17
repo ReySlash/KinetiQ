@@ -1,9 +1,9 @@
 import { Muscle } from '../../../domain/entities/muscle.entity';
 import type { CreateMuscleInput } from '../../models/create-muscle.input';
-import type { MusclesCommandRepository } from '../../ports/muscles-command.port';
+import type { MusclesCommandPort } from '../../ports/muscles-command.port';
 
 export class CreateMuscleUseCase {
-  constructor(private readonly muscles: MusclesCommandRepository) {}
+  constructor(private readonly muscles: MusclesCommandPort) {}
 
   async execute(
     input: CreateMuscleInput,

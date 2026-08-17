@@ -1,11 +1,11 @@
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import type { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
+import type { TrainingProgramsCommandPort } from '../../ports/training-programs-command.port';
 import { UpdateTrainingProgramUseCase } from './update-training-program.use-case';
 
 describe('UpdateTrainingProgramUseCase', () => {
   const findOwnedPrivateBySlug = jest.fn();
   const update = jest.fn();
-  const repository: TrainingProgramsCommandRepository = {
+  const repository: TrainingProgramsCommandPort = {
     create: jest.fn(),
     findOwnedPrivateBySlug,
     update,

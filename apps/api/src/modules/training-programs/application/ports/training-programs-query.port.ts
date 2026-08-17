@@ -7,7 +7,7 @@ import type {
   TrainingProgramListItem,
 } from '../models/list-training-programs.model';
 
-export abstract class TrainingProgramsQueryRepository {
+export abstract class TrainingProgramsQueryPort {
   abstract findAll(
     query: ListTrainingProgramsQuery,
   ): Promise<TrainingProgramListItem[]>;

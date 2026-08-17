@@ -273,7 +273,7 @@ apps/api/src/modules/training-programs/
       training-program.models.ts
   infrastructure/
     prisma/
-      prisma-training-programs.repository.ts
+      prisma-training-programs.adapter.ts
       prisma-training-program.mapper.ts
   presentation/
     http/
@@ -322,13 +322,13 @@ The implemented slice follows these paths:
 ```text
 HTTP controller
   → ListTrainingProgramsUseCase
-  → TrainingProgramsQueryRepository (application read port)
-  → PrismaTrainingProgramsRepository
+  → TrainingProgramsQueryPort (application read port)
+  → PrismaTrainingProgramsAdapter
   → Prisma mapper
   → lightweight list projection
 ```
 
-The create path uses the application `TrainingProgramsCommandRepository` command port. It
+The create path uses the application `TrainingProgramsCommandPort` command port. It
 derives `ownerId` from the principal, always creates a PRIVATE program, resolves
 eligible routine slugs, and inserts the parent and schedule children atomically.
 The aggregate owns schedule invariants and canonical ordering. The GET uses

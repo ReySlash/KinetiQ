@@ -3,12 +3,10 @@ import type {
   GetTrainingProgramQuery,
   TrainingProgramDetail,
 } from '../../models/detail-training-program.model';
-import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
+import type { TrainingProgramsQueryPort } from '../../ports/training-programs-query.port';
 
 export class GetTrainingProgramUseCase {
-  constructor(
-    private readonly trainingPrograms: TrainingProgramsQueryRepository,
-  ) {}
+  constructor(private readonly trainingPrograms: TrainingProgramsQueryPort) {}
 
   async execute(
     input: GetTrainingProgramQuery,

@@ -1,8 +1,8 @@
 import type { UpdateMuscleInput } from '../../models/update-muscle.input';
-import type { MusclesCommandRepository } from '../../ports/muscles-command.port';
+import type { MusclesCommandPort } from '../../ports/muscles-command.port';
 
 export class UpdateMuscleUseCase {
-  constructor(private readonly muscles: MusclesCommandRepository) {}
+  constructor(private readonly muscles: MusclesCommandPort) {}
 
   async execute(
     slug: string,

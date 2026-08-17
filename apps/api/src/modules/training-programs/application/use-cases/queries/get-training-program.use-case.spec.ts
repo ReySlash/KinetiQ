@@ -1,11 +1,11 @@
 import { TrainingProgramNotFoundError } from '../../errors/training-program.errors';
 import type { TrainingProgramDetail } from '../../models/detail-training-program.model';
-import type { TrainingProgramsQueryRepository } from '../../ports/training-programs-query.port';
+import type { TrainingProgramsQueryPort } from '../../ports/training-programs-query.port';
 import { GetTrainingProgramUseCase } from './get-training-program.use-case';
 
 describe('GetTrainingProgramUseCase', () => {
   const findBySlug = jest.fn();
-  const repository: TrainingProgramsQueryRepository = {
+  const repository: TrainingProgramsQueryPort = {
     findAll: jest.fn(),
     findBySlug,
   };

@@ -1,17 +1,17 @@
 import type { CreateTrainingProgramInput } from '../../models/create-training-program.input';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
-import { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
+import { TrainingProgramsCommandPort } from '../../ports/training-programs-command.port';
 
 export class CreateTrainingProgramUseCase {
   constructor(
-    private readonly trainingProgramsRepository: TrainingProgramsCommandRepository,
+    private readonly trainingProgramsPort: TrainingProgramsCommandPort,
   ) {}
 
   async execute(
     attributes: CreateTrainingProgramInput,
   ): Promise<{ slug: string }> {
     const trainingProgram = TrainingProgram.create(attributes);
-    await this.trainingProgramsRepository.create(trainingProgram);
+    await this.trainingProgramsPort.create(trainingProgram);
     return { slug: trainingProgram.slug };
   }
 }

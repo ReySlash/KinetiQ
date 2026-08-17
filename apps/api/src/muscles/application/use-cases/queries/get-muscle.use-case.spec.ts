@@ -1,5 +1,5 @@
 import { MuscleNotFoundError } from '../../errors/muscle.errors';
-import type { MusclesQueriesRepository } from '../../ports/muscles-queries.port';
+import type { MusclesQueriesPort } from '../../ports/muscles-queries.port';
 import { GetMuscleUseCase } from './get-muscle.use-case';
 
 describe('GetMuscleUseCase', () => {
@@ -11,7 +11,7 @@ describe('GetMuscleUseCase', () => {
     const useCase = new GetMuscleUseCase({
       findBySlug,
       list: jest.fn(),
-    } satisfies MusclesQueriesRepository);
+    } satisfies MusclesQueriesPort);
 
     await expect(useCase.execute('biceps-brachii')).resolves.toBe(detail);
     expect(findBySlug).toHaveBeenCalledWith('biceps-brachii');
@@ -21,7 +21,7 @@ describe('GetMuscleUseCase', () => {
     const useCase = new GetMuscleUseCase({
       findBySlug: jest.fn().mockResolvedValue(null),
       list: jest.fn(),
-    } satisfies MusclesQueriesRepository);
+    } satisfies MusclesQueriesPort);
 
     await expect(useCase.execute('missing')).rejects.toBeInstanceOf(
       MuscleNotFoundError,

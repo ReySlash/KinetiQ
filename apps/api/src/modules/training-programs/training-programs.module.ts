@@ -2,56 +2,56 @@ import { Module } from '@nestjs/common';
 import { SharedDatabaseModule } from '../shared/infrastructure/database/shared-database.module';
 import { ListTrainingProgramsUseCase } from './application/use-cases/queries/list-training-programs.use-case';
 import { GetTrainingProgramUseCase } from './application/use-cases/queries/get-training-program.use-case';
-import { TrainingProgramsCommandRepository } from './application/ports/training-programs-command.port';
-import { PrismaTrainingProgramsRepository } from './infrastructure/prisma/prisma-training-programs.repository';
+import { TrainingProgramsCommandPort } from './application/ports/training-programs-command.port';
+import { PrismaTrainingProgramsAdapter } from './infrastructure/prisma/prisma-training-programs.adapter';
 import { TrainingProgramsController } from './presentation/training-programs.controller';
 import { CreateTrainingProgramUseCase } from './application/use-cases/commands/create-training-programs.use-case';
 import { UpdateTrainingProgramUseCase } from './application/use-cases/commands/update-training-program.use-case';
 import { DeleteTrainingProgramUseCase } from './application/use-cases/commands/delete-training-program.use-case';
-import { TrainingProgramsQueryRepository } from './application/ports/training-programs-query.port';
+import { TrainingProgramsQueryPort } from './application/ports/training-programs-query.port';
 
 @Module({
   imports: [SharedDatabaseModule],
   controllers: [TrainingProgramsController],
   providers: [
-    PrismaTrainingProgramsRepository,
+    PrismaTrainingProgramsAdapter,
     {
-      provide: TrainingProgramsCommandRepository,
-      useExisting: PrismaTrainingProgramsRepository,
+      provide: TrainingProgramsCommandPort,
+      useExisting: PrismaTrainingProgramsAdapter,
     },
     {
-      provide: TrainingProgramsQueryRepository,
-      useExisting: PrismaTrainingProgramsRepository,
+      provide: TrainingProgramsQueryPort,
+      useExisting: PrismaTrainingProgramsAdapter,
     },
     {
       provide: ListTrainingProgramsUseCase,
-      inject: [TrainingProgramsQueryRepository],
-      useFactory: (repository: TrainingProgramsQueryRepository) =>
-        new ListTrainingProgramsUseCase(repository),
+      inject: [TrainingProgramsQueryPort],
+      useFactory: (port: TrainingProgramsQueryPort) =>
+        new ListTrainingProgramsUseCase(port),
     },
     {
       provide: UpdateTrainingProgramUseCase,
-      inject: [TrainingProgramsCommandRepository],
-      useFactory: (repository: TrainingProgramsCommandRepository) =>
-        new UpdateTrainingProgramUseCase(repository),
+      inject: [TrainingProgramsCommandPort],
+      useFactory: (port: TrainingProgramsCommandPort) =>
+        new UpdateTrainingProgramUseCase(port),
     },
     {
       provide: DeleteTrainingProgramUseCase,
-      inject: [TrainingProgramsCommandRepository],
-      useFactory: (repository: TrainingProgramsCommandRepository) =>
-        new DeleteTrainingProgramUseCase(repository),
+      inject: [TrainingProgramsCommandPort],
+      useFactory: (port: TrainingProgramsCommandPort) =>
+        new DeleteTrainingProgramUseCase(port),
     },
     {
       provide: GetTrainingProgramUseCase,
-      inject: [TrainingProgramsQueryRepository],
-      useFactory: (repository: TrainingProgramsQueryRepository) =>
-        new GetTrainingProgramUseCase(repository),
+      inject: [TrainingProgramsQueryPort],
+      useFactory: (port: TrainingProgramsQueryPort) =>
+        new GetTrainingProgramUseCase(port),
     },
     {
       provide: CreateTrainingProgramUseCase,
-      inject: [TrainingProgramsCommandRepository],
-      useFactory: (repository: TrainingProgramsCommandRepository) =>
-        new CreateTrainingProgramUseCase(repository),
+      inject: [TrainingProgramsCommandPort],
+      useFactory: (port: TrainingProgramsCommandPort) =>
+        new CreateTrainingProgramUseCase(port),
     },
   ],
 })

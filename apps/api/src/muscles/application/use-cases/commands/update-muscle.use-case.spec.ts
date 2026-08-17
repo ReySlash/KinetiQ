@@ -1,4 +1,4 @@
-import type { MusclesCommandRepository } from '../../ports/muscles-command.port';
+import type { MusclesCommandPort } from '../../ports/muscles-command.port';
 import { UpdateMuscleUseCase } from './update-muscle.use-case';
 
 describe('UpdateMuscleUseCase', () => {
@@ -8,7 +8,7 @@ describe('UpdateMuscleUseCase', () => {
       create: jest.fn(),
       updateBySlug,
       deactivateById: jest.fn(),
-    } satisfies MusclesCommandRepository);
+    } satisfies MusclesCommandPort);
 
     await expect(
       useCase.execute('biceps-brachii', { name: 'Biceps' }),

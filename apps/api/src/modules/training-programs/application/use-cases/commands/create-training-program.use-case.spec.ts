@@ -1,12 +1,12 @@
 import type { CreateTrainingProgramInput } from '../../models/create-training-program.input';
-import type { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
+import type { TrainingProgramsCommandPort } from '../../ports/training-programs-command.port';
 import { CreateTrainingProgramUseCase } from './create-training-programs.use-case';
 import { TrainingProgram } from '../../../domain/entities/training-program.entity';
 
 describe('CreateTrainingProgramUseCase', () => {
   it('creates a private program for the supplied owner', async () => {
     let persisted: TrainingProgram | null = null;
-    const repository: TrainingProgramsCommandRepository = {
+    const repository: TrainingProgramsCommandPort = {
       create: (program) => {
         persisted = program;
         return Promise.resolve();

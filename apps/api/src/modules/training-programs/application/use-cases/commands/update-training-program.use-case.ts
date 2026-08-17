@@ -1,11 +1,9 @@
 import { TrainingProgramNotFoundError } from '../../errors/training-program.errors';
 import type { UpdateTrainingProgramInput } from '../../models/update-training-program.input';
-import { TrainingProgramsCommandRepository } from '../../ports/training-programs-command.port';
+import { TrainingProgramsCommandPort } from '../../ports/training-programs-command.port';
 
 export class UpdateTrainingProgramUseCase {
-  constructor(
-    private readonly trainingPrograms: TrainingProgramsCommandRepository,
-  ) {}
+  constructor(private readonly trainingPrograms: TrainingProgramsCommandPort) {}
 
   async execute(input: UpdateTrainingProgramInput): Promise<{ slug: string }> {
     const existing = await this.trainingPrograms.findOwnedPrivateBySlug(
