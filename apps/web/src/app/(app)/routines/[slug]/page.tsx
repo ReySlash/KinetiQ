@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import StyledLink from "@/components/styled-link";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { PageHeader } from "@/components/page-header";
 import {
   Card,
   CardContent,
@@ -61,13 +62,16 @@ export default async function RoutineDetailsPage({
 
   return (
     <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 md:px-2 md:pb-2 md:pt-0">
-      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-        <SidebarTrigger className="md:hidden" />
-        <div>
-          <p className="text-xs text-muted-foreground">Routines</p>
-          <h1 className="text-lg font-bold leading-none">{routine.name}</h1>
-        </div>
-      </header>
+      <PageHeader subtitle="Reusable workout template details.">
+        <Link
+          className="text-lg leading-none font-bold transition-colors duration-200 not-hover:text-muted-foreground"
+          href="/routines"
+        >
+          Routines
+        </Link>
+        <span className="text-lg leading-none text-muted-foreground">{" > "}</span>
+        <h1 className="text-lg font-bold leading-none">{routine.name}</h1>
+      </PageHeader>
       <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl">
         <div className="flex flex-col gap-2">
           <Card className="border border-border/70">

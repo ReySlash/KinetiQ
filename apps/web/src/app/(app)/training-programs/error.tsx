@@ -21,15 +21,15 @@ export default function Error({
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border/60 bg-background/80 px-2 backdrop-blur-xl">
         <SidebarTrigger className="md:hidden" />
         <div>
-          <h1 className="text-lg font-bold leading-none">Routines</h1>
+          <h1 className="text-lg font-bold leading-none">Training Programs</h1>
           <h2 className="text-xs text-muted-foreground">
-            Reusable workout templates for your training.
+            Build consistent training across multiple weeks.
           </h2>
         </div>
       </header>
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 rounded-2xl border border-border/70 bg-card/80 shadow-sm">
-        <div className="text-center">
-          <h2 className="font-semibold">Routines are unavailable</h2>
+      <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-border/70 bg-card/80 p-6 text-center shadow-sm">
+        <div>
+          <h2 className="font-semibold">Training programs are unavailable</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             The API or database may be offline. Try again when the service is running.
           </p>
