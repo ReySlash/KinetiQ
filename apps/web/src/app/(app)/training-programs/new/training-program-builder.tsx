@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useState } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "@/components/page-header";
@@ -26,14 +27,16 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   createTrainingProgram,
   updateTrainingProgram,
@@ -296,34 +299,11 @@ export function TrainingProgramBuilder({
                           control={form.control}
                           name={`schedule.${index}.routineSlug`}
                           render={({ field: controllerField }) => (
-                            <Select
-                              value={controllerField.value || null}
-                              onValueChange={(value) =>
-                                controllerField.onChange(value ?? "")
-                              }
-                            >
-                              <SelectTrigger
-                                id={`routine-${field.id}`}
-                                className="w-full"
-                              >
-                                <SelectValue placeholder="Select a routine" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {routines.map((routine) => (
-                                  <SelectItem
-                                    key={routine.slug}
-                                    value={routine.slug}
-                                  >
-                                    {routine.name}{" "}
-                                    <span className="text-xs text-muted-foreground">
-                                      {routine.visibility === "GLOBAL"
-                                        ? "Global"
-                                        : "Private"}
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <RoutinePicker
+                              routines={routines}
+                              value={controllerField.value}
+                              onChange={controllerField.onChange}
+                            />
                           )}
                         />
                         {form.formState.errors.schedule?.[index]
@@ -435,5 +415,113 @@ export function TrainingProgramBuilder({
         </form>
       </section>
     </main>
+  );
+}
+
+type RoutinePickerProps = {
+  routines: RoutineListItem[];
+  value: string;
+  onChange: (value: string) => void;
+};
+
+function RoutinePicker({ routines, value, onChange }: RoutinePickerProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const selectedRoutine = routines.find((routine) => routine.slug === value);
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) setSearch("");
+  }
+
+  function renderRoutineList(scope: "all" | "global" | "my") {
+    const normalizedSearch = search.trim().toLowerCase();
+    const filteredRoutines = routines.filter((routine) => {
+      const matchesScope =
+        scope === "all" ||
+        (scope === "global" && routine.visibility === "GLOBAL") ||
+        (scope === "my" && routine.visibility === "PRIVATE");
+      const matchesSearch =
+        !normalizedSearch ||
+        routine.name.toLowerCase().includes(normalizedSearch) ||
+        routine.description?.toLowerCase().includes(normalizedSearch);
+      return matchesScope && matchesSearch;
+    });
+
+    if (filteredRoutines.length === 0) {
+      return (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          No routines match your search.
+        </p>
+      );
+    }
+
+    return (
+      <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+        {filteredRoutines.map((routine) => (
+          <button
+            key={routine.slug}
+            type="button"
+            className="flex w-full items-start justify-between gap-3 rounded-xl border border-border/70 bg-background/30 p-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/50"
+            onClick={() => {
+              onChange(routine.slug);
+              setOpen(false);
+              setSearch("");
+            }}
+          >
+            <span className="min-w-0">
+              <span className="block truncate font-medium">{routine.name}</span>
+              <span className="mt-1 block line-clamp-2 text-xs text-muted-foreground">
+                {routine.description || "No description yet."}
+              </span>
+              <span className="mt-2 block text-xs text-muted-foreground">
+                {routine.exerciseCount} {routine.exerciseCount === 1 ? "exercise" : "exercises"}
+                {" · "}
+                {routine.visibility === "GLOBAL" ? "Global" : "Private"}
+              </span>
+            </span>
+            {routine.slug === value && <Check className="mt-0.5 size-4 shrink-0 text-primary" />}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger
+        render={<Button type="button" variant="outline" className="w-full justify-start" />}
+      >
+        {selectedRoutine ? selectedRoutine.name : "Choose a routine"}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Choose a routine</DialogTitle>
+          <DialogDescription>
+            Search your routines and global templates, then assign one to this training day.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search routines by name or description"
+            className="pl-9"
+            aria-label="Search routines"
+          />
+        </div>
+        <Tabs defaultValue="all">
+          <TabsList aria-label="Routine scope" className="w-full">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="global">Global</TabsTrigger>
+            <TabsTrigger value="my">My routines</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all">{renderRoutineList("all")}</TabsContent>
+          <TabsContent value="global">{renderRoutineList("global")}</TabsContent>
+          <TabsContent value="my">{renderRoutineList("my")}</TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }
