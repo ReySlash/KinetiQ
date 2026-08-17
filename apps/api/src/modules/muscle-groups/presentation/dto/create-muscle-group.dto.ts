@@ -8,7 +8,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import type { BodyRegion } from '../../../../generated/prisma/enums';
+import type { BodyRegion } from '../../../../../generated/prisma/enums';
 
 const bodyRegionValues = [
   'UPPER_BODY',

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../modules/shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import { MuscleGroupQueryError } from '../../application/errors/muscle-group.errors';
 import type { MuscleGroupDetail } from '../../application/models/detail-muscle-group.models';
 import type { MuscleGroupListItem } from '../../application/models/list-muscle-groups.models';

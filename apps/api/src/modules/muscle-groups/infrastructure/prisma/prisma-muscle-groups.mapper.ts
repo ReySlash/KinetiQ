@@ -1,4 +1,4 @@
-import { Prisma } from '../../../../generated/prisma/client';
+import { Prisma } from '../../../../../generated/prisma/client';
 import type { MuscleGroupDetail } from '../../application/models/detail-muscle-group.models';
 import type { MuscleGroupListItem } from '../../application/models/list-muscle-groups.models';
 

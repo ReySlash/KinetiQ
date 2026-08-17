@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
+import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { MuscleGroupValidationError } from '../errors/muscle-group.errors';
 
 export class MuscleGroupSlug extends ValueObject<string> {

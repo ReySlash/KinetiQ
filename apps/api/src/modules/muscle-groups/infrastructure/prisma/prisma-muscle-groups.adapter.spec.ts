@@ -1,12 +1,12 @@
 jest.mock(
-  '../../../modules/shared/infrastructure/database/prisma/prisma.service',
+  '../../../shared/infrastructure/database/prisma/prisma.service',
   () => ({
     PrismaService: class PrismaService {},
   }),
 );
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../modules/shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import { MuscleGroupQueryError } from '../../application/errors/muscle-group.errors';
 import { PrismaMuscleGroupsAdapter } from './prisma-muscle-groups.adapter';
 import {
