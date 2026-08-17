@@ -6,6 +6,18 @@ export class TrainingProgramApiError extends Error {
   }
 }
 
+export type TrainingProgramCreateInput = {
+  name: string;
+  description?: string | null;
+  durationWeeks: number;
+  schedule: {
+    routineSlug: string;
+    weekNumber: number;
+    dayNumber: number;
+    notes?: string | null;
+  }[];
+};
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiUrl}/api/${path}`, {
     ...options,
@@ -23,6 +35,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   return payload as T;
+}
+
+export function createTrainingProgram(input: TrainingProgramCreateInput) {
+  return request<{ message: string; slug: string }>("training-programs", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export function deleteTrainingProgram(slug: string) {
