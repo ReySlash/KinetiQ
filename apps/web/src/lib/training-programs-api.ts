@@ -44,6 +44,16 @@ export function createTrainingProgram(input: TrainingProgramCreateInput) {
   });
 }
 
+export function updateTrainingProgram(
+  slug: string,
+  input: TrainingProgramCreateInput,
+) {
+  return request<{ message: string; slug: string }>(`training-programs/${slug}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
 export function deleteTrainingProgram(slug: string) {
   return request<{ message: string; slug: string }>(`training-programs/${slug}`, {
     method: "DELETE",
