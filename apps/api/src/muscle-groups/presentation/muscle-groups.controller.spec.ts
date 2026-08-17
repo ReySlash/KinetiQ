@@ -1,29 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-jest.mock(
-  '../modules/shared/infrastructure/database/prisma/prisma.service',
-  () => ({
-    PrismaService: class PrismaService {},
-  }),
-);
-
+import { GetMuscleGroupUseCase } from '../application/use-cases/queries/get-muscle-group.use-case';
+import { ListMuscleGroupsUseCase } from '../application/use-cases/queries/list-muscle-groups.use-case';
 import { MuscleGroupsController } from './muscle-groups.controller';
-import { MuscleGroupsService } from './muscle-groups.service';
 
 describe('MuscleGroupsController', () => {
   let controller: MuscleGroupsController;
-  const muscleGroupsServiceMock = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-  };
+  const findAll = jest.fn();
+  const findOne = jest.fn();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MuscleGroupsController],
       providers: [
-        {
-          provide: MuscleGroupsService,
-          useValue: muscleGroupsServiceMock,
-        },
+        { provide: ListMuscleGroupsUseCase, useValue: { execute: findAll } },
+        { provide: GetMuscleGroupUseCase, useValue: { execute: findOne } },
       ],
     }).compile();
 
@@ -35,7 +25,7 @@ describe('MuscleGroupsController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('findAll should delegate to the service', async () => {
+  it('findAll should delegate to the list use case', async () => {
     const muscleGroups = [
       {
         id: 'group-1',
@@ -45,13 +35,13 @@ describe('MuscleGroupsController', () => {
         sortOrder: 1,
       },
     ];
-    muscleGroupsServiceMock.findAll.mockResolvedValue(muscleGroups);
+    findAll.mockResolvedValue(muscleGroups);
 
     await expect(controller.findAll()).resolves.toEqual(muscleGroups);
-    expect(muscleGroupsServiceMock.findAll).toHaveBeenCalledTimes(1);
+    expect(findAll).toHaveBeenCalledTimes(1);
   });
 
-  it('findOne should delegate to the service with the slug parameter', async () => {
+  it('findOne should delegate to the get use case with the slug parameter', async () => {
     const muscleGroup = {
       id: 'group-1',
       name: 'Upper body',
@@ -59,11 +49,11 @@ describe('MuscleGroupsController', () => {
       description: 'Upper body muscle group',
       muscles: [],
     };
-    muscleGroupsServiceMock.findOne.mockResolvedValue(muscleGroup);
+    findOne.mockResolvedValue(muscleGroup);
 
     await expect(controller.findOne('upper-body')).resolves.toEqual(
       muscleGroup,
     );
-    expect(muscleGroupsServiceMock.findOne).toHaveBeenCalledWith('upper-body');
+    expect(findOne).toHaveBeenCalledWith('upper-body');
   });
 });
