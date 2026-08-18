@@ -52,7 +52,7 @@ export type CreateExerciseAttributes = {
   description: string;
   instructions: string;
   commonMistakes?: string | null;
-  movementPatternId?: string | null;
+  movementPatternId: string;
   forceType: ForceType;
   kineticChain: KineticChain;
   isCompound: boolean;
@@ -99,7 +99,7 @@ export type PrimitiveExercise = {
   description: string;
   instructions: string;
   commonMistakes: string | null;
-  movementPatternId: string | null;
+  movementPatternId: string;
   forceType: ForceType;
   kineticChain: KineticChain;
   isCompound: boolean;

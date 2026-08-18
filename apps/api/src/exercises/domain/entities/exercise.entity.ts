@@ -160,7 +160,7 @@ export class Exercise extends Entity<UniqueId> {
   public readonly description: string;
   public readonly instructions: string;
   public readonly commonMistakes: string | null;
-  public readonly movementPatternId: string | null;
+  public readonly movementPatternId: string;
   public readonly forceType: PrimitiveExercise['forceType'];
   public readonly kineticChain: PrimitiveExercise['kineticChain'];
   public readonly isCompound: boolean;
@@ -230,11 +230,8 @@ export class Exercise extends Entity<UniqueId> {
       commonMistakes: optionalText(attributes.commonMistakes, (value) =>
         ExerciseCommonMistakes.create(value),
       ),
-      movementPatternId:
-        attributes.movementPatternId === undefined ||
-        attributes.movementPatternId === null
-          ? null
-          : ExistingUuid.create(attributes.movementPatternId).value,
+      movementPatternId: ExistingUuid.create(attributes.movementPatternId)
+        .value,
       forceType: ExerciseForceType.create(attributes.forceType).value,
       kineticChain: ExerciseKineticChain.create(attributes.kineticChain).value,
       isCompound: attributes.isCompound,
@@ -303,9 +300,7 @@ export class Exercise extends Entity<UniqueId> {
       movementPatternId:
         attributes.movementPatternId === undefined
           ? this.movementPatternId
-          : attributes.movementPatternId === null
-            ? null
-            : ExistingUuid.create(attributes.movementPatternId).value,
+          : ExistingUuid.create(attributes.movementPatternId).value,
       forceType:
         attributes.forceType === undefined
           ? this.forceType
