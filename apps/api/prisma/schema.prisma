@@ -219,7 +219,7 @@ model Exercise {
   description         String
   instructions        String
   commonMistakes      String?
-  movementPatternId   String?                    @db.Uuid
+  movementPatternId   String                     @db.Uuid
   forceType           ForceType // ENUM (e.g., PUSH, PULL)
   kineticChain        KineticChain // ENUM (e.g., open, closed, mixed)
   isCompound          Boolean
@@ -234,7 +234,7 @@ model Exercise {
   archivedAt          DateTime?                  @db.Timestamptz(3)
   createdAt           DateTime                   @default(now()) @db.Timestamptz(3)
   updatedAt           DateTime                   @updatedAt @db.Timestamptz(3)
-  movementPattern     MovementPattern?           @relation(fields: [movementPatternId], references: [id], onDelete: Restrict)
+  movementPattern     MovementPattern            @relation(fields: [movementPatternId], references: [id], onDelete: Restrict)
   muscles             ExerciseMuscle[] // MODEL (Many-to-Many)
   capabilities        ExerciseCapabilityProfile? // MODEL (One-to-One)
   demands             ExerciseDemandProfile? // MODEL (One-to-One)
