@@ -23,7 +23,7 @@ import {
   Laterality,
   MuscleRole,
   SkillLevel,
-} from '../../../generated/prisma/client';
+} from '../../../../../generated/prisma/client';
 
 export class ExerciseMuscleAssignmentDto {
   @IsUUID()

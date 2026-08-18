@@ -1,6 +1,6 @@
-import { Entity } from '../../../modules/shared/domain/entity';
-import { ExistingUuid } from '../../../modules/shared/domain/value-objects/existing-uuid.vo';
-import { UniqueId } from '../../../modules/shared/domain/value-objects/unique-id.vo';
+import { Entity } from '../../../shared/domain/entity';
+import { ExistingUuid } from '../../../shared/domain/value-objects/existing-uuid.vo';
+import { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
 import {
   ExerciseBodyPosition,
   ExerciseContractionMode,

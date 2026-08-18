@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
+import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { ExerciseValidationError } from '../errors/exercise.errors';
 import type {
   BodyPosition,

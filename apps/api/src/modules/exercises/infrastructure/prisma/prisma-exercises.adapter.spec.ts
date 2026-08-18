@@ -1,12 +1,12 @@
 jest.mock(
-  '../../../modules/shared/infrastructure/database/prisma/prisma.service',
+  '../../../shared/infrastructure/database/prisma/prisma.service',
   () => ({ PrismaService: class PrismaService {} }),
 );
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { ExercisesCommandPort } from '../../application/ports/exercises-command.port';
 import type { ExercisesQueriesPort } from '../../application/ports/exercises-queries.port';
-import { PrismaService } from '../../../modules/shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import { PrismaExercisesAdapter } from './prisma-exercises.adapter';
 
 describe('PrismaExercisesAdapter', () => {

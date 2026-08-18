@@ -13,7 +13,7 @@ import {
   ForceType,
   Laterality,
   SkillLevel,
-} from '../../../generated/prisma/client';
+} from '../../../../../generated/prisma/client';
 
 function trimStringValue({ value }: TransformFnParams): unknown {
   if (typeof value === 'string') {

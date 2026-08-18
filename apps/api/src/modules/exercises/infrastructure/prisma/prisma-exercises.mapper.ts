@@ -1,4 +1,4 @@
-import { Prisma } from '../../../../generated/prisma/client';
+import { Prisma } from '../../../../../generated/prisma/client';
 import type { ExerciseDetail } from '../../application/models/detail-exercise.models';
 import type {
   ExerciseListItem,
