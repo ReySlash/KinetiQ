@@ -87,7 +87,7 @@ Flaky tests are defects: quarantine only with an owner, issue, and expiry date. 
 
 ## Performance and security tests
 
-Before MVP, smoke test catalog pagination/search with a realistic seeded count, upload limits, auth rate limits, and basic dependency/container scanning. Formal load testing is not required, but define latency budgets and capture representative query plans for complex filters.
+Before MVP, smoke test catalog pagination/search with a realistic seeded count, auth rate limits, and basic dependency/container scanning. Image upload limits and provider behavior belong to the post-MVP Cloudinary media slice. Formal load testing is not required, but define latency budgets and capture representative query plans for complex filters.
 
 ## Definition of done
 

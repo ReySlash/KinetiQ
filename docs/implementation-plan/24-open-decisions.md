@@ -16,13 +16,13 @@ Record choices that materially affect implementation. Resolve a decision just be
 | Equipment | Seeded reference table + explicit join | Multi-value and likely evolving metadata |
 | Movement pattern | Seeded reference table | Editorial taxonomy may evolve |
 | Stable behavior classifications | Prisma enums | Code-governed, small vocabularies |
-| Exercise media | Inline one-thumbnail metadata for MVP, storage abstraction; table later | Lowest complexity with a clean migration path |
+| Exercise media | Optional Cloudinary-served URLs in MVP; upload/management post-MVP | Avoids binary upload scope while generated assets are prepared |
 | Sport transfer | No universal score; sport mapping deferred | Context dependent and not MVP value |
 | Routine ordering | Dense integers, unique within routine | Simple and sufficient for small templates |
 | Routine duplicate exercise | Allowed through surrogate `RoutineExercise.id` | Same movement may appear in separate blocks |
 | Ownership | Constrain database queries by ID and authenticated owner ID | Prevent IDOR and existence leaks |
 | Analytics persistence | Raw history stored; derived/heuristic metrics computed initially | Explainable and avoids stale aggregates |
-| Production media | Object storage, not PostgreSQL/VPS filesystem | Independent durability and scalable serving |
+| Production media | Cloudinary for approved generated assets; upload architecture deferred | Provider handles image delivery while MVP avoids upload workflows |
 | Muscle involvement scale | Store and validate integers 0–5; warn on usually-unnecessary zero assignments | Matches the project-wide required scale while preserving explicit “negligible” meaning |
 | Training Programs backend architecture | Pilot lean Clean Architecture/DDD layers inside one vertical feature module; leave existing modules unchanged | Tests architectural value on a rule-bearing aggregate without authorizing a repository-wide rewrite |
 
@@ -88,21 +88,21 @@ Define the exact body regions, muscle groups/children, movement patterns, equipm
 
 **Recommendation:** start with normalized `ILIKE`, measure with realistic catalog data, then add `pg_trgm` if partial/fuzzy search needs it. No external search in MVP.
 
-## Decisions required before R5
+## Decisions required before post-MVP media work
 
-### Production object storage provider
+### Cloudinary asset topology
 
-Compare Oracle Object Storage, Cloudflare R2, Backblaze B2, and any regional S3-compatible option on Qatar-region latency, egress, availability, lifecycle/versioning, IAM, and cost. Recommendation: managed S3-compatible storage with separate environment buckets and unique public keys.
+Decide Cloudinary cloud/project separation by environment, asset folders, naming conventions, delivery domain, transformation policy, and retention behavior.
 
 ### Thumbnail presentation policy
 
-Decide 1:1 versus 4:3 source/crop, WebP/AVIF browser support, public asset domain, and transformation library resource limits. Recommendation: 640×640 square WebP as the required MVP variant with a 400×400 minimum source and curator-approved crop behavior.
+Decide 1:1 versus 4:3 source/crop, Cloudinary transformation parameters, browser formats, public asset domain, and cache invalidation. This is post-MVP; MVP uses approved URLs as provided.
 
-### Upload architecture
+### Upload architecture (post-MVP)
 
-**Options:** multipart through NestJS; signed direct upload.
+**Options:** Cloudinary signed upload, server-mediated upload, or an external editorial generation pipeline that only provides approved URLs.
 
-**Recommendation:** multipart through NestJS for small admin-only MVP uploads with strict 5 MiB bounds. Move to signed/finalized uploads for user or video scale.
+**Recommendation:** defer until the image-generation workflow is complete; do not add upload endpoints to MVP.
 
 ## Decisions required before R9
 

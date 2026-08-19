@@ -51,7 +51,7 @@ PostgreSQL does not automatically create useful indexes for every foreign key; a
 
 ## Transactions and concurrency
 
-Use Prisma transactions for aggregate writes: exercise plus joins/profiles, routine plus ordered children, session launch plus snapshots. Keep transactions short; upload object bytes before the database attachment transaction. Translate known unique/foreign/check violations to stable 409/422 API errors.
+Use Prisma transactions for aggregate writes: exercise plus joins/profiles, routine plus ordered children, session launch plus snapshots. Keep transactions short. Image uploads are post-MVP and must not be introduced into MVP aggregate transactions; if a later Cloudinary attachment workflow is approved, define its consistency and cleanup behavior separately. Translate known unique/foreign/check violations to stable 409/422 API errors.
 
 Dense routine ordering can temporarily violate uniqueness during reorder. Use a delete/recreate strategy for child rows in a transaction, or a two-phase temporary offset update before canonical positions. Recommendation for small MVP arrays: validate references, delete existing children, bulk create desired children with stable/new IDs as appropriate in one transaction. If preserving child IDs matters, use offset updates.
 

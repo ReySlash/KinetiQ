@@ -49,8 +49,8 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 ### Admin exercise management
 
 - list with active/archive filters
-- create/edit form with sections: Basic information, Media, Classification, Muscle involvement, Capabilities, Demand and fatigue
-- `MuscleInvolvementEditor`, score controls/legend, equipment multi-select, image upload, error summary, unsaved-change dialog
+- create/edit form with sections: Basic information, Classification, Muscle involvement, Capabilities, and Demand and fatigue; optional approved Cloudinary image display is read-only in MVP
+- `MuscleInvolvementEditor`, score controls/legend, equipment multi-select, optional image preview, error summary, unsaved-change dialog
 - Athletic qualities section is not rendered in MVP.
 
 ### Authenticated routines
@@ -78,7 +78,7 @@ Submit buttons disable duplicate submission while preserving keyboard focus. On 
 - Drag-and-drop reorder includes move up/down buttons and announcements.
 - Rating color is supplementary to number and label.
 - Dialog focus is trapped/restored; error summaries link/focus fields.
-- Images have meaningful alt text; decorative placeholders use empty alt where appropriate.
+- Approved Cloudinary images have meaningful alt text; decorative placeholders use empty alt where appropriate. Upload controls are post-MVP.
 - Tables adapt to cards or horizontal scrolling without hiding actions.
 - Target WCAG 2.2 AA for MVP flows.
 
@@ -101,4 +101,3 @@ Create shell/design tokens/API client/query provider first; implement each UI on
 ## Future extensions and open questions
 
 PWA/offline sessions, localization, dark mode, advanced charts, component visual regression, and a dedicated design system package are later. Decide whether public pages use server prefetch/dehydration and which OpenAPI client generator to use during the foundation spike.
-

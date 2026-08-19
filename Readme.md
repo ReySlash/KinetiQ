@@ -38,7 +38,7 @@ The first production MVP includes:
 
 - Seeded muscle reference library
 - Exercise library with detailed exercise records
-- Exercise thumbnails and image metadata
+- Optional Cloudinary-served exercise and muscle image URLs when approved assets are available
 - Exercise-to-muscle relationships with role and involvement score
 - Exercise capability and demand profiles
 - Exercise filtering and search
@@ -50,7 +50,7 @@ The first production MVP includes:
 - Backend and frontend tests
 - Docker-based deployment
 
-The MVP does not include workout-performance tracking, advanced analytics, AI, nutrition, payments, coach organizations, or social features.
+The MVP does not include image uploads or image-management workflows, workout-performance tracking, advanced analytics, AI, nutrition, payments, coach organizations, or social features.
 
 ## Implementation Plan
 
@@ -83,7 +83,7 @@ Exercise ratings are editorial classifications, not precise scientific measureme
 
 The repository has a working foundation and a partial reference-library implementation. PostgreSQL runs through Docker Compose for local development; the API has Prisma migrations, validated configuration, Better Auth wiring, public muscle/exercise endpoints, and a database readiness endpoint; the web app has responsive reference-library pages and the shared application shell.
 
-The next product slice is authentication UX and user-owned routines. Training programs, workout sessions, analytics, progression, recovery, and coach workflows remain deferred according to the implementation plan.
+The next product slice is MVP hardening: complete authentication/admin acceptance, ownership/security verification, accessibility, observability, backups, and deployment readiness. Image uploads, training programs, workout sessions, analytics, progression, recovery, and coach workflows remain deferred according to the implementation plan.
 
 ### Local verification
 

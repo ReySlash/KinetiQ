@@ -6,7 +6,7 @@ Create a curated, searchable source of exercise identity and stable characterist
 
 ## Scope
 
-The MVP includes global admin-managed exercises, identity text, instructions, common mistakes, stable classifications, equipment and movement patterns, one thumbnail, composed muscle/capability/demand editing, public list/detail pages, pagination, search, filters, and archive-safe deletion behavior.
+The MVP includes global admin-managed exercises, identity text, instructions, common mistakes, stable classifications, equipment and movement patterns, optional Cloudinary-served image URLs when approved assets exist, composed muscle/capability/demand editing, public list/detail pages, pagination, search, filters, and archive-safe deletion behavior. Image uploads are post-MVP.
 
 ## Out of scope
 
@@ -52,7 +52,7 @@ model Exercise {
 }
 ```
 
-Only the thumbnail fields are migrated for the MVP. When a full image is introduced, use the parallel names `imageUrl`, `imageStorageKey`, and its own alt/presentation metadata, or migrate both assets into `ExerciseMedia` if multiple media has arrived. Do not add empty future columns merely to reserve them.
+The optional image URL/metadata fields support approved Cloudinary assets but do not imply an MVP upload workflow. When a full image or additional media is introduced, use parallel fields or migrate both assets into `ExerciseMedia` if multiple media has arrived. Do not add empty future columns merely to reserve them.
 
 Use joins `ExerciseEquipment(exerciseId, equipmentId)` and, when introduced, `ExercisePlane(exerciseId, plane)` because exercises can require multiple equipment items and can be multiplanar. Unique compound keys prevent duplicate assignments.
 
@@ -73,7 +73,7 @@ Avoid ordinary CRUD modules for these values. Maintain reference-table seeds in 
 - Accept structured instruction steps in the DTO as `string[]` if the UI needs ordered steps; store as JSON only if querying individual steps is unnecessary. Recommendation: store Markdown/plain text initially to keep editing simple and sanitize rendering.
 - At least one movement pattern and equipment may be optional for bodyweight/isometric movements only if the taxonomy includes `BODYWEIGHT`/`NONE` explicitly. Prefer explicit equipment rather than null ambiguity.
 - All enum values must be allowlisted by DTO validation; never accept arbitrary strings.
-- An active/published exercise requires complete MVP profiles, at least one primary muscle, and valid thumbnail alt text if a thumbnail exists. Draft status can be added if editorial workflow needs partial saves; MVP recommendation is admin form draft state in the browser, not a database publishing system.
+- An active/published exercise requires complete MVP profiles and at least one primary muscle. If an approved image URL exists, its alt text must be valid; image upload and image-management validation are post-MVP. Draft status can be added if editorial workflow needs partial saves; MVP recommendation is admin form draft state in the browser, not a database publishing system.
 
 ## Relationships and transaction boundary
 
@@ -107,7 +107,7 @@ Large forms use one React Hook Form instance and section-level error summaries. 
 
 ## Authorization
 
-Reads of active exercises are public. Admin role is required for create, update, archive, restore, and upload intents. Authorization is enforced in Nest guards/policies and service entry points; hiding admin routes in Next.js is not security. Later custom exercises require explicit ownership rules and must not silently reuse global admin endpoints.
+Reads of active exercises are public. Admin role is required for create, update, archive, and restore. Image upload/management authorization is post-MVP. Authorization is enforced in Nest guards/policies and service entry points; hiding admin routes in Next.js is not security. Later custom exercises require explicit ownership rules and must not silently reuse global admin endpoints.
 
 ## Testing requirements
 
@@ -128,7 +128,7 @@ Duplicate or renamed exercises, slug changes and stale links, no-equipment movem
 1. Seed equipment and movement patterns; add core exercise schema.
 2. Build identity CRUD, list/search/detail API, and basic UI.
 3. Add muscle assignments, capability/demand profiles, and aggregate transactions.
-4. Add media workflow.
+4. Add Cloudinary asset management after MVP; do not add upload behavior to the MVP creation flow.
 5. Protect writes with Better Auth admin authorization before production.
 6. Add final filters, accessibility, and E2E acceptance flow.
 

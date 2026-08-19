@@ -33,7 +33,7 @@ Muscle ── parent/children
    │
 Exercise ──1:1── CapabilityProfile
    │      └─1:1── DemandProfile
-   │      └─1:N── Media (deferred; inline thumbnail metadata in MVP)
+   │      └─1:N── Media (post-MVP; optional Cloudinary URL references in MVP)
    │
    └─< RoutineExercise (order, sets, reps, RIR, rest, tempo)
           >─ Routine ── owner User
@@ -90,7 +90,7 @@ Materialized aggregates are deferred until query measurements show a need. If ca
 - Creating/updating an exercise with assignments and profiles is one transaction.
 - Creating/updating a routine and its prescription children is one transaction when submitted as a full form.
 - Creating/updating a training program and its relative routine schedule is one transaction when submitted as a full form.
-- Media object upload is not transactionally atomic with PostgreSQL; use a staged/finalized workflow and cleanup states.
+- Media upload is post-MVP. If a staged/finalized Cloudinary workflow is introduced later, keep it separate from PostgreSQL aggregate transactions and define cleanup states explicitly.
 - Recording a completed session should commit the session snapshots and initial sets atomically where practical.
 
 ## Cross-domain authorization

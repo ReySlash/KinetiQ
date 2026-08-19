@@ -47,11 +47,11 @@ Translate the roadmap into small, independently verifiable releases suitable for
 
 **Acceptance:** every active exercise has complete 0–5 profiles; 0 and 5 boundaries work; stability development/demand remain distinct; fatigue caveat is visible; no deferred demand fields appear.
 
-## R5 — Exercise thumbnails
+## R5 — Exercise and muscle media (post-MVP)
 
-**Deliver:** storage interface, local and chosen production adapter, upload/replace/remove, validation/transformation, placeholders, alt text, orphan cleanup/metrics.
+**Deliver:** Cloudinary asset assignment and, if still needed, admin-only upload/replace/remove workflows for generated exercise and muscle images. Add validation, alt text, CDN/cache policy, and lifecycle cleanup.
 
-**Acceptance:** bad/large files fail; database failure leaves prior image intact; no internal path leaks; adapters share contract tests; production object is served safely.
+**Acceptance:** approved Cloudinary assets render safely; missing assets use placeholders; no provider credentials or internal paths leak; post-MVP upload/provider failures preserve prior metadata and cleanup behavior.
 
 ## R6 — Authentication and admin hardening
 
@@ -59,7 +59,7 @@ Translate the roadmap into small, independently verifiable releases suitable for
 
 **Acceptance:** anonymous/user/admin matrix passes through real HTTP sessions; revoked session fails; production cookies/CSRF/origin behavior verified; no insecure admin bypass can start in production.
 
-This work may begin earlier and must be complete before R2–R5 reaches a shared environment.
+This work may begin earlier and must be complete before any shared environment exposes admin mutation routes.
 
 ## R7 — Owned routine basics
 
@@ -92,7 +92,7 @@ This work may begin earlier and must be complete before R2–R5 reaches a shared
 
 ## Explicit non-goals through R9
 
-No workout-performance tracking, training-program calendar, advanced analytics, recommendations, recovery/fatigue check-ins, AI, nutrition, payments, coach organizations, social features, sport-specific transfer, user-created exercises, or multiple media assets.
+No image uploads, image-management workflows, workout-performance tracking, training-program calendar, advanced analytics, recommendations, recovery/fatigue check-ins, AI, nutrition, payments, coach organizations, social features, sport-specific transfer, user-created exercises, or multiple media assets.
 
 ## Recommended first implementation task
 
@@ -109,8 +109,8 @@ At plan creation all releases are `PLANNED`. Update this table when work begins;
 | R2 Exercise identity | Implemented in code; admin/shared-environment security gate remains | R1 |
 | R3 Muscle assignments | Implemented in code; acceptance verification remains | R2 |
 | R4 Profiles | Implemented in code; acceptance verification remains | R3 |
-| R5 Media | Planned | R2, storage decision |
+| R5 Media | Deferred until post-MVP image generation is ready | R2, Cloudinary decisions |
 | R6 Auth/admin hardening | In progress — Better Auth backend wiring exists; web flows and full HTTP authorization matrix remain | R0; gates shared R2–R5 |
-| R7–R8 Routines | Planned | R2, R6 |
+| R7–R8 Routines | Implemented in backend/UI slices; final MVP acceptance and production hardening remain | R2, R6 |
 | R9 Production MVP | Planned | R0–R8 |
 | R10+ Later phases | Deferred | R9 and preceding data layers |

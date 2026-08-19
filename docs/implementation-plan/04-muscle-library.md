@@ -6,7 +6,7 @@ Provide a small, consistent anatomical reference that users can browse and admin
 
 ## Scope
 
-The MVP includes seeded records, broad regions/groups, an optional self-referencing hierarchy, one optional thumbnail, public list/detail endpoints, and list/detail pages. Seed broad groups first and add selected children only where exercise curation benefits.
+The MVP includes seeded records, broad regions/groups, an optional self-referencing hierarchy, optional Cloudinary-served image URLs when approved assets exist, public list/detail endpoints, and list/detail pages. Image uploads and image-management flows are post-MVP. Seed broad groups first and add selected children only where exercise curation benefits.
 
 ## Out of scope
 
@@ -56,7 +56,7 @@ model Muscle {
 - `description`: 1–2,000 characters and educational, not medical advice.
 - `parentId` cannot equal `id`; seed validation must detect longer cycles.
 - A child should normally share a compatible body region with its parent; treat mismatches as seed validation errors.
-- Thumbnail metadata follows [exercise media](10-exercise-media.md); alt text is required when an image exists.
+- Optional image metadata follows [exercise media](10-exercise-media.md); alt text is required when an approved image exists. Uploads are not part of MVP creation flows.
 - Inactive muscles stay resolvable for existing relations but do not appear in new-assignment selectors.
 - Seed identifiers or slugs must be deterministic. Do not use `createMany(skipDuplicates)` alone because it cannot reconcile reviewed updates.
 
@@ -104,7 +104,7 @@ Handle duplicate seed names, a removed parent, deep or cyclic hierarchies, missi
 3. Write seed manifest/upsert and hierarchy validation.
 4. Add read service/controller and OpenAPI contracts.
 5. Add list/detail pages and selector component.
-6. Add media only after the shared storage slice; use placeholders before then.
+6. Use placeholders or approved Cloudinary URLs in MVP; add media management only after the image-generation workflow is ready.
 
 Depends on foundation/database. Exercise–muscle work depends on stable muscle IDs.
 

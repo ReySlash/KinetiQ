@@ -37,7 +37,7 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [07](07-exercise-capabilities.md) | Development potential profile | MVP |
 | [08](08-exercise-demand-and-fatigue.md) | Technical, loading, and recovery demand | MVP |
 | [09](09-athletic-qualities-and-sport-transfer.md) | General qualities and sport-specific relevance | General qualities deferred; sport mapping later |
-| [10](10-exercise-media.md) | Image metadata and storage abstraction | MVP thumbnail slice |
+| [10](10-exercise-media.md) | Cloudinary-served exercise and muscle images | Post-MVP |
 | [11](11-routine-builder.md) | User-owned reusable workout templates | MVP |
 | [12](12-authentication-and-authorization.md) | Better Auth integration and ownership | MVP |
 | [13](13-training-programs.md) | Reusable multi-week programs and relative routine schedules | Post-MVP |
@@ -58,9 +58,9 @@ When documents disagree, the more specific feature document wins. Changes that a
 
 ## First production MVP boundary
 
-The MVP includes seeded, read-only muscle data; admin-managed global exercises; a thumbnail per exercise; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; routine exercise prescriptions; duplication; responsive UI; automated backend/frontend tests; and Docker deployment.
+The MVP includes seeded, read-only muscle data; admin-managed global exercises; optional Cloudinary image URLs when approved assets exist; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; routine exercise prescriptions; duplication; responsive UI; automated backend/frontend tests; and Docker deployment.
 
-The MVP explicitly excludes performed-workout tracking, training-program/calendar scheduling, analytics, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
+The MVP explicitly excludes image uploads and image-management workflows, performed-workout tracking, training-program/calendar scheduling, analytics, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
 
 ## Recommended implementation order
 
@@ -68,10 +68,10 @@ The MVP explicitly excludes performed-workout tracking, training-program/calenda
 2. Add Prisma, migrations, seeded muscles, and read-only muscle API/UI.
 3. Add exercise identity/classification CRUD and library search.
 4. Add transactional muscle assignments, then capability and demand profiles.
-5. Add the storage abstraction and exercise thumbnails.
-6. Integrate Better Auth and protect admin exercise mutations.
-7. Add owned routines and prescriptions, including duplication and ordering.
-8. Harden accessibility, security, observability, backups, and deployment; run the MVP acceptance suite.
+5. Integrate Better Auth and protect admin exercise mutations.
+6. Add owned routines and prescriptions, including duplication and ordering.
+7. Harden accessibility, security, observability, backups, and deployment; run the MVP acceptance suite.
+8. After MVP, add Cloudinary image asset management and upload workflows.
 
 Authentication is integrated after public reference-library slices so early work stays small. Before production data exists, admin mutation endpoints must be protected; no insecure production staging period is acceptable.
 

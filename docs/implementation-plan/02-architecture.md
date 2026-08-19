@@ -142,7 +142,7 @@ Use `.env.example` files without secrets and validate every environment at start
 
 ## Scalability posture
 
-Stateless web/API containers can later scale horizontally if sessions and media are external. CPU-heavy image transformation should eventually move to a background job, but synchronous thumbnail processing is acceptable for small admin-only MVP uploads with strict limits.
+Stateless web/API containers can later scale horizontally if sessions and media are external. CPU-heavy image transformation and Cloudinary asset management are post-MVP concerns; the MVP does not process image uploads.
 
 ## Testing and definition of done
 
