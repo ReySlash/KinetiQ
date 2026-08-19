@@ -69,7 +69,7 @@ export function AddToRoutineDialog({
           ) : routines.data?.length ? (
             routines.data.map((routine) => (
               <RoutineChoice
-                key={routine.id}
+                key={routine.slug}
                 routine={routine}
                 exerciseSlug={exerciseSlug}
               />

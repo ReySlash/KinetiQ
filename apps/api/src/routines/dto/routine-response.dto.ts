@@ -7,9 +7,6 @@ export class RoutineMutationResponseDto {
 }
 
 export class RoutineListItemDto {
-  @ApiProperty({ format: 'uuid' })
-  id!: string;
-
   @ApiProperty({ example: 'upper-body-a' })
   slug!: string;
 
@@ -21,9 +18,6 @@ export class RoutineListItemDto {
 
   @ApiProperty({ enum: RoutineVisibility, enumName: 'RoutineVisibility' })
   visibility!: RoutineVisibility;
-
-  @ApiProperty({ format: 'date-time' })
-  createdAt!: Date;
 
   @ApiProperty({ format: 'date-time' })
   updatedAt!: Date;
@@ -85,9 +79,6 @@ export class RoutineExerciseResponseDto {
 }
 
 export class RoutineDetailDto {
-  @ApiProperty({ format: 'uuid' })
-  id!: string;
-
   @ApiProperty({ example: 'upper-body-a' })
   slug!: string;
 

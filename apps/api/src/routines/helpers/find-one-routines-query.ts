@@ -1,7 +1,6 @@
 import { Prisma } from '../../../generated/prisma/client';
 
 export const routineFindOneSelect = {
-  id: true,
   slug: true,
   name: true,
   description: true,

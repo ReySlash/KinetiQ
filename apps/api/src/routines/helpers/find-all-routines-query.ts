@@ -1,12 +1,10 @@
 import { Prisma } from '../../../generated/prisma/client';
 
 const routineFindAllSelect = {
-  id: true,
   slug: true,
   name: true,
   description: true,
   visibility: true,
-  createdAt: true,
   updatedAt: true,
   _count: {
     select: {

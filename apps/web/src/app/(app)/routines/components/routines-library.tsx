@@ -71,7 +71,7 @@ export function RoutinesLibrary({
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {routines.map((routine) => (
               <Card
-                key={routine.id}
+                key={routine.slug}
                 className="transition-colors hover:border-primary/50"
               >
                 <CardHeader>
