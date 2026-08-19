@@ -9,6 +9,15 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiCookieAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { OptionalAuth } from '@thallesp/nestjs-better-auth';
 import {
   CurrentPrincipal,
@@ -26,6 +35,8 @@ import { toTrainingProgramsHttpException } from './training-programs-exception.m
 import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query.dto';
 
 @Controller('training-programs')
+@ApiTags('training-programs')
+@ApiCookieAuth('better-auth.session_token')
 export class TrainingProgramsController {
   constructor(
     private readonly listTrainingPrograms: ListTrainingProgramsUseCase,
@@ -37,6 +48,17 @@ export class TrainingProgramsController {
 
   @Get()
   @OptionalAuth()
+  @ApiOperation({ summary: 'List owned or global training programs' })
+  @ApiQuery({ name: 'scope', required: false, enum: ['my', 'global'] })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Name or description search',
+  })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiResponse({ status: 200 })
   async findAll(
     @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
     @Query() query: ListTrainingProgramsQueryDto,
@@ -49,6 +71,11 @@ export class TrainingProgramsController {
   }
 
   @Patch(':slug')
+  @ApiOperation({ summary: 'Update an owned training program' })
+  @ApiParam({ name: 'slug', example: 'strength-base-12345678' })
+  @ApiBody({ type: UpdateTrainingProgramDto })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 404, description: 'Training program not found' })
   async update(
     @Param('slug') slug: string,
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
@@ -84,6 +111,10 @@ export class TrainingProgramsController {
 
   @Get(':slug')
   @OptionalAuth()
+  @ApiOperation({ summary: 'Get an owned or global training program' })
+  @ApiParam({ name: 'slug', example: 'strength-base-12345678' })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 404, description: 'Training program not found' })
   async findOne(
     @Param('slug') slug: string,
     @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
@@ -99,6 +130,10 @@ export class TrainingProgramsController {
   }
 
   @Delete(':slug')
+  @ApiOperation({ summary: 'Delete an owned training program' })
+  @ApiParam({ name: 'slug', example: 'strength-base-12345678' })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 404, description: 'Training program not found' })
   async delete(
     @Param('slug') slug: string,
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
@@ -118,6 +153,9 @@ export class TrainingProgramsController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create an owned training program' })
+  @ApiBody({ type: CreateTrainingProgramDto })
+  @ApiResponse({ status: 201 })
   async create(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
     @Body() createTrainingProgramDto: CreateTrainingProgramDto,

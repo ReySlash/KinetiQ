@@ -1,4 +1,12 @@
 import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiCookieAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Roles } from '@thallesp/nestjs-better-auth';
 import { CreateMuscleUseCase } from '../application/use-cases/commands/create-muscle.use-case';
 import { DeactivateMuscleUseCase } from '../application/use-cases/commands/deactivate-muscle.use-case';
@@ -8,6 +16,8 @@ import { UpdateMuscleDto } from './dto/update-muscle.dto';
 import { toMusclesHttpException } from './muscles-exception.mapper';
 
 @Controller('admin/muscles')
+@ApiTags('admin/muscles')
+@ApiCookieAuth('better-auth.session_token')
 @Roles(['ADMIN'])
 export class AdminMusclesController {
   constructor(
@@ -17,6 +27,9 @@ export class AdminMusclesController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a muscle' })
+  @ApiBody({ type: CreateMuscleDto })
+  @ApiResponse({ status: 201 })
   async create(@Body() dto: CreateMuscleDto) {
     try {
       await this.createMuscle.execute({
@@ -38,6 +51,11 @@ export class AdminMusclesController {
   }
 
   @Patch(':slug')
+  @ApiOperation({ summary: 'Update a muscle' })
+  @ApiParam({ name: 'slug', example: 'biceps-brachii' })
+  @ApiBody({ type: UpdateMuscleDto })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 404, description: 'Muscle not found' })
   async update(@Param('slug') slug: string, @Body() dto: UpdateMuscleDto) {
     try {
       await this.updateMuscle.execute(slug, {
@@ -58,6 +76,10 @@ export class AdminMusclesController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Deactivate a muscle' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 404, description: 'Muscle not found' })
   async remove(@Param('id') id: string) {
     try {
       await this.deactivateMuscle.execute(id);
