@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
-import { Prisma } from '../../../../generated/prisma/client';
-import { PrismaService } from '../../../modules/shared/infrastructure/database/prisma/prisma.service';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
   RoutineExerciseUnavailableError,
   RoutineNotFoundError,

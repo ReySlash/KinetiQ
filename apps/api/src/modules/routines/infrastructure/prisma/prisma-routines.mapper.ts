@@ -1,4 +1,4 @@
-import { Prisma } from '../../../../generated/prisma/client';
+import { Prisma } from '../../../../../generated/prisma/client';
 import type { RoutineDetail } from '../../application/models/detail-routine.model';
 import type {
   ListRoutinesQuery,

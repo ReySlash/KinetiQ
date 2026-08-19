@@ -1,9 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { RoutineVisibility } from '../../../generated/prisma/client';
+import { RoutineVisibility } from '../../../../../generated/prisma/client';
 
 export class RoutineMutationResponseDto {
   @ApiProperty({ example: 'Routine updated successfully' })
   message!: string;
+
+  @ApiProperty({ example: 'upper-body-a-12345678' })
+  slug!: string;
 }
 
 export class RoutineListItemDto {

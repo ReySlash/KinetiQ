@@ -1,4 +1,4 @@
-import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
+import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { RoutineValidationError } from '../errors/routine.errors';
 
 export class RoutineSlug extends ValueObject<string> {

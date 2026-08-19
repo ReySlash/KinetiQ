@@ -17,11 +17,17 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { OptionalAuth } from '@thallesp/nestjs-better-auth';
+import { CreateRoutineUseCase } from '../application/use-cases/commands/create-routine.use-case';
+import { DeleteRoutineUseCase } from '../application/use-cases/commands/delete-routine.use-case';
+import { DuplicateRoutineUseCase } from '../application/use-cases/commands/duplicate-routine.use-case';
+import { UpdateRoutineUseCase } from '../application/use-cases/commands/update-routine.use-case';
+import { GetRoutineUseCase } from '../application/use-cases/queries/get-routine.use-case';
+import { ListRoutinesUseCase } from '../application/use-cases/queries/list-routines.use-case';
 import {
   CurrentOptionalPrincipal,
   CurrentPrincipal,
   type AuthenticatedPrincipal,
-} from '../modules/shared/infrastructure/auth/principal';
+} from '../../shared/infrastructure/auth/principal';
 import { CreateRoutineDto } from './dto/create-routine.dto';
 import { FindRoutinesQueryDto } from './dto/find-routines-query.dto';
 import { UpdateRoutineDto } from './dto/update-routine.dto';
@@ -30,22 +36,37 @@ import {
   RoutineListItemDto,
   RoutineMutationResponseDto,
 } from './dto/routine-response.dto';
-import { RoutinesService } from './routines.service';
+import { toRoutinesHttpException } from './routines-exception.mapper';
 
 @Controller('routines')
 @ApiTags('routines')
 @ApiCookieAuth('better-auth.session_token')
 export class RoutinesController {
-  constructor(private readonly routinesService: RoutinesService) {}
+  constructor(
+    private readonly listRoutines: ListRoutinesUseCase,
+    private readonly getRoutine: GetRoutineUseCase,
+    private readonly createRoutine: CreateRoutineUseCase,
+    private readonly updateRoutine: UpdateRoutineUseCase,
+    private readonly deleteRoutine: DeleteRoutineUseCase,
+    private readonly duplicateRoutine: DuplicateRoutineUseCase,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create an owned routine' })
   @ApiResponse({ status: 201, type: RoutineMutationResponseDto })
-  create(
+  async create(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
     @Body() dto: CreateRoutineDto,
   ) {
-    return this.routinesService.create(principal, dto);
+    try {
+      const result = await this.createRoutine.execute({
+        ...dto,
+        ownerId: principal.userId,
+      });
+      return { message: 'Routine created successfully', slug: result.slug };
+    } catch (error) {
+      throw toRoutinesHttpException(error);
+    }
   }
 
   @Get()
@@ -65,11 +86,18 @@ export class RoutinesController {
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiQuery({ name: 'offset', required: false, type: Number, example: 0 })
   @ApiResponse({ status: 200, type: [RoutineListItemDto] })
-  findAll(
+  async findAll(
     @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
     @Query() query: FindRoutinesQueryDto,
   ) {
-    return this.routinesService.findAll(principal, query);
+    try {
+      return await this.listRoutines.execute({
+        ...query,
+        ...(principal ? { ownerId: principal.userId } : {}),
+      });
+    } catch (error) {
+      throw toRoutinesHttpException(error);
+    }
   }
 
   @Get(':slug')
@@ -78,11 +106,18 @@ export class RoutinesController {
   @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 200, type: RoutineDetailDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
-  findOne(
+  async findOne(
     @CurrentOptionalPrincipal() principal: AuthenticatedPrincipal | null,
     @Param('slug') slug: string,
   ) {
-    return this.routinesService.findOne(principal, slug);
+    try {
+      return await this.getRoutine.execute({
+        slug,
+        ...(principal ? { ownerId: principal.userId } : {}),
+      });
+    } catch (error) {
+      throw toRoutinesHttpException(error);
+    }
   }
 
   @Patch(':slug')
@@ -90,12 +125,21 @@ export class RoutinesController {
   @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 200, type: RoutineMutationResponseDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
-  update(
+  async update(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
     @Param('slug') slug: string,
     @Body() dto: UpdateRoutineDto,
   ) {
-    return this.routinesService.update(principal, slug, dto);
+    try {
+      const result = await this.updateRoutine.execute({
+        ...dto,
+        ownerId: principal.userId,
+        slug,
+      });
+      return { message: 'Routine updated successfully', slug: result.slug };
+    } catch (error) {
+      throw toRoutinesHttpException(error);
+    }
   }
 
   @Delete(':slug')
@@ -103,11 +147,19 @@ export class RoutinesController {
   @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 200, type: RoutineMutationResponseDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
-  remove(
+  async remove(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
     @Param('slug') slug: string,
   ) {
-    return this.routinesService.remove(principal, slug);
+    try {
+      const result = await this.deleteRoutine.execute({
+        ownerId: principal.userId,
+        slug,
+      });
+      return { message: 'Routine deleted successfully', slug: result.slug };
+    } catch (error) {
+      throw toRoutinesHttpException(error);
+    }
   }
 
   @Post(':slug/duplicate')
@@ -115,10 +167,18 @@ export class RoutinesController {
   @ApiParam({ name: 'slug', example: 'upper-body-a' })
   @ApiResponse({ status: 201, type: RoutineMutationResponseDto })
   @ApiResponse({ status: 404, description: 'Routine not found' })
-  duplicate(
+  async duplicate(
     @CurrentPrincipal() principal: AuthenticatedPrincipal,
     @Param('slug') slug: string,
   ) {
-    return this.routinesService.duplicate(principal, slug);
+    try {
+      const result = await this.duplicateRoutine.execute({
+        ownerId: principal.userId,
+        slug,
+      });
+      return { message: 'Routine duplicated successfully', slug: result.slug };
+    } catch (error) {
+      throw toRoutinesHttpException(error);
+    }
   }
 }

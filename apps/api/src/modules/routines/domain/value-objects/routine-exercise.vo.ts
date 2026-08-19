@@ -1,6 +1,6 @@
-import { UniqueId } from '../../../modules/shared/domain/value-objects/unique-id.vo';
-import { ExistingUuid } from '../../../modules/shared/domain/value-objects/existing-uuid.vo';
-import { ValueObject } from '../../../modules/shared/domain/value-objects/value-object.vo';
+import { UniqueId } from '../../../shared/domain/value-objects/unique-id.vo';
+import { ExistingUuid } from '../../../shared/domain/value-objects/existing-uuid.vo';
+import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { RoutineValidationError } from '../errors/routine.errors';
 import {
   RoutineExerciseSlug,
