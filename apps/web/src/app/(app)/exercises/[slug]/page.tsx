@@ -32,7 +32,7 @@ export default async function ExerciseDetailsPage(props: {
   const exerciseDetails = await fetchData(buildApiUrl(`exercises/${slug}`));
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore our exercise's catalog.">
         <Link
           className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
@@ -62,20 +62,6 @@ export default async function ExerciseDetailsPage(props: {
               fallbackSrc="/empty-state-exercises.webp"
             />
 
-            {/* Previous table presentation:
-            <StatsCard
-              capabilities={
-                exerciseDetails.capabilities
-                  ? Object.values(exerciseDetails.capabilities)
-                  : []
-              }
-              demands={
-                exerciseDetails.demands
-                  ? Object.values(exerciseDetails.demands)
-                : []
-              }
-            />
-            */}
             <StatsBarChart
               capabilities={
                 exerciseDetails.capabilities
