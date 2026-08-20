@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const items = [
+export const navigationItems = [
   {
     href: "/dashboard",
     label: "Dashboard",
@@ -63,7 +63,7 @@ export function SideNav() {
   return (
     <nav aria-label="Primary">
       <SidebarMenu>
-        {items.map(({ href, label, icon: Icon }) => {
+        {navigationItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
           return (

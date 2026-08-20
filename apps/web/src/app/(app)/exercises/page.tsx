@@ -55,7 +55,7 @@ export default async function ExercisesPage({
   const visibleExercises = exerciseData.slice(0, pageSize);
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-2 px-1 pb-14 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore our exercise's catalog.">
         <h1 className="text-lg font-bold leading-none">Exercises</h1>
       </PageHeader>
