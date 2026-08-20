@@ -1,31 +1,17 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
+import { ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function ExerciseDetailsPage() {
   return (
-    <main className="h-full w-full flex flex-col gap-2 p-1 md:p-2">
-      <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
-        <SidebarTrigger className="md:hidden" />
-        <div className="flex flex-col">
-          <div className="flex flex-row gap-2">
-            <Link
-              className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
-              href="/exercises"
-            >
-              Exercises
-            </Link>
-            <span className="text-lg leading-none text-muted-foreground">
-              {" > "}
-            </span>
-          </div>
-          <h2 className="text-xs text-muted-foreground">
-            Explore our exercise&apos;s catalog.
-          </h2>
-        </div>
-      </header>
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full justify-center rounded-3xl">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+      <PageHeader subtitle="Explore our exercise&apos;s catalog.">
+        <span className="text-lg font-bold leading-none">Exercises</span>
+        <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+        <Skeleton className="h-5 w-36" />
+      </PageHeader>
+      <section className="min-h-0 flex-1 overflow-y-auto space-y-2 rounded-lg md:rounded-2xl">
         <Card className="p-2 col-span-1 w-full aspect-square">
           <CardContent className="relative h-full aspect-square">
             <Skeleton className="w-full aspect-square" />

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Plus, Search, Trash2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -140,7 +140,7 @@ export function TrainingProgramBuilder({
   }
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-1 overflow-auto px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-auto px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader
         subtitle={
           program
@@ -149,19 +149,20 @@ export function TrainingProgramBuilder({
         }
       >
         <Link
-          className="text-lg leading-none font-bold transition-colors duration-200 not-hover:text-muted-foreground"
+          className="inline-flex items-center gap-1 text-lg leading-none font-bold text-primary underline decoration-primary/40 underline-offset-4 transition-colors duration-200 hover:decoration-primary"
           href="/training-programs"
         >
+          <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
           Training Programs
         </Link>
         <span className="text-lg leading-none text-muted-foreground">
-          {" > "}
+          <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
         </span>
         <h1 className="text-lg font-bold leading-none">
           {program ? "Edit Training Program" : "New Training Program"}
         </h1>
       </PageHeader>
-      <section className="min-h-0 flex-1 overflow-y-auto space-y-2 rounded-2xl">
+      <section className="min-h-0 flex-1 overflow-y-auto space-y-2 rounded-lg md:rounded-2xl">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex w-full flex-col gap-2"

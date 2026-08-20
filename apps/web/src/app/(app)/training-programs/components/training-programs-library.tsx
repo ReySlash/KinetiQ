@@ -11,7 +11,7 @@ function formatDate(value: string) {
 
 export function TrainingProgramsLibrary({ programs, scope }: { programs: TrainingProgramListItem[]; scope: "my" | "global" }) {
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-sm">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
       <TrainingProgramsFilters />
       {scope === "my" && <div className="flex justify-end p-2"><StyledLink href="/training-programs/new" size="lg"><Plus />New training program</StyledLink></div>}
       <div className="min-h-0 flex-1 overflow-auto p-3 md:p-5">

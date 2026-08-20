@@ -17,7 +17,7 @@ export function PageHeader(props: PageHeaderProps) {
       )}
     >
       <div className="flex flex-col">
-        <div className="flex flex-row gap-2">{children}</div>
+        <div className="flex flex-row items-center gap-2">{children}</div>
         <h2 className="text-xs text-muted-foreground/80">{subtitle}</h2>
       </div>
     </header>

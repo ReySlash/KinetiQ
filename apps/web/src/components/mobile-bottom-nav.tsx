@@ -41,10 +41,8 @@ export function MobileBottomNav() {
       })}
       <SidebarTrigger
         aria-label="More navigation"
-        className="flex size-auto min-w-14 flex-col gap-0.5 rounded-lg px-1.5 py-1 text-[9px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-      >
-        <span className="max-w-20 truncate">Other</span>
-      </SidebarTrigger>
+        className="flex size-auto min-w-14 flex-col gap-0.5 rounded-lg px-1.5 py-1 text-[9px] font-medium text-muted-foreground after:content-['More'] hover:bg-muted hover:text-foreground"
+      />
     </nav>
   );
 }

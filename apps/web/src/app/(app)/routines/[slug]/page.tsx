@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -61,18 +61,19 @@ export default async function RoutineDetailsPage({
   );
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Reusable workout template details.">
         <Link
-          className="text-lg leading-none font-bold transition-colors duration-200 not-hover:text-muted-foreground"
+          className="inline-flex items-center gap-1 text-lg leading-none font-bold text-primary underline decoration-primary/40 underline-offset-4 transition-colors duration-200 hover:decoration-primary"
           href="/routines"
         >
+          <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
           Routines
         </Link>
-        <span className="text-lg leading-none text-muted-foreground">{" > "}</span>
+        <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
         <h1 className="text-lg font-bold leading-none">{routine.name}</h1>
       </PageHeader>
-      <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl">
+      <section className="min-h-0 flex-1 overflow-y-auto rounded-lg md:rounded-2xl">
         <div className="flex flex-col gap-2">
           <Card className="border border-border/70">
             <CardHeader>

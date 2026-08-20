@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { BookOpen, Trash2 } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 
@@ -190,16 +190,17 @@ export function RoutineBuilder({
   }
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 overflow-auto px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-2 overflow-auto px-1 pb-13 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Reusable workout templates for your training.">
         <Link
           href="/routines"
-          className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
+          className="inline-flex items-center gap-1 text-lg leading-none font-bold text-primary underline decoration-primary/40 underline-offset-4 transition-colors duration-200 hover:decoration-primary"
         >
+          <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
           Routines
         </Link>
         <span className="text-lg leading-none text-muted-foreground">
-          {" > "}
+          <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
         </span>
         <h1 className="text-lg font-bold leading-none">
           {routine ? "Edit routine" : "New routine"}

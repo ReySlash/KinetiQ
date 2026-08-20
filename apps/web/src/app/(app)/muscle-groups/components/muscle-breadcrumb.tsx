@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -20,11 +21,13 @@ export function MuscleBreadcrumb(props: MuscleBreadcrumbProps) {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink
+            className="hover:text-primary"
             render={
               <Link
-                className="text-lg font-bold leading-none"
+                className="inline-flex items-center gap-1 text-lg font-bold leading-none text-primary underline decoration-primary/40 underline-offset-4 transition-colors duration-200 hover:decoration-primary"
                 href="/muscle-groups"
               >
+                <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
                 Muscle Groups
               </Link>
             }
@@ -33,10 +36,15 @@ export function MuscleBreadcrumb(props: MuscleBreadcrumbProps) {
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink
+            className="hover:text-primary"
             render={
               <Link
-                className="text-lg font-bold leading-none"
-                href={muscleGroupSlug ? `/muscle-groups/${muscleGroupSlug}` : "/muscle-groups"}
+                className="inline-flex items-center gap-1 text-lg font-bold leading-none text-primary underline decoration-primary/40 underline-offset-4 transition-colors duration-200 hover:decoration-primary"
+                href={
+                  muscleGroupSlug
+                    ? `/muscle-groups/${muscleGroupSlug}`
+                    : "/muscle-groups"
+                }
               >
                 {muscleGroup ?? "Muscle Groups"}
               </Link>

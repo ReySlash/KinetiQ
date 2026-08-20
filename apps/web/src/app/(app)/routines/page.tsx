@@ -31,7 +31,7 @@ export default async function RoutinesPage({
   const result = await fetchRoutines({ q, sort, scope });
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Reusable workout templates for your training.">
         <h1 className="text-lg font-bold leading-none">Routines</h1>
       </PageHeader>

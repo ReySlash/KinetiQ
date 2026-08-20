@@ -78,6 +78,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                             <StyledLink
                               href={`/exercises/${exercise.slug}`}
                               variant="outline"
+                              size="lg"
                               aria-label="Open exercise details"
                             >
                               <MoreHorizontal />
@@ -141,6 +142,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                         <StyledLink
                           href={`/exercises/${exercise.slug}`}
                           variant="outline"
+                          size="lg"
                           aria-label="Open exercise details"
                         >
                           <MoreHorizontal />

@@ -22,7 +22,7 @@ export default async function TrainingProgramsPage({ searchParams }: { searchPar
   const result = await fetchTrainingPrograms({ q, sort, scope });
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Build consistent training across multiple weeks."><h1 className="text-lg font-bold leading-none">Training Programs</h1></PageHeader>
       <TrainingProgramsTabs scope={scope}>
         {result.status === "unauthenticated" ? (

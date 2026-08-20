@@ -1,4 +1,5 @@
 import { MuscleGroupDetails } from "@/types/muscle-types";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { buildApiUrl } from "@/lib/url";
 import { getLocalImageSrc } from "@/lib/local-image";
 import { PageHeader } from "@/components/page-header";
@@ -29,16 +30,17 @@ export default async function MuscleGroupDetailsPage(props: {
   );
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore each muscle group's function and anatomy.">
         <Link
-          className="text-lg leading-none font-bold not-hover:text-muted-foreground transition-colors duration-200"
+          className="inline-flex items-center gap-1 text-lg leading-none font-bold text-primary underline decoration-primary/40 underline-offset-4 transition-colors duration-200 hover:decoration-primary"
           href="/muscle-groups"
         >
+          <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
           Muscle Groups
         </Link>
         <span className="text-lg leading-none text-muted-foreground">
-          {" > "}
+          <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
         </span>
         <h1 className="text-lg font-bold leading-none">
           {muscleGroupDetails.name}

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import MuscleOverviewCard from "./components/muscle-overview-card";
 import ExercisesMusclesCard from "./components/exercises-muscles-card";
 import { getLocalImageSrc } from "@/lib/local-image";
+import { ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -30,14 +31,14 @@ export default async function MuscleGroupPage(props: {
   );
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore each muscle group&apos;s function and anatomy.">
         <MuscleBreadcrumb
           muscleGroup={muscleDetails.muscleGroup?.name}
           muscleGroupSlug={muscleDetails.muscleGroup?.slug}
         />
         <span className="text-lg leading-none text-muted-foreground">
-          {" > "}
+          <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
         </span>
         <h1 className="text-lg font-bold leading-none">{muscleDetails.name}</h1>
       </PageHeader>

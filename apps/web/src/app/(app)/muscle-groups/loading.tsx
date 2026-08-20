@@ -1,4 +1,5 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { PageHeader } from "@/components/page-header";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -11,18 +12,12 @@ import {
 
 export default async function Loading() {
   return (
-    <>
-      <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60 px-4">
-        <SidebarTrigger className="md:hidden" />
-        <div className="flex flex-col">
-          <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
-          <h2 className="text-xs text-muted-foreground">
-            Explore each muscle group&apos;s function and anatomy.
-          </h2>
-        </div>
-      </header>
-      <main className="h-full w-full p-2 md:p-3">
-        <section className="rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3 h-full">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
+      <PageHeader subtitle="Explore each muscle group&apos;s function and anatomy.">
+        <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
+      </PageHeader>
+      <section className="min-h-0 flex-1 overflow-auto rounded-xl border border-border/70 bg-card/80 p-2 shadow-sm md:rounded-3xl md:p-3">
+        <div className="hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -55,8 +50,23 @@ export default async function Loading() {
               ))}
             </TableBody>
           </Table>
-        </section>
-      </main>
-    </>
+        </div>
+        <div className="flex flex-col gap-2 md:hidden">
+          {Array.from({ length: 8 }, (_, index) => (
+            <Card key={index} className="w-full px-4 py-1">
+              <CardContent className="flex items-center justify-between gap-2">
+                <Skeleton className="size-[70px] shrink-0 rounded-xl" />
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+                <Skeleton className="size-9 shrink-0 rounded-xl" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
