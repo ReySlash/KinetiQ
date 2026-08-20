@@ -1,6 +1,6 @@
 export default function DashboardPage() {
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <section className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm md:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
         Dashboard

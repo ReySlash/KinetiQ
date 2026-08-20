@@ -22,7 +22,7 @@ export default async function MusclesPage() {
     buildApiUrl("muscle-groups"),
   );
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore each muscle group's function and anatomy.">
         <h1 className="text-lg font-bold leading-none">Muscle Groups</h1>
       </PageHeader>

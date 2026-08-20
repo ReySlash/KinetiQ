@@ -12,7 +12,7 @@ export function PageHeader(props: PageHeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-16 w-full shrink-0 items-center gap-3 border-b border-border/60 bg-background/80 px-2 backdrop-blur-xl md:px-3",
+        "flex h-14 w-full shrink-0 items-center gap-2 border-b border-border/60 bg-background/80 px-2 backdrop-blur-xl md:h-16 md:gap-3 md:px-3",
         sticky && "sticky top-0 z-30",
       )}
     >

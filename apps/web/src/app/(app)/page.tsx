@@ -2,7 +2,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Home() {
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <header className="sticky top-0 z-100 flex h-16 items-center gap-3 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <SidebarTrigger className="md:hidden" />
         <div className="flex flex-col">

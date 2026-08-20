@@ -61,7 +61,7 @@ export default async function RoutineDetailsPage({
   );
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Reusable workout template details.">
         <Link
           className="text-lg leading-none font-bold transition-colors duration-200 not-hover:text-muted-foreground"

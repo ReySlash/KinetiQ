@@ -30,7 +30,7 @@ export default async function MuscleGroupPage(props: {
   );
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-14 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Explore each muscle group&apos;s function and anatomy.">
         <MuscleBreadcrumb
           muscleGroup={muscleDetails.muscleGroup?.name}
