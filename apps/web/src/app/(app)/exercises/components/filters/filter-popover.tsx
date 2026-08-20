@@ -59,8 +59,10 @@ export function FilterPopover(props: FilterPopoverProps) {
         type="button"
         className={cn(
           buttonVariants({ variant: "outline", size: "lg" }),
-          "gap-2 self-start",
+          "cursor-pointer gap-2 self-start",
         )}
+        title="Filter exercises"
+        aria-label="Filter exercises"
       >
         <Filter className="size-4" />
         {activeFiltersCount > 0 ? (

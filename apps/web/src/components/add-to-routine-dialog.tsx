@@ -44,7 +44,16 @@ export function AddToRoutineDialog({
 
   return (
     <Dialog onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button variant={triggerVariant} size="lg" />}>
+      <DialogTrigger
+        render={
+          <Button
+            variant={triggerVariant}
+            size="lg"
+            className="cursor-pointer"
+            title="Add this exercise to a routine"
+          />
+        }
+      >
         Add to routine
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">

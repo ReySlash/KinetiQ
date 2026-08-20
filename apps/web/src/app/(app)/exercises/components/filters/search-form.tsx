@@ -39,7 +39,13 @@ export function SearchForm(props: SearchFormProps) {
         />
         <p className="text-xs text-destructive">{searchError ?? ""}</p>
       </div>
-      <Button size="lg" type="submit" disabled={isPending}>
+      <Button
+        size="lg"
+        type="submit"
+        disabled={isPending}
+        className="cursor-pointer"
+        title="Search exercises"
+      >
         Search
       </Button>
     </form>
