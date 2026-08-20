@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 export const navigationItems = [
@@ -59,6 +60,11 @@ export const navigationItems = [
 
 export function SideNav() {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  function handleNavigation() {
+    if (isMobile) setOpenMobile(false);
+  }
 
   return (
     <nav aria-label="Primary">
@@ -76,6 +82,7 @@ export function SideNav() {
                     href={href}
                     aria-label={label}
                     aria-current={isActive ? "page" : undefined}
+                    onClick={handleNavigation}
                   />
                 }
                 className="h-10 rounded-xl text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground data-active:bg-primary/20 data-active:font-medium data-active:text-primary"
