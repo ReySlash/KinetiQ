@@ -202,6 +202,31 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .expect(401);
   });
 
+  it('does not allow a client to self-assign the administrator role', async () => {
+    const email = `${emailPrefix}-role-tamper-${randomUUID()}@example.test`;
+
+    try {
+      await request(app.getHttpServer())
+        .post('/api/auth/sign-up/email')
+        .send({
+          name: 'Role Tampering User',
+          email,
+          password,
+          role: PlatformRole.ADMIN,
+        })
+        .expect(200);
+
+      await expect(
+        prisma.user.findUniqueOrThrow({
+          where: { email },
+          select: { role: true },
+        }),
+      ).resolves.toEqual({ role: PlatformRole.USER });
+    } finally {
+      await removeExistingPrincipal(email);
+    }
+  });
+
   it('allows a user to create and read only their own private routine', async () => {
     const userCookies = await signIn(user);
     const secondUserCookies = await signIn(secondUser);
