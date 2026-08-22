@@ -40,6 +40,7 @@ describe('prisma routines mapper', () => {
     ).toMatchObject({
       where: {
         ownerId: input.ownerId,
+        visibility: 'PRIVATE',
         OR: [
           { name: { contains: 'press', mode: 'insensitive' } },
           { description: { contains: 'press', mode: 'insensitive' } },

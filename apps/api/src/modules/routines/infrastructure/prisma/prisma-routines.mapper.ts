@@ -86,7 +86,7 @@ export function buildRoutinesFindAllQuery(query: ListRoutinesQuery) {
   const scope =
     query.scope === 'global'
       ? { visibility: 'GLOBAL' as const }
-      : { ownerId: query.ownerId };
+      : { ownerId: query.ownerId, visibility: 'PRIVATE' as const };
   const search = query.q?.trim();
 
   return {

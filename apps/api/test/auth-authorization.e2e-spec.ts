@@ -258,6 +258,56 @@ describe('HTTP authentication and authorization (e2e)', () => {
     expect(createdRoutine.ownerId).toBe(sessionUserId);
     const routineSlug = createdRoutine.slug;
 
+    const secondRoutineName = `Second user HTTP routine ${randomUUID()}`;
+    await request(app.getHttpServer())
+      .post('/routines')
+      .set('Cookie', secondUserCookies)
+      .send({ name: secondRoutineName, description: null, exercises: [] })
+      .expect(201);
+
+    const ownList = await request(app.getHttpServer())
+      .get('/routines?scope=my')
+      .set('Cookie', userCookies)
+      .expect(200);
+    expect(ownList.body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: routineName })]),
+    );
+    expect(ownList.body).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: secondRoutineName }),
+      ]),
+    );
+
+    const secondUserList = await request(app.getHttpServer())
+      .get('/routines?scope=my')
+      .set('Cookie', secondUserCookies)
+      .expect(200);
+    expect(secondUserList.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: secondRoutineName }),
+      ]),
+    );
+    expect(secondUserList.body).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: routineName })]),
+    );
+
+    const crossUserSearch = await request(app.getHttpServer())
+      .get(`/routines?scope=my&q=${encodeURIComponent(secondRoutineName)}`)
+      .set('Cookie', userCookies)
+      .expect(200);
+    expect(crossUserSearch.body).toEqual([]);
+
+    const reverseCrossUserSearch = await request(app.getHttpServer())
+      .get(`/routines?scope=my&q=${encodeURIComponent(routineName)}`)
+      .set('Cookie', secondUserCookies)
+      .expect(200);
+    expect(reverseCrossUserSearch.body).toEqual([]);
+
+    const privateGlobalSearch = await request(app.getHttpServer())
+      .get(`/routines?scope=global&q=${encodeURIComponent(routineName)}`)
+      .expect(200);
+    expect(privateGlobalSearch.body).toEqual([]);
+
     await request(app.getHttpServer())
       .get(`/routines/${routineSlug}`)
       .set('Cookie', userCookies)
@@ -282,6 +332,15 @@ describe('HTTP authentication and authorization (e2e)', () => {
         .set('Cookie', secondUserCookies)
         .expect(404),
     ];
+
+    await request(app.getHttpServer())
+      .get(`/routines/not-a-real-routine-${randomUUID()}`)
+      .set('Cookie', userCookies)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .get(`/routines/not-a-real-routine-${randomUUID()}`)
+      .expect(404);
 
     const notFoundResponse = {
       status: privateRoutineResponses[0].status,
