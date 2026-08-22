@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Roles } from '@thallesp/nestjs-better-auth';
+import { Throttle } from '@nestjs/throttler';
 import { ArchiveExerciseUseCase } from '../application/use-cases/commands/archive-exercise.use-case';
 import { CreateExerciseUseCase } from '../application/use-cases/commands/create-exercise.use-case';
 import { UpdateExerciseUseCase } from '../application/use-cases/commands/update-exercise.use-case';
@@ -27,6 +28,7 @@ import { toExercisesHttpException } from './exercises-exception.mapper';
 @ApiTags('admin/exercises')
 @ApiCookieAuth('better-auth.session_token')
 @Roles(['ADMIN'])
+@Throttle({ default: { limit: 30, ttl: 60_000 } })
 export class AdminExercisesController {
   constructor(
     private readonly createExercise: CreateExerciseUseCase,

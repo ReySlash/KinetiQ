@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { OptionalAuth } from '@thallesp/nestjs-better-auth';
+import { Throttle } from '@nestjs/throttler';
 import {
   CurrentPrincipal,
   CurrentOptionalPrincipal,
@@ -37,6 +38,7 @@ import { ListTrainingProgramsQueryDto } from './dto/list-training-programs-query
 @Controller('training-programs')
 @ApiTags('training-programs')
 @ApiCookieAuth('better-auth.session_token')
+@Throttle({ default: { limit: 30, ttl: 60_000 } })
 export class TrainingProgramsController {
   constructor(
     private readonly listTrainingPrograms: ListTrainingProgramsUseCase,

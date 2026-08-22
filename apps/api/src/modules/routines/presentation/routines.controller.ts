@@ -17,6 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { OptionalAuth } from '@thallesp/nestjs-better-auth';
+import { Throttle } from '@nestjs/throttler';
 import { CreateRoutineUseCase } from '../application/use-cases/commands/create-routine.use-case';
 import { DeleteRoutineUseCase } from '../application/use-cases/commands/delete-routine.use-case';
 import { DuplicateRoutineUseCase } from '../application/use-cases/commands/duplicate-routine.use-case';
@@ -41,6 +42,7 @@ import { toRoutinesHttpException } from './routines-exception.mapper';
 @Controller('routines')
 @ApiTags('routines')
 @ApiCookieAuth('better-auth.session_token')
+@Throttle({ default: { limit: 30, ttl: 60_000 } })
 export class RoutinesController {
   constructor(
     private readonly listRoutines: ListRoutinesUseCase,
