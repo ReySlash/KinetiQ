@@ -55,6 +55,40 @@ function parseOptionalUrl(
   }
 }
 
+function parseProductionAuthConfig(
+  nodeEnv: NodeEnv,
+  betterAuthSecret: string | undefined,
+  betterAuthUrl: string | undefined,
+  webOrigin: string | undefined,
+): void {
+  if (nodeEnv !== 'production') {
+    return;
+  }
+
+  if (!betterAuthSecret || betterAuthSecret.trim().length < 32) {
+    throw new Error(
+      'BETTER_AUTH_SECRET must be at least 32 characters in production.',
+    );
+  }
+
+  if (!betterAuthUrl) {
+    throw new Error('BETTER_AUTH_URL is required in production.');
+  }
+
+  if (!webOrigin) {
+    throw new Error('WEB_ORIGIN is required in production.');
+  }
+
+  for (const [name, value] of [
+    ['BETTER_AUTH_URL', betterAuthUrl],
+    ['WEB_ORIGIN', webOrigin],
+  ] as const) {
+    if (new URL(value).protocol !== 'https:') {
+      throw new Error(`${name} must use HTTPS in production.`);
+    }
+  }
+}
+
 export function validateEnv(
   config: Record<string, unknown>,
 ): EnvironmentVariables {
@@ -82,17 +116,31 @@ export function validateEnv(
       ? config.RESEND_FROM_EMAIL
       : undefined;
 
+  const parsedNodeEnv = parseNodeEnv(nodeEnv);
+  const parsedWebOrigin = parseOptionalUrl('WEB_ORIGIN', webOrigin);
+  const parsedBetterAuthUrl = parseOptionalUrl(
+    'BETTER_AUTH_URL',
+    betterAuthUrl,
+  );
+
+  parseProductionAuthConfig(
+    parsedNodeEnv,
+    betterAuthSecret,
+    parsedBetterAuthUrl,
+    parsedWebOrigin,
+  );
+
   return {
-    NODE_ENV: parseNodeEnv(nodeEnv),
+    NODE_ENV: parsedNodeEnv,
     PORT: parsePort(port),
-    WEB_ORIGIN: parseOptionalUrl('WEB_ORIGIN', webOrigin),
+    WEB_ORIGIN: parsedWebOrigin,
     DATABASE_URL:
       databaseUrl ??
       (() => {
         throw new Error('DATABASE_URL is required.');
       })(),
     BETTER_AUTH_SECRET: betterAuthSecret,
-    BETTER_AUTH_URL: parseOptionalUrl('BETTER_AUTH_URL', betterAuthUrl),
+    BETTER_AUTH_URL: parsedBetterAuthUrl,
     RESEND_API_KEY: resendApiKey,
     RESEND_FROM_EMAIL: resendFromEmail,
   };

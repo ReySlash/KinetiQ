@@ -27,4 +27,58 @@ describe('validateEnv', () => {
       'WEB_ORIGIN must be a valid URL.',
     );
   });
+
+  it('requires explicit secure auth configuration in production', () => {
+    expect(() =>
+      validateEnv({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://db' }),
+    ).toThrow(
+      'BETTER_AUTH_SECRET must be at least 32 characters in production.',
+    );
+
+    expect(() =>
+      validateEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://db',
+        BETTER_AUTH_SECRET: 'a'.repeat(32),
+      }),
+    ).toThrow('BETTER_AUTH_URL is required in production.');
+  });
+
+  it('rejects insecure production auth URLs', () => {
+    expect(() =>
+      validateEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://db',
+        BETTER_AUTH_SECRET: 'a'.repeat(32),
+        BETTER_AUTH_URL: 'http://api.example.com',
+        WEB_ORIGIN: 'https://app.example.com',
+      }),
+    ).toThrow('BETTER_AUTH_URL must use HTTPS in production.');
+
+    expect(() =>
+      validateEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://db',
+        BETTER_AUTH_SECRET: 'a'.repeat(32),
+        BETTER_AUTH_URL: 'https://api.example.com',
+        WEB_ORIGIN: 'http://app.example.com',
+      }),
+    ).toThrow('WEB_ORIGIN must use HTTPS in production.');
+  });
+
+  it('accepts complete secure production auth configuration', () => {
+    expect(
+      validateEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://db',
+        BETTER_AUTH_SECRET: 'a'.repeat(32),
+        BETTER_AUTH_URL: 'https://api.example.com',
+        WEB_ORIGIN: 'https://app.example.com',
+      }),
+    ).toMatchObject({
+      NODE_ENV: 'production',
+      BETTER_AUTH_URL: 'https://api.example.com',
+      WEB_ORIGIN: 'https://app.example.com',
+    });
+  });
 });

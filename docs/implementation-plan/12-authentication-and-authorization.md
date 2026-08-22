@@ -24,6 +24,7 @@ Use Better Auth’s [Prisma adapter and schema generation](https://better-auth.c
 
 - Use secure, HTTP-only cookies in production with an appropriate `SameSite` policy and explicit trusted origin.
 - Use a high-entropy `BETTER_AUTH_SECRET` and the documented versioned-secret rollover mechanism when rotation must preserve valid sessions; emergency rotation may intentionally invalidate them.
+- Production startup must fail closed unless `BETTER_AUTH_SECRET` is at least 32 characters, `BETTER_AUTH_URL` and `WEB_ORIGIN` are explicitly configured, and both URLs use HTTPS. Local development and tests may use their documented local/test defaults.
 - Enforce verified email before sensitive mutations if email/password signup is public. For a closed beta, invite-only signup can reduce abuse.
 - Normalize email per Better Auth behavior; do not build a parallel password/session system.
 - Anonymous protected endpoints return `401`; authenticated but disallowed role actions return `403`; another owner’s private resource returns `404`.
