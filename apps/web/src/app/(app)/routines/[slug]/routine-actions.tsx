@@ -20,8 +20,8 @@ import {
 import {
   deleteRoutine,
   duplicateRoutine,
-  RoutineApiError,
 } from "@/lib/routines-api";
+import { ApiError as RoutineApiError } from "@/lib/api/error";
 
 export function RoutineActions({
   routineSlug,

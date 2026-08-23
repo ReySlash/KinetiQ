@@ -1,5 +1,4 @@
-import { buildApiUrl } from "@/lib/url";
-import { Muscle } from "@/types/muscle-types";
+import { fetchMuscle } from "@/lib/muscles-server";
 import ImageWithFallback from "@/components/image-with-fallback";
 import { Card, CardContent } from "@/components/ui/card";
 import { MuscleBreadcrumb } from "@/app/(app)/muscle-groups/components/muscle-breadcrumb";
@@ -11,24 +10,12 @@ import { ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-async function fetchData(url: string): Promise<Muscle> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch muscle group: ${response.status} ${response.statusText}`,
-    );
-  }
-  return response.json();
-}
-
 export default async function MuscleGroupPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await props.params;
 
-  const muscleDetails = await fetchData(
-    buildApiUrl(`muscles/${slug}`),
-  );
+  const muscleDetails = await fetchMuscle(slug);
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">

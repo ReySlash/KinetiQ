@@ -1,12 +1,10 @@
-import { cookies } from "next/headers";
-
+import { ApiError } from "@/lib/api/error";
+import { serverRequest } from "@/lib/api/server-request";
 import type {
   TrainingProgramDetail,
   TrainingProgramListItem,
   TrainingProgramScope,
 } from "@/types/training-program-types";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
 export type TrainingProgramsFetchResult =
   | { status: "authenticated"; programs: TrainingProgramListItem[] }
@@ -25,36 +23,30 @@ export async function fetchTrainingPrograms(query: {
   if (query.q) params.set("q", query.q);
   if (query.sort) params.set("sort", query.sort);
 
-  const cookieHeader = (await cookies()).toString();
-  const response = await fetch(
-    `${apiUrl}/api/training-programs?${params.toString()}`,
-    {
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-      cache: "no-store",
-    },
-  );
-
-  if (response.status === 401) return { status: "unauthenticated" };
-  if (!response.ok)
-    throw new Error(`Failed to fetch training programs: ${response.status}`);
-
-  return {
-    status: "authenticated",
-    programs: (await response.json()) as TrainingProgramListItem[],
-  };
+  try {
+    return {
+      status: "authenticated",
+      programs: await serverRequest<TrainingProgramListItem[]>(
+        `training-programs?${params.toString()}`,
+      ),
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      return { status: "unauthenticated" };
+    }
+    throw error;
+  }
 }
 
 export async function fetchTrainingProgram(
   slug: string,
 ): Promise<TrainingProgramDetail | null> {
-  const cookieHeader = (await cookies()).toString();
-  const response = await fetch(`${apiUrl}/api/training-programs/${slug}`, {
-    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-    cache: "no-store",
-  });
-
-  if (response.status === 404) return null;
-  if (!response.ok)
-    throw new Error(`Failed to fetch training program: ${response.status}`);
-  return response.json() as Promise<TrainingProgramDetail>;
+  try {
+    return await serverRequest<TrainingProgramDetail>(
+      `training-programs/${slug}`,
+    );
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }

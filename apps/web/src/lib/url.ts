@@ -32,11 +32,7 @@ export function buildApiUrl(
   path: string,
   queryParams?: Record<string, QueryValue>,
 ): string {
-  const apiOrigin = process.env.NEXT_PUBLIC_API_URL;
-
-  if (!apiOrigin) {
-    throw new Error("NEXT_PUBLIC_API_URL is required.");
-  }
+  const apiOrigin = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
   return buildUrl(`${apiOrigin.replace(/\/$/, "")}/api`, path, queryParams);
 }

@@ -1,8 +1,7 @@
-import { buildApiUrl } from "@/lib/url";
 import { getLocalImageSrc } from "@/lib/local-image";
+import { fetchExercise } from "@/lib/exercises-server";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
-import { ExerciseDetails } from "@/types/exercise-types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // import StatsCard from "../components/stats-card";
@@ -15,22 +14,12 @@ import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
 
 export const dynamic = "force-dynamic";
 
-async function fetchData(url: string): Promise<ExerciseDetails> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch exercises: ${response.status} ${response.statusText}`,
-    );
-  }
-  return response.json();
-}
-
 export default async function ExerciseDetailsPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await props.params;
 
-  const exerciseDetails = await fetchData(buildApiUrl(`exercises/${slug}`));
+  const exerciseDetails = await fetchExercise(slug);
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
@@ -43,7 +32,10 @@ export default async function ExerciseDetailsPage(props: {
           Exercises
         </Link>
         <span className="text-lg leading-none text-muted-foreground">
-          <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
+          <ChevronRight
+            className="size-4 shrink-0 self-center text-muted-foreground"
+            aria-hidden="true"
+          />
         </span>
         <h1 className="text-lg font-bold leading-none">
           {exerciseDetails.name}
@@ -112,20 +104,6 @@ export default async function ExerciseDetailsPage(props: {
               />
             }
           />
-          {/* Previous table presentation:
-          <StatsCard
-            capabilities={
-              exerciseDetails.capabilities
-                ? Object.values(exerciseDetails.capabilities)
-                : []
-            }
-            demands={
-              exerciseDetails.demands
-                ? Object.values(exerciseDetails.demands)
-              : []
-            }
-          />
-          */}
           <StatsBarChart
             capabilities={
               exerciseDetails.capabilities

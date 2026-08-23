@@ -1,5 +1,4 @@
-import { buildApiUrl } from "@/lib/url";
-import { Exercise } from "@/types/exercise-types";
+import { fetchExercises } from "@/lib/exercises-server";
 import { PageHeader } from "@/components/page-header";
 import { ExercisesTable } from "./components/exercises-table";
 import {
@@ -10,17 +9,6 @@ import { FiltersToolbar } from "./components/filters/filters-toolbar";
 import { Paginator } from "./components/paginator";
 
 export const dynamic = "force-dynamic";
-
-async function fetchData(url: string): Promise<Exercise[]> {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch exercises: ${response.status} ${response.statusText}`,
-    );
-  }
-  return response.json();
-}
 
 type SearchParams = {
   [key: string]: string | string[] | undefined;
@@ -41,16 +29,14 @@ export default async function ExercisesPage({
       : 1;
   const pageSize = 19;
 
-  const exerciseData = await fetchData(
-    buildApiUrl("exercises", {
-      offset: (pageNumber - 1) * pageSize,
-      limit: pageSize + 1,
-      search: filters.search,
-      forceType: filters.forceType,
-      laterality: filters.laterality,
-      skillLevel: filters.skillLevel,
-    }),
-  );
+  const exerciseData = await fetchExercises({
+    offset: (pageNumber - 1) * pageSize,
+    limit: pageSize + 1,
+    search: filters.search,
+    forceType: filters.forceType,
+    laterality: filters.laterality,
+    skillLevel: filters.skillLevel,
+  });
   const isLastPage = exerciseData.length <= pageSize;
   const visibleExercises = exerciseData.slice(0, pageSize);
 
