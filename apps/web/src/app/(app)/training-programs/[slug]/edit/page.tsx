@@ -6,6 +6,10 @@ import { TrainingProgramBuilder } from "../../new/training-program-builder";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function EditTrainingProgramPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [program, privateRoutines, globalRoutines] = await Promise.all([

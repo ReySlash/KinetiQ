@@ -44,7 +44,11 @@ export function MarketingFeature({
           <p className="mt-5 text-base leading-7 text-muted-foreground">
             {description}
           </p>
-          <StyledLink href={href} variant="link" className="mt-5 h-auto px-0 py-1 font-semibold">
+          <StyledLink
+            href={href}
+            variant="link"
+            className="mt-5 h-auto px-0 py-1 font-semibold underline decoration-primary/60 hover:decoration-primary"
+          >
             {linkLabel}
             <ArrowRight aria-hidden="true" />
           </StyledLink>

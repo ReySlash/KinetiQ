@@ -41,6 +41,7 @@ export function MarketingFooter() {
               className="font-medium text-primary underline decoration-border underline-offset-4 transition-colors hover:decoration-primary"
             >
               Reynaldo Carmenate Arias
+              <span className="sr-only"> (opens in a new tab)</span>
             </a>
           </p>
         </div>

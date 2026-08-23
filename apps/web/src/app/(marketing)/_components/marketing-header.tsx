@@ -27,7 +27,7 @@ export function MarketingHeader() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
+                  className="rounded-sm transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
                 >
                   {item.label}
                 </Link>

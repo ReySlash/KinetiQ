@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,18 +11,25 @@ type ScrollRevealProps = {
 
 export function ScrollReveal({ children, className }: ScrollRevealProps) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = elementRef.current;
 
-    if (!element) return;
+    if (
+      !element ||
+      !("IntersectionObserver" in window) ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    element.dataset.reveal = "pending";
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
 
-        setIsVisible(true);
+        delete element.dataset.reveal;
         observer.disconnect();
       },
       {
@@ -40,8 +47,7 @@ export function ScrollReveal({ children, className }: ScrollRevealProps) {
     <div
       ref={elementRef}
       className={cn(
-        "transition-[opacity,transform] duration-500 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none",
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+        "translate-y-0 opacity-100 transition-[opacity,translate] duration-500 ease-out data-[reveal=pending]:translate-y-4 data-[reveal=pending]:opacity-0 data-[reveal=pending]:transition-none motion-reduce:transition-none",
         className,
       )}
     >

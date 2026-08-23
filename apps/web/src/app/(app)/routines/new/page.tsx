@@ -3,6 +3,7 @@ import { RoutineBuilder } from "../components/routine-builder";
 export const metadata = {
   title: "New routine | KinetiQ",
   description: "Create a reusable workout routine.",
+  robots: { index: false, follow: false },
 };
 
 export default async function NewRoutinePage({

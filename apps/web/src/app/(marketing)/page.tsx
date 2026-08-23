@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/hero-image.png",
-        width: 1536,
-        height: 1024,
+        width: 1448,
+        height: 1086,
         alt: "KinetiQ exercise intelligence interface",
       },
     ],
@@ -64,44 +64,31 @@ const benefits = [
 
 const structuredData = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      name: "KinetiQ",
-      url: getSiteUrl(),
-      description,
-    },
-    {
-      "@type": "SoftwareApplication",
-      name: "KinetiQ",
-      applicationCategory: "HealthApplication",
-      operatingSystem: "Web",
-      url: getSiteUrl(),
-      description,
-      featureList: [
-        "Exercise reference library",
-        "Muscle involvement information",
-        "Reusable workout routines",
-        "Multi-week training programs",
-        "Training progress analytics",
-      ],
-    },
-  ],
+  "@type": "WebSite",
+  name: "KinetiQ",
+  url: getSiteUrl(),
+  description,
 };
 
 export default function MarketingPage() {
   return (
     <div className="dark min-h-dvh overflow-x-clip bg-background text-foreground bg-[radial-gradient(circle_at_75%_5%,color-mix(in_oklch,var(--primary)_12%,transparent),transparent_28rem)]">
+      <a
+        href="#main-content"
+        className="fixed left-4 top-4 z-100 -translate-y-20 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition-transform focus:translate-y-0 focus:outline-none focus:ring-3 focus:ring-ring/50"
+      >
+        Skip to main content
+      </a>
       <MarketingHeader />
-      <main>
+      <main id="main-content" tabIndex={-1} className="focus:outline-none">
         <section
           id="about"
           aria-labelledby="hero-title"
           className="scroll-mt-20"
         >
-          <div className="mx-auto grid h-[calc(100svh-4rem)] max-w-7xl items-center gap-2 px-4 py-2 sm:gap-4 sm:px-6 sm:py-4 lg:grid-cols-2 lg:gap-8 lg:px-8 lg:py-8">
+          <div className="mx-auto grid min-h-[calc(100svh-4rem)] max-w-7xl items-center gap-2 px-4 py-2 sm:gap-4 sm:px-6 sm:py-4 lg:grid-cols-2 lg:gap-8 lg:px-8 lg:py-8">
             <div className="relative z-10 order-2 mx-auto max-w-xl text-center lg:order-1 lg:mx-0 lg:text-left">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary sm:mb-2 sm:text-xs lg:mb-3">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary sm:mb-2 lg:mb-3">
                 Train with clarity
               </p>
               <h1
@@ -120,20 +107,20 @@ export default function MarketingPage() {
 
               <div className="mt-3 flex justify-center gap-3 sm:mt-4 lg:mt-6 lg:justify-start">
                 <StyledLink
-                  href="/exercises"
+                  href="/sign-up"
                   size="lg"
                   className="h-10 min-w-0 flex-1 rounded-lg px-3 text-xs sm:h-11 sm:flex-none sm:px-5 sm:text-sm sm:w-48"
                 >
-                  Explore exercises
-                  <ArrowRight aria-hidden="true" />
+                  Get started
                 </StyledLink>
                 <StyledLink
-                  href="/sign-up"
+                  href="/exercises"
                   variant="outline"
                   size="lg"
                   className="h-10 min-w-0 flex-1 rounded-lg border-border/80 bg-background/60 px-3 text-xs sm:h-11 sm:flex-none sm:px-5 sm:text-sm sm:w-48"
                 >
-                  Get started free
+                  Explore exercises
+                  <ArrowRight aria-hidden="true" />
                 </StyledLink>
               </div>
 
@@ -151,10 +138,10 @@ export default function MarketingPage() {
                         className="mx-auto size-4 text-primary lg:mx-0"
                         aria-hidden="true"
                       />
-                      <p className="mt-1 text-[11px] font-medium leading-4 sm:mt-2 sm:text-sm lg:mt-3">
+                      <p className="mt-1 text-xs font-medium leading-4 sm:mt-2 sm:text-sm lg:mt-3">
                         {title}
                       </p>
-                      <p className="mt-1 text-[10px] leading-4 text-muted-foreground sm:text-xs sm:leading-5">
+                      <p className="mt-1 text-xs leading-4 text-muted-foreground sm:leading-5">
                         {itemDescription}
                       </p>
                     </li>
@@ -168,11 +155,11 @@ export default function MarketingPage() {
               <Image
                 src="/hero-image.png"
                 alt="KinetiQ interface showing a barbell back squat with muscle involvement and exercise details"
-                width={1536}
-                height={1024}
-                priority
+                width={1448}
+                height={1086}
+                preload
                 unoptimized
-                sizes="(max-width: 1024px) 100vw, 65vw"
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="h-auto max-h-[34svh] w-full object-contain drop-shadow-[0_30px_70px_rgb(0_0_0/0.55)] lg:max-h-[calc(100svh-8rem)]"
               />
             </div>
@@ -253,7 +240,7 @@ export default function MarketingPage() {
                     size="lg"
                     className="h-11 w-full rounded-lg px-5 sm:w-48"
                   >
-                    Get started free
+                    Get started
                   </StyledLink>
                   <StyledLink
                     href="/exercises"
@@ -262,6 +249,7 @@ export default function MarketingPage() {
                     className="h-11 w-full rounded-lg border-border/80 bg-background/50 px-5 sm:w-48"
                   >
                     Explore exercises
+                    <ArrowRight aria-hidden="true" />
                   </StyledLink>
                 </div>
               </div>

@@ -5,6 +5,10 @@ import { RoutineBuilder } from "../../components/routine-builder";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 type SearchParams = { [key: string]: string | string[] | undefined };
 
 export default async function EditRoutinePage({

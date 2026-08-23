@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   },
   description:
     "Fitness development platform for exercises, routines, and training progress.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function AuthLayout({

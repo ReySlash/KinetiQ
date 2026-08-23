@@ -6,6 +6,10 @@ import { TrainingProgramBuilder } from "./training-program-builder";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function NewTrainingProgramPage() {
   const [globalResult, privateResult] = await Promise.all([
     fetchRoutines({ scope: "global" }),
