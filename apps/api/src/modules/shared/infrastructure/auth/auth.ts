@@ -88,6 +88,7 @@ export function createAuth(
       (origin): origin is string => Boolean(origin),
     ),
     advanced: {
+      useSecureCookies: nodeEnv === 'production',
       database: {
         generateId: () => randomUUID(),
       },
@@ -123,36 +124,32 @@ export function createAuth(
         );
       },
     },
-    ...(nodeEnv === 'test'
-      ? {}
-      : {
-          emailVerification: {
-            sendOnSignUp: true,
-            sendOnSignIn: true,
-            autoSignInAfterVerification: true,
-            sendVerificationEmail: ({
-              user,
-              url,
-            }: {
-              user: { email: string };
-              url: string;
-            }) => {
-              if (!config.resendApiKey || !config.resendFromEmail) {
-                throw new Error(
-                  'RESEND_API_KEY and RESEND_FROM_EMAIL are required to send verification emails.',
-                );
-              }
+    emailVerification: {
+      sendOnSignUp: nodeEnv !== 'test',
+      sendOnSignIn: nodeEnv !== 'test',
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: ({
+        user,
+        url,
+      }: {
+        user: { email: string };
+        url: string;
+      }) => {
+        if (!config.resendApiKey || !config.resendFromEmail) {
+          throw new Error(
+            'RESEND_API_KEY and RESEND_FROM_EMAIL are required to send verification emails.',
+          );
+        }
 
-              return sendEmail(
-                config.resendApiKey,
-                config.resendFromEmail,
-                user.email,
-                'Verify your KinetiQ email address',
-                `<p>Welcome to KinetiQ.</p><p><a href="${escapeHtml(url)}">Verify your email address</a></p><p>This link expires in one hour.</p>`,
-                `Welcome to KinetiQ. Verify your email address: ${url}\n\nThis link expires in one hour.`,
-              );
-            },
-          },
-        }),
+        return sendEmail(
+          config.resendApiKey,
+          config.resendFromEmail,
+          user.email,
+          'Verify your KinetiQ email address',
+          `<p>Welcome to KinetiQ.</p><p><a href="${escapeHtml(url)}">Verify your email address</a></p><p>This link expires in one hour.</p>`,
+          `Welcome to KinetiQ. Verify your email address: ${url}\n\nThis link expires in one hour.`,
+        );
+      },
+    },
   });
 }

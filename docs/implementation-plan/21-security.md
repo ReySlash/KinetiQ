@@ -13,6 +13,8 @@ Untrusted inputs include browser requests, query/filter values, uploads, auth ca
 - Follow Better Auth’s current official configuration for secret length, session storage, cookie attributes, origin/CSRF handling, verification, and provider callbacks.
 - Use secure HTTP-only same-site cookies; do not put session tokens in local storage.
 - Rate-limit sign-in/signup/reset and log security events without credentials.
+- Reject unsafe browser requests whose `Origin` is not the configured API or web origin; requests without `Origin` remain available to non-browser API clients.
+- Exercise reset-password and verification delivery through mocked email integration tests; automated tests never send real email.
 - Invalidate sessions on ban, password reset where supported, and important role changes.
 - Protect redirect/callback URLs with allowlists.
 - Require MFA for administrator accounts when practical; if deferred, use long unique passwords and restricted admin enrollment.
@@ -30,6 +32,7 @@ Before coach features, design explicit grants, consent, audit, expiry/revocation
 - Parameterize all database queries through Prisma; raw SQL uses bound parameters and reviewed identifiers.
 - Render descriptions/instructions/notes as escaped plain text or sanitized Markdown with a strict allowlist. Never render admin HTML directly.
 - Use security headers: CSP tailored to Next.js/auth/storage, `X-Content-Type-Options: nosniff`, referrer policy, permissions policy, frame protection via CSP, and HSTS after validation.
+- The API applies Helmet defaults, an explicit strict-origin-when-cross-origin referrer policy, a restrictive permissions policy, and production-only HSTS.
 - Configure CORS narrowly or avoid cross-origin browser API calls through same-site proxying.
 
 ## Upload security
@@ -48,7 +51,9 @@ Collect only fields required for current features. Publish a privacy policy befo
 
 ## Logging and audit
 
-Audit admin exercise/muscle mutations, role changes, and later coach access with actor ID, action, target, timestamp, request ID, and safe change metadata. Do not log auth tokens, password/reset secrets, cookies, raw uploads, or full sensitive notes. Protect audit data against ordinary user mutation.
+Keep structured application/security logs free of auth tokens, password/reset secrets, cookies, raw uploads, and full sensitive notes. A durable audit log for admin exercise/muscle mutations, role changes, and later coach access is a future security requirement; it is intentionally deferred from the MVP schema. When introduced, it must record actor ID, action, target, timestamp, request ID, and safe change metadata, and must be protected against ordinary user mutation.
+
+For the MVP, the sole administrator is bootstrapped manually through a controlled deployment/database operation. No public role-promotion flow is exposed.
 
 ## Abuse and availability
 
@@ -75,4 +80,3 @@ Threat boundaries and authorization matrix are reviewed; production cookies/orig
 ## Open questions
 
 Jurisdiction/privacy obligations, signup policy, email provider, MFA timing, CSP details, log retention, and deletion/export workflow need decisions before public launch or before sensitive session data, as applicable.
-

@@ -52,6 +52,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
   let admin: TestPrincipal;
   let exerciseSlug: string;
   let muscleSlug: string;
+  let emailFetchMock: jest.SpyInstance;
 
   async function removeExistingPrincipal(email: string): Promise<void> {
     const existing = await prisma.user.findUnique({
@@ -113,6 +114,12 @@ describe('HTTP authentication and authorization (e2e)', () => {
   }
 
   beforeAll(async () => {
+    process.env.RESEND_API_KEY = 'test-resend-key';
+    process.env.RESEND_FROM_EMAIL = 'KinetiQ <test@example.test>';
+    emailFetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -140,6 +147,9 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await removeExistingPrincipal(user.email);
     await removeExistingPrincipal(secondUser.email);
     await removeExistingPrincipal(admin.email);
+    emailFetchMock.mockRestore();
+    delete process.env.RESEND_API_KEY;
+    delete process.env.RESEND_FROM_EMAIL;
     await app.close();
   });
 
@@ -200,6 +210,92 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await request(app.getHttpServer())
       .delete(`/admin/muscles/${id}`)
       .expect(401);
+  });
+
+  it('rejects unsafe browser requests from untrusted origins', async () => {
+    const userCookies = await signIn(user);
+
+    await request(app.getHttpServer())
+      .post('/routines')
+      .set('Cookie', userCookies)
+      .set('Origin', 'https://evil.example')
+      .send({ name: `Blocked routine ${randomUUID()}`, exercises: [] })
+      .expect(403);
+  });
+
+  it('does not allow ownership or visibility mass assignment', async () => {
+    const userCookies = await signIn(user);
+    const ownerId = randomUUID();
+
+    await request(app.getHttpServer())
+      .post('/routines')
+      .set('Cookie', userCookies)
+      .send({
+        name: `Mass assignment routine ${randomUUID()}`,
+        exercises: [],
+        ownerId,
+        visibility: 'GLOBAL',
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name: `Mass assignment program ${randomUUID()}`,
+        durationWeeks: 4,
+        ownerId,
+        visibility: 'GLOBAL',
+      })
+      .expect(400);
+  });
+
+  it('sends password reset requests through the mocked email provider', async () => {
+    await request(app.getHttpServer())
+      .post('/api/auth/request-password-reset')
+      .send({
+        email: user.email,
+        redirectTo: 'http://localhost:3001/reset-password',
+      })
+      .expect(200);
+
+    expect(emailFetchMock).toHaveBeenCalledWith(
+      'https://api.resend.com/emails',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('sends verification requests through the mocked email provider', async () => {
+    const userCookies = await signIn(user);
+
+    await request(app.getHttpServer())
+      .post('/api/auth/send-verification-email')
+      .set('Cookie', userCookies)
+      .send({
+        email: user.email,
+        callbackURL: 'http://localhost:3001/dashboard',
+      })
+      .expect(200);
+
+    expect(emailFetchMock).toHaveBeenCalledWith(
+      'https://api.resend.com/emails',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('sets secure baseline session cookie attributes', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/sign-in/email')
+      .send({ email: user.email, password })
+      .expect(200);
+    const cookies = response.headers['set-cookie'];
+
+    expect(cookies).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/HttpOnly/i),
+        expect.stringMatching(/SameSite=Lax/i),
+      ]),
+    );
   });
 
   it('does not allow a client to self-assign the administrator role', async () => {
