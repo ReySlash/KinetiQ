@@ -32,3 +32,15 @@ export function validateAuditTimestamps(
     );
   }
 }
+
+export function validVersion(
+  value: number,
+  label = 'Workout session version',
+): number {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new WorkoutSessionValidationError(
+      `${label} must be a non-negative integer.`,
+    );
+  }
+  return value;
+}

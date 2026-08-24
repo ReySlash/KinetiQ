@@ -7,6 +7,7 @@ const KG_PER_LB_NUMERATOR = 45_359_237n; // 45359237 / 100000000 = 0.45359237 (c
 const KG_PER_LB_SCALE = 100_000_000n; // 100000000 (denominator for conversion)
 const KILOGRAM_CENTS = 100n; // 100 (cents in a kilogram)
 const MAX_KILOGRAM_CENTS = 9_999_999n; // 9999999 (maximum kilogram cents)
+const MAX_LOAD_INPUT_LENGTH = 30;
 
 // Parses a non-negative decimal string into a numerator and scale for precise arithmetic.
 function parseNonNegativeDecimal(value: string): {
@@ -14,6 +15,9 @@ function parseNonNegativeDecimal(value: string): {
   scale: bigint;
 } {
   const normalized = value.trim();
+  if (normalized.length > MAX_LOAD_INPUT_LENGTH) {
+    throw new WorkoutSessionValidationError('Completed set load is too long.');
+  }
   if (!/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(normalized)) {
     throw new WorkoutSessionValidationError(
       'Completed set load must be a non-negative decimal value.',

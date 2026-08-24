@@ -23,11 +23,12 @@ export class RemoveWorkoutExerciseUseCase {
       this.queries,
     );
     const updated = workout.removeExercise(input.exercisePerformanceId);
-    await this.commands.update(updated);
+    await this.commands.update(updated, workout.version);
     return {
       id: updated.id.value,
       status: updated.status,
       updatedAt: updated.updatedAt,
+      version: updated.version,
     };
   }
 }

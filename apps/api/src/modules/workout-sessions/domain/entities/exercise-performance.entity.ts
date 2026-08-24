@@ -134,7 +134,7 @@ export class ExercisePerformance extends Entity<UniqueId> {
     }
     this.createdAt = state.createdAt;
     this.updatedAt = state.updatedAt;
-    this.completedSets = state.completedSets;
+    this.completedSets = Object.freeze([...state.completedSets]);
     // Validate that all completed sets belong to this exercise performance
     this.completedSets.forEach((set) => {
       if (set.exercisePerformanceId !== this.id.value) {
@@ -145,6 +145,7 @@ export class ExercisePerformance extends Entity<UniqueId> {
     });
     // Ensures completed sets are in contiguous zero-based order for an exercise performance.
     validateCanonicalSetOrder(this.completedSets);
+    Object.freeze(this);
   }
 
   public readonly workoutSessionId: string;

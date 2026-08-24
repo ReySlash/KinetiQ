@@ -7,6 +7,7 @@ import type { WorkoutSessionsCommandPort } from '../../ports/workout-sessions-co
 import type { WorkoutSessionsQueryPort } from '../../ports/workout-sessions-query.port';
 import type { WorkoutSessionSourcesPort } from '../../ports/workout-session-sources.port';
 import { loadOwnedWorkoutSession } from '../workout-session-aggregate';
+import { ExistingUuid } from '../../../../shared/domain/value-objects/existing-uuid.vo';
 
 export class AddWorkoutExerciseUseCase {
   constructor(
@@ -18,6 +19,7 @@ export class AddWorkoutExerciseUseCase {
   async execute(
     input: AddWorkoutExerciseInput,
   ): Promise<WorkoutSessionCommandResult> {
+    const exerciseId = ExistingUuid.create(input.exerciseId).value;
     const workout = await loadOwnedWorkoutSession(
       {
         ownerId: input.ownerId,
@@ -25,7 +27,7 @@ export class AddWorkoutExerciseUseCase {
       },
       this.queries,
     );
-    const exercise = await this.sources.findActiveExercise(input.exerciseId);
+    const exercise = await this.sources.findActiveExercise(exerciseId);
     if (!exercise) {
       throw new WorkoutSessionExerciseUnavailableError();
     }
@@ -34,11 +36,12 @@ export class AddWorkoutExerciseUseCase {
       exerciseName: exercise.name,
       isExerciseActive: true,
     });
-    await this.commands.update(updated);
+    await this.commands.update(updated, workout.version);
     return {
       id: updated.id.value,
       status: updated.status,
       updatedAt: updated.updatedAt,
+      version: updated.version,
     };
   }
 }

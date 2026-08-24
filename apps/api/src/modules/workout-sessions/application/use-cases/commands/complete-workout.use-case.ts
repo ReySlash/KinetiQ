@@ -23,11 +23,12 @@ export class CompleteWorkoutUseCase {
       this.queries,
     );
     const completed = workout.complete(input.completedAt);
-    await this.commands.update(completed);
+    await this.commands.update(completed, workout.version);
     return {
       id: completed.id.value,
       status: completed.status,
       updatedAt: completed.updatedAt,
+      version: completed.version,
     };
   }
 }

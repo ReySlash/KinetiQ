@@ -115,6 +115,19 @@ Treat exercise ratings as editorial heuristics, not objective scientific measure
 
 Use risk-based testing.
 
+Development follows Test-Driven Development (TDD):
+
+1. Write a focused failing test that expresses the required behavior (Red).
+2. Implement the smallest production change that makes the test pass (Green).
+3. Refactor while keeping the test suite passing (Refactor).
+
+Do not implement new domain, application, infrastructure, or presentation
+behavior first and add tests afterward, except when documenting or reproducing
+an existing defect requires an explicitly approved exception. Run the focused
+test during each Red/Green cycle, then run the broader relevant checks before
+hand-off. Tests should verify observable behavior and business rules rather
+than private implementation details.
+
 Always prioritize tests for:
 
 - Business logic

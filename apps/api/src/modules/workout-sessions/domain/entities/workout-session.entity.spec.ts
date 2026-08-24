@@ -75,6 +75,8 @@ describe('WorkoutSession aggregate', () => {
     expect(session.timezone).toBe('Asia/Qatar');
     expect(session.sourceRoutineId).toBeNull();
     expect(session.exercisePerformances).toHaveLength(0);
+    expect(session.version).toBe(0);
+    expect(Object.isFrozen(session)).toBe(true);
   });
 
   it('starts a routine workout with authoritative prescription snapshots', () => {
@@ -146,6 +148,8 @@ describe('WorkoutSession aggregate', () => {
     const first = addBenchPress();
     const duplicate = addBenchPress(first);
 
+    expect(first.version).toBe(1);
+    expect(duplicate.version).toBe(2);
     expect(duplicate.exercisePerformances.map(({ order }) => order)).toEqual([
       0, 1,
     ]);
@@ -174,6 +178,8 @@ describe('WorkoutSession aggregate', () => {
     );
     const set = recorded.exercisePerformances[0].completedSets[0];
 
+    expect(recorded.version).toBe(2);
+    expect(Object.isFrozen(set)).toBe(true);
     expect(set.loadKg).toBe('102.06');
     expect(set.loadUnit).toBe('LB');
     expect(set.isWarmup).toBe(true);
@@ -339,6 +345,12 @@ describe('WorkoutSession aggregate', () => {
     const invalidOrder = session.toValue();
     invalidOrder.exercisePerformances[0].order = 1;
     expect(() => WorkoutSession.reconstitute(invalidOrder)).toThrow(
+      WorkoutSessionValidationError,
+    );
+
+    const invalidVersion = session.toValue();
+    invalidVersion.version = -1;
+    expect(() => WorkoutSession.reconstitute(invalidVersion)).toThrow(
       WorkoutSessionValidationError,
     );
 

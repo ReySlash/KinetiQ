@@ -58,4 +58,5 @@ export type WorkoutSessionCommandResult = {
   id: string;
   status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   updatedAt: Date;
+  version: number;
 };

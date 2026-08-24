@@ -30,11 +30,12 @@ export class RecordWorkoutSetUseCase {
       isWarmup: input.isWarmup,
       completedAt: input.completedAt,
     });
-    await this.commands.update(updated);
+    await this.commands.update(updated, workout.version);
     return {
       id: updated.id.value,
       status: updated.status,
       updatedAt: updated.updatedAt,
+      version: updated.version,
     };
   }
 }

@@ -13,6 +13,7 @@ import {
   optionalUuid,
   validateAuditTimestamps,
   validDate,
+  validVersion,
 } from '../utils/workout-session.validation';
 import { ExercisePerformance } from './exercise-performance.entity';
 import type {
@@ -41,7 +42,6 @@ type WorkoutSessionLifecycle = Pick<
   'status' | 'startedAt' | 'completedAt' | 'cancelledAt'
 >;
 
-// Validates workout session lifecycle constraints
 function validateLifecycle(attributes: WorkoutSessionLifecycle): void {
   const startedAt = validDate(attributes.startedAt, 'Workout start timestamp');
   const completedAt = attributes.completedAt
@@ -51,29 +51,17 @@ function validateLifecycle(attributes: WorkoutSessionLifecycle): void {
     ? validDate(attributes.cancelledAt, 'Workout cancellation timestamp')
     : null;
 
-  // Validate status-specific constraints
+  const expected = {
+    IN_PROGRESS: { completed: false, cancelled: false },
+    COMPLETED: { completed: true, cancelled: false },
+    CANCELLED: { completed: false, cancelled: true },
+  }[attributes.status];
   if (
-    attributes.status === 'IN_PROGRESS' &&
-    (completedAt !== null || cancelledAt !== null)
+    (completedAt !== null) !== expected.completed ||
+    (cancelledAt !== null) !== expected.cancelled
   ) {
     throw new WorkoutSessionValidationError(
-      'An in-progress workout cannot have a completion or cancellation timestamp.',
-    );
-  }
-  if (
-    attributes.status === 'COMPLETED' &&
-    (completedAt === null || cancelledAt !== null)
-  ) {
-    throw new WorkoutSessionValidationError(
-      'A completed workout requires only a completion timestamp.',
-    );
-  }
-  if (
-    attributes.status === 'CANCELLED' &&
-    (cancelledAt === null || completedAt !== null)
-  ) {
-    throw new WorkoutSessionValidationError(
-      'A cancelled workout requires only a cancellation timestamp.',
+      `Invalid lifecycle timestamps for ${attributes.status} workout.`,
     );
   }
   if (completedAt && completedAt < startedAt) {
@@ -151,7 +139,9 @@ export class WorkoutSession extends Entity<UniqueId> {
     this.cancelledAt = state.cancelledAt;
     this.createdAt = state.createdAt;
     this.updatedAt = state.updatedAt;
-    this.exercisePerformances = state.exercisePerformances;
+    this.version = state.version;
+    this.exercisePerformances = Object.freeze([...state.exercisePerformances]);
+    Object.freeze(this);
   }
 
   public readonly ownerId: string;
@@ -164,6 +154,7 @@ export class WorkoutSession extends Entity<UniqueId> {
   public readonly cancelledAt: Date | null;
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
+  public readonly version: number;
   public readonly exercisePerformances: readonly ExercisePerformance[];
 
   // Returns total number of completed sets across all exercise performances in a workout session.
@@ -219,6 +210,7 @@ export class WorkoutSession extends Entity<UniqueId> {
       cancelledAt: null,
       createdAt: now,
       updatedAt: now,
+      version: 0,
       exercisePerformances,
     });
   }
@@ -238,6 +230,7 @@ export class WorkoutSession extends Entity<UniqueId> {
         : RoutineNameSnapshot.create(attributes.sourceRoutineNameSnapshot)
             .value;
     const status = WorkoutSessionStatus.create(attributes.status).value;
+    const version = validVersion(attributes.version);
     const timezone = IanaTimezone.create(attributes.timezone).value;
     const startedAt = validDate(
       attributes.startedAt,
@@ -288,6 +281,7 @@ export class WorkoutSession extends Entity<UniqueId> {
       cancelledAt,
       createdAt: attributes.createdAt,
       updatedAt: attributes.updatedAt,
+      version,
       exercisePerformances,
     });
   }
@@ -474,6 +468,7 @@ export class WorkoutSession extends Entity<UniqueId> {
       cancelledAt: this.cancelledAt,
       createdAt: this.createdAt,
       updatedAt: new Date(),
+      version: this.version + 1,
       exercisePerformances: performances,
     });
   }
@@ -496,6 +491,7 @@ export class WorkoutSession extends Entity<UniqueId> {
       cancelledAt,
       createdAt: this.createdAt,
       updatedAt: new Date(),
+      version: this.version + 1,
       exercisePerformances: this.exercisePerformances,
     });
   }
@@ -513,6 +509,7 @@ export class WorkoutSession extends Entity<UniqueId> {
       cancelledAt: this.cancelledAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      version: this.version,
       exercisePerformances: this.exercisePerformances.map((performance) =>
         performance.toValue(),
       ),
@@ -533,5 +530,6 @@ type WorkoutSessionState = {
   cancelledAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  version: number;
   exercisePerformances: readonly ExercisePerformance[];
 };

@@ -22,11 +22,14 @@ describe('Workout session value objects', () => {
       expect(CanonicalLoad.create('2.2046226218', 'LB').value).toBe('1.00');
     });
 
-    it.each(['-1', 'NaN', '1e3', '', '100000'])('rejects load %p', (load) => {
-      expect(() => CanonicalLoad.create(load, 'KG')).toThrow(
-        WorkoutSessionValidationError,
-      );
-    });
+    it.each(['-1', 'NaN', '1e3', '', '100000', `1${'0'.repeat(30)}`])(
+      'rejects load %p',
+      (load) => {
+        expect(() => CanonicalLoad.create(load, 'KG')).toThrow(
+          WorkoutSessionValidationError,
+        );
+      },
+    );
   });
 
   it('accepts only the approved display units', () => {

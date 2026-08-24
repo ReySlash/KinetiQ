@@ -43,6 +43,15 @@ export class WorkoutSessionPersistenceError extends Error {
   }
 }
 
+export class WorkoutSessionConcurrencyError extends Error {
+  readonly code = 'WORKOUT_SESSION_CONCURRENCY_CONFLICT';
+
+  constructor() {
+    super('The workout session changed before this operation completed.');
+    this.name = 'WorkoutSessionConcurrencyError';
+  }
+}
+
 export class WorkoutSessionQueryError extends Error {
   readonly code = 'WORKOUT_SESSION_QUERY_FAILED';
 

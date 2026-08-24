@@ -75,7 +75,9 @@ describe('Workout session application use cases', () => {
     const workout = WorkoutSession.start({ ownerId, timezone: 'Asia/Qatar' });
     let addedExerciseId: string | null = null;
     let addedExerciseName: string | null = null;
-    const update = jest.fn((updated: WorkoutSession) => {
+    let expectedVersion: number | null = null;
+    const update = jest.fn((updated: WorkoutSession, version: number) => {
+      expectedVersion = version;
       for (const performance of updated.exercisePerformances) {
         addedExerciseId = performance.exerciseId;
         addedExerciseName = performance.exerciseNameSnapshot;
@@ -104,6 +106,7 @@ describe('Workout session application use cases', () => {
 
     expect(result.id).toBe(workout.id.value);
     expect(update).toHaveBeenCalledTimes(1);
+    expect(expectedVersion).toBe(0);
     expect(addedExerciseId).toBe(exerciseId);
     expect(addedExerciseName).toBe('Bench Press');
   });

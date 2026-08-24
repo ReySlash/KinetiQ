@@ -93,6 +93,7 @@ export type PrimitiveWorkoutSession = {
   cancelledAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  version: number;
   exercisePerformances: PrimitiveExercisePerformance[];
 };
 

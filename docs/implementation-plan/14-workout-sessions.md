@@ -2,9 +2,11 @@
 
 ## Purpose and status
 
-Phase 8 will introduce the historical execution domain. It is planned and is
-not implemented in the current Prisma schema or API. This document is the
-architectural source of truth for that implementation.
+Phase 8 introduces the historical execution domain. The Prisma schema and
+migrations, domain aggregate, and application use cases are implemented. The
+infrastructure and presentation layers remain to be implemented. This
+document is the architectural source of truth for the remaining work and for
+the complete Phase 8 feature.
 
 Use these concrete domain names consistently:
 
@@ -358,41 +360,36 @@ distribution,” or “estimated muscle-set equivalents” over an unqualified
 - mobile component/E2E tests for rapid set entry, recent correction, reload/
   navigation continuation, completion review, and interrupted requests.
 
-Concurrency and retry tests must cover duplicate completion and obvious
-duplicate-set creation once the idempotency/concurrency contract is approved.
+Concurrency tests must cover stale aggregate writes, duplicate completion
+attempts, and obvious duplicate-set creation. The first slice uses optimistic
+version checks and the one-active-session database constraint; broader request
+idempotency remains later work.
 
 ## Implementation sequence after approval
 
-1. Resolve the pre-schema decisions below and approve the exact persistence/API
-   contract.
-2. Implement and test the domain aggregate, lifecycle, prescription snapshot,
-   and strength-set value objects.
-3. Add command/query use cases and ports, including owner-isolation tests.
-4. Add the Prisma schema/migration, mapper, adapter, constraints, indexes, and
-   real PostgreSQL integration tests.
-5. Add presentation DTOs, error mapping, Swagger contracts, and API E2E tests.
-6. Build the mobile-first active-workout vertical slice and history reads.
-7. Verify clean/current migrations, lint, type checks, all relevant tests, and
+1. Implement the infrastructure Prisma mappers and adapters, including
+   transactional aggregate persistence, constraints, indexes, and real
+   PostgreSQL integration tests.
+2. Add presentation DTOs, error mapping, Swagger contracts, and API E2E tests.
+3. Build the mobile-first active-workout vertical slice and history reads.
+4. Verify clean/current migrations, lint, type checks, all relevant tests, and
    production builds before beginning Phase 9.
 
-## Decisions required before implementation
+## Remaining decisions before production
 
-The following remain deliberately unresolved and require approval before the
-schema or API is designed:
+The following decisions are now approved for the Phase 8 MVP:
 
-1. Canonical load unit, display/entered-unit behavior, and decimal precision.
-2. Whether `CompletedSet` stores an `isWarmup` fact in the first slice and how
-   working sets are classified later.
-3. The exact completed-session correction/audit policy, including whether set
-   deletion is represented as deletion or an auditable correction.
-4. Exact provenance fields and referential actions for source routine and
-   routine-exercise records.
-5. Exact snapshot columns and whether any narrowly scoped versioned JSON
-   supplement is needed.
-6. Concurrency/idempotency behavior for multiple tabs, retries, and one active
-   session per user.
-7. Session timezone capture and local-date/week-boundary behavior.
-8. Account export, deletion, and retention policy for long-lived performance
+1. Canonical kilograms with Decimal(7,2), retaining the entered unit as KG/LB.
+2. `CompletedSet.isWarmup` is stored from the first slice.
+3. Completed and cancelled sessions are immutable in the MVP; a later
+   correction/audit workflow will define how historical corrections are
+   represented.
+4. Nullable routine provenance with `SetNull`, stable Exercise UUID references,
+   and explicit prescription snapshot columns.
+5. Optimistic aggregate version checks and one active session per user; broader
+   request idempotency remains later work.
+6. Session timezone capture using IANA metadata plus UTC timestamps.
+7. Account export, deletion, and retention policy for long-lived performance
    history.
 
 Do not add duration/distance modes, active-program coupling, analytics tables,

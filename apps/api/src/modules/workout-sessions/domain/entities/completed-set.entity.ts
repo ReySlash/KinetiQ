@@ -41,6 +41,7 @@ export class CompletedSet extends Entity<UniqueId> {
     this.completedAt = state.completedAt;
     this.createdAt = state.createdAt;
     this.updatedAt = state.updatedAt;
+    Object.freeze(this);
   }
 
   public readonly exercisePerformanceId: string;

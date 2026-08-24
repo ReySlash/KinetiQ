@@ -68,13 +68,18 @@ known unique/foreign/check violations to stable 409/422 API errors.
 
 Strength-set loads use an approved PostgreSQL decimal precision/scale, never a
 floating-point column. Exact precision, canonical unit behavior, provenance
-referential actions, and one-active-session/idempotency constraints must be
-approved before the Phase 8 migration. See
+referential actions, and one-active-session/concurrency constraints are defined
+by the Phase 8 migration. See
 [workout sessions](14-workout-sessions.md).
 
 Dense routine ordering can temporarily violate uniqueness during reorder. Use a delete/recreate strategy for child rows in a transaction, or a two-phase temporary offset update before canonical positions. Recommendation for small MVP arrays: validate references, delete existing children, bulk create desired children with stable/new IDs as appropriate in one transaction. If preserving child IDs matters, use offset updates.
 
-MVP uses last-write-wins but returns `updatedAt`. Add an integer `version` and conditional update (`where id/owner/version`) before collaborative/offline editing.
+Workout-session aggregate writes use optimistic concurrency from the first MVP
+slice. Persist an integer `version`, load the owned aggregate, and update with
+an `id`/`ownerId`/`version` condition. A stale write must return a stable
+conflict rather than silently overwriting a recorded set. Other non-historical
+resources may continue using last-write-wins until their own concurrency needs
+justify versioning.
 
 ## Migrations
 

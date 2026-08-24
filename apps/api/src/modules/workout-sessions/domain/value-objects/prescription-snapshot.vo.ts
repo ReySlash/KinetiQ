@@ -94,7 +94,7 @@ function optionalTempo(value: string | null | undefined): string | null {
 // This ensures that the prescription details remain consistent even if the original prescription is modified later and prevents drift in workout session tracking.
 export class PrescriptionSnapshot extends ValueObject<PrescriptionSnapshotValue> {
   private constructor(value: PrescriptionSnapshotValue) {
-    super({ ...value });
+    super(Object.freeze({ ...value }));
   }
 
   static create(
