@@ -34,7 +34,12 @@ Keep custom SQL in generated migration folders with comments and integration tes
 - Routine deletion cascades `RoutineExercise`, but is restricted when a `TrainingProgramRoutine` references the routine so a program cannot silently lose a scheduled workout.
 - Training program deletion cascades only its `TrainingProgramRoutine` schedule rows; referenced routines remain independently reusable.
 - User deletion behavior needs a product policy. Prefer a controlled account-deletion job over broad database cascade once history exists.
-- Session source references use `SetNull`/restrict as appropriate while snapshot data remains.
+- Phase 8 source/provenance references must preserve snapshots when templates
+  change. Choose `SetNull` or `Restrict` per approved lifecycle; never cascade a
+  routine/training-program edit or deletion into historical performance.
+- Historical `ExercisePerformance` uses the stable Exercise UUID. Exercise
+  archival remains allowed, while hard deletion is restricted once history
+  references the identity.
 
 ## Index plan
 
@@ -45,13 +50,27 @@ Start with indexes driven by endpoints:
 - Join reverse lookups such as `ExerciseMuscle(muscleId, role)` and `ExerciseEquipment(equipmentId, exerciseId)`
 - `Routine(ownerId, updatedAt)`, `Routine(ownerId, name)`, unique `(routineId, order)`
 - `TrainingProgram(ownerId, updatedAt)`, `(ownerId, name)`, `(visibility, updatedAt)`, unique schedule slot `(trainingProgramId, weekNumber, dayNumber)`, and reverse routine schedule lookup
-- Later session `(ownerId, startedAt)` and child foreign-key/order indexes
+- Phase 8 session `(ownerId, startedAt)` plus status-aware active/history lookup
+  indexes, and child foreign-key/order indexes driven by the approved queries
 
 PostgreSQL does not automatically create useful indexes for every foreign key; add them explicitly. For search, begin with normalized `ILIKE`; enable `pg_trgm` and GIN indexes only through an intentional migration after query-plan measurement. Avoid indexing every rating column.
 
 ## Transactions and concurrency
 
-Use Prisma transactions for aggregate writes: exercise plus joins/profiles, routine plus ordered children, session launch plus snapshots. Keep transactions short. Image uploads are post-MVP and must not be introduced into MVP aggregate transactions; if a later Cloudinary attachment workflow is approved, define its consistency and cleanup behavior separately. Translate known unique/foreign/check violations to stable 409/422 API errors.
+Use Prisma transactions for aggregate writes: exercise plus joins/profiles,
+routine plus ordered children, and routine-based workout start plus initial
+`ExercisePerformance` prescription snapshots. Keep transactions short. Later
+set mutations still resolve the owned `WorkoutSession` aggregate and preserve
+child ordering/invariants. Image uploads are post-MVP and must not be introduced
+into MVP aggregate transactions; if a later Cloudinary attachment workflow is
+approved, define its consistency and cleanup behavior separately. Translate
+known unique/foreign/check violations to stable 409/422 API errors.
+
+Strength-set loads use an approved PostgreSQL decimal precision/scale, never a
+floating-point column. Exact precision, canonical unit behavior, provenance
+referential actions, and one-active-session/idempotency constraints must be
+approved before the Phase 8 migration. See
+[workout sessions](14-workout-sessions.md).
 
 Dense routine ordering can temporarily violate uniqueness during reorder. Use a delete/recreate strategy for child rows in a transaction, or a two-phase temporary offset update before canonical positions. Recommendation for small MVP arrays: validate references, delete existing children, bulk create desired children with stable/new IDs as appropriate in one transaction. If preserving child IDs matters, use offset updates.
 

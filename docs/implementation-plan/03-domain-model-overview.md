@@ -19,9 +19,9 @@ This document separates the kinds of data KinetiQ stores so the `Exercise` table
 | TrainingProgram | Reusable multi-week template scheduling routines by relative week/day | One user or protected platform owner |
 | TrainingProgramRoutine | Relative routine placement within a program template | Same owner context through program |
 | ActiveProgram / UserTrainingProgram | User adoption and calendar mapping of a program template | Future, one user owner |
-| WorkoutSession | Historical occurrence | Later, one user owner |
-| ExercisePerformance | Snapshot of planned/performed exercise | Future historical child |
-| CompletedSet | Actual performance | Historical child |
+| WorkoutSession | Planned Phase 8 historical workout occurrence and aggregate root | One authenticated user owner |
+| ExercisePerformance | Planned performed-exercise record plus authoritative prescription snapshot | Historical child through session |
+| CompletedSet | Planned raw strength/repetition performance fact | Historical child through performance/session |
 | RecoveryCheckIn | Athlete response/context | Later, one user owner |
 
 ## Relationship map
@@ -41,8 +41,18 @@ Exercise ──1:1── CapabilityProfile
 Routine >── TrainingProgramRoutine ──> TrainingProgram
 
 TrainingProgram ──> ActiveProgram / UserTrainingProgram (future)
-   └─> WorkoutSession ─< ExercisePerformance ─< CompletedSet
+                          └─> WorkoutSession (future source)
+
+RoutineExercise ── snapshot at routine-based workout start
+                          └─> ExercisePerformance ─< CompletedSet
+
+WorkoutSession ─< ExercisePerformance ─< CompletedSet
 ```
+
+`WorkoutSession` can also originate directly from a routine or as a freestyle
+workout. It must not depend on `ActiveProgram` / `UserTrainingProgram` being
+implemented first. The complete prescription/execution contract is defined in
+[workout sessions](14-workout-sessions.md).
 
 ## Core modeling rules
 
@@ -54,6 +64,9 @@ TrainingProgram ──> ActiveProgram / UserTrainingProgram (future)
 - Store timestamps in UTC as timezone-aware PostgreSQL timestamps; render in the user’s timezone.
 - Do not use floating point for loads or distances. Use database decimals with documented units.
 - Do not hard-delete referenced historical identities. Use `archivedAt` or `isActive` for exercises once session history exists.
+- New long-lived `ExercisePerformance` records reference the stable internal
+  Exercise UUID. Slugs remain public/editorial identifiers; the existing
+  `RoutineExercise.exerciseSlug` does not need to change as part of Phase 8.
 
 ## Classification decisions
 
@@ -91,7 +104,9 @@ Materialized aggregates are deferred until query measurements show a need. If ca
 - Creating/updating a routine and its prescription children is one transaction when submitted as a full form.
 - Creating/updating a training program and its relative routine schedule is one transaction when submitted as a full form.
 - Media upload is post-MVP. If a staged/finalized Cloudinary workflow is introduced later, keep it separate from PostgreSQL aggregate transactions and define cleanup states explicitly.
-- Recording a completed session should commit the session snapshots and initial sets atomically where practical.
+- Starting a routine-based session should create the session and its initial
+  exercise prescription snapshots atomically where practical. Subsequent child
+  mutations resolve and mutate through the owned `WorkoutSession` aggregate.
 
 ## Cross-domain authorization
 

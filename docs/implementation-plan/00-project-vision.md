@@ -59,8 +59,11 @@ Later product measures include routine reuse, completed session consistency, dat
 - **Demand profile:** general technical, loading, fatigue, and recovery characteristics.
 - **Routine:** a reusable ordered workout template.
 - **Prescription:** targets attached to an exercise in a routine.
-- **Session:** one historical workout occurrence.
-- **Completed set:** an athlete’s recorded performance.
+- **WorkoutSession:** one historical workout occurrence performed by one user.
+- **ExercisePerformance:** one performed exercise plus its authoritative
+  prescription snapshot inside a workout session.
+- **CompletedSet:** the lowest-level recorded strength/repetition performance
+  fact for an exercise performance.
 - **Derived metric:** a reproducible calculation from stored source data.
 - **Heuristic:** an estimate with assumptions, limitations, and versioned logic.
 

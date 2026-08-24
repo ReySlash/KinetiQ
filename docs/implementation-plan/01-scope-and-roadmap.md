@@ -56,15 +56,29 @@ Complete accessibility checks, rate limiting, security headers, data backup/rest
 
 ### Phase 7 — Training programs and weekly scheduling
 
-Compose routines into dated or weekday-based training programs. Do not add performance records yet.
+Compose routines into reusable multi-week templates using relative
+`weekNumber`/`dayNumber` slots. Training programs do not own calendar dates and
+do not add performance records.
 
 ### Phase 8 — Sessions and performance
 
-Create snapshot-based workout history with session exercises and completed sets. Support strength/repetition sets first; duration/distance modes can follow.
+Ship a usable historical-training vertical slice built around
+`WorkoutSession -> ExercisePerformance -> CompletedSet`. Support freestyle and
+routine-based workout start without depending on the future active-program
+layer. Store authoritative prescription snapshots and strength/repetition set
+facts, enforce owned aggregate mutations and the
+`IN_PROGRESS -> COMPLETED|CANCELLED` lifecycle, and provide active-workout,
+workout-history, and exercise-history reads. The active experience is
+mobile-first. Duration/distance modes can follow. See
+[workout sessions](14-workout-sessions.md).
 
 ### Phase 9 — Basic analytics
 
-Add deterministic calculations: consistency, completed sessions, volume, estimated 1RM, PRs, exercise frequency, and muscle-set estimates. Label indirect involvement and formula assumptions.
+Begin only after Phase 8 history is stable and trustworthy. Add completed
+sessions, consistency, volume, estimated 1RM, PR detection, exercise frequency,
+and basic muscle-set estimates. Compute from raw history initially and label
+heuristic involvement/formula assumptions; advanced fatigue and opaque coaching
+remain later work.
 
 ### Phase 10 — Progression and recovery
 

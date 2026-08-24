@@ -4,15 +4,13 @@
 
 A `TrainingProgram` is a reusable multi-week template that schedules existing
 routine templates. The persistence model and migration are complete. The
-backend-only Clean Architecture/DDD vertical-slice pilot currently implements
-the approved `GET /api/training-programs` list, slug-based detail read, authenticated
-`POST /api/training-programs` create, and owner-scoped `PATCH` update. Create and
-update persist the complete aggregate,
+backend-only Clean Architecture/DDD vertical slice currently implements list,
+slug-based detail, authenticated create, owner-scoped update, and owner-scoped
+delete. Create and update persist the complete aggregate,
 including its optional schedule, in one transaction. List supports the approved
 visibility scopes, search, sorting, limit, and offset through a bounded read
-projection. Delete, Swagger expansion, and the other proposed backend operations
-remain unimplemented and require approval before coding.
-Frontend screens, seeds, activation, calendar placement,
+projection. The routes are documented with Swagger. Frontend screens, seeds,
+activation, calendar placement,
 performed-training models, and duplication remain out of scope.
 
 The template hierarchy is:
@@ -71,9 +69,14 @@ ActiveProgram / UserTrainingProgram
 WorkoutSession
     ↓
 ExercisePerformance
+    ↓
+CompletedSet
 ```
 
-None of the future execution models are part of this persistence slice.
+None of the future execution models are part of this persistence slice. Phase 8
+sessions will not require `ActiveProgram` / `UserTrainingProgram` first and may
+also start from a standalone routine or freestyle workout. See
+[workout sessions](14-workout-sessions.md).
 
 ## Relative program scheduling
 
@@ -100,8 +103,8 @@ contain an unscheduled week, and its declared contract should not change merely
 because a schedule row changes.
 
 The database prevents two routines from occupying the same slot with unique
-`(trainingProgramId, weekNumber, dayNumber)`. The future service layer must also
-validate integer values with these rules:
+`(trainingProgramId, weekNumber, dayNumber)`. The implemented domain and DTO
+layers also validate integer values with these rules:
 
 ```text
 weekNumber >= 1
@@ -112,8 +115,8 @@ durationWeeks >= 1
 
 The existing schema has no general convention for positive-integer SQL checks,
 so this slice does not introduce one-off raw check constraints. These rules must
-be enforced by DTO/service validation when the API is implemented. A later
-repository-wide database constraint policy may add matching checks through a
+be enforced by DTO/domain validation. A later repository-wide database
+constraint policy may add matching checks through a
 reviewed migration.
 
 ## Visibility, ownership, and copying
@@ -238,15 +241,16 @@ TrainingProgram
 `ProgramPhase`, `ProgramWeek`, and `ProgramDay` should be introduced only if a
 concrete future workflow requires metadata or behavior at those levels. Also
 deferred are active/user programs, workout sessions, exercise performance,
-weekday enums, direct program exercises, progression rules, percentage-based
-loading, mesocycles, `daysPerWeek`, and frontend-specific fields.
+completed sets, weekday enums, direct program exercises, progression rules,
+percentage-based loading, mesocycles, `daysPerWeek`, and frontend-specific
+fields.
 
-## Backend architecture pilot
+## Backend architecture
 
-Training Programs is an isolated pilot of the architecture defined in
-[Architecture](02-architecture.md). It remains one NestJS feature module in the
-modular monolith; the vertical slice is organizational and dependency-oriented,
-not a microservice boundary.
+Training Programs established the architecture now also used by Routines and
+described in [Architecture](02-architecture.md). It remains one NestJS feature
+module in the modular monolith; the vertical slice is organizational and
+dependency-oriented, not a microservice boundary.
 
 ```text
 apps/api/src/modules/training-programs/
@@ -270,22 +274,23 @@ apps/api/src/modules/training-programs/
         list-training-programs.use-case.ts
         get-training-program.use-case.ts
     models/
-      training-program.models.ts
+      create-training-program.input.ts
+      detail-training-program.model.ts
+      list-training-programs.model.ts
+      update-training-program.input.ts
   infrastructure/
     prisma/
       prisma-training-programs.adapter.ts
       prisma-training-program.mapper.ts
   presentation/
-    http/
-      dto/
-      training-programs.controller.ts
-      training-programs-exception.mapper.ts
+    dto/
+    training-programs.controller.ts
+    training-programs-exception.mapper.ts
   training-programs.module.ts
 ```
 
-This is a target organization, not a requirement to create empty placeholder
-files. Add a file only when the implementation gives it a concrete
-responsibility.
+This is the current organization. Future modules should still add a file only
+when the implementation gives it a concrete responsibility.
 
 ### Layer responsibilities
 
@@ -370,6 +375,8 @@ The implemented operations are:
 GET /api/training-programs
 GET /api/training-programs/:slug
 POST /api/training-programs
+PATCH /api/training-programs/:slug
+DELETE /api/training-programs/:slug
 ```
 
 GET accepts the approved `scope`, `q`, `sort`, `limit`, and `offset` parameters.
@@ -378,9 +385,6 @@ optional `schedule` that defaults to an empty array. Identity, owner,
 visibility, and timestamps are server-controlled. Whether supplied or omitted,
 the slug base is normalized and gets an eight-character UUID suffix.
 
-The remaining delete contract below is a proposal and still requires explicit
-approval before implementation.
-
 ### Use cases
 
 1. `CreateTrainingProgram`: create one private owned template and its complete
@@ -388,8 +392,7 @@ approval before implementation.
 2. `ListTrainingPrograms`: list either the caller's private templates or global
    templates with search, sorting, limit, and offset.
 3. `GetTrainingProgram`: return an accessible private/global template and its
-   ordered schedule with routine summaries. This read path is implemented;
-   delete remains deferred.
+   ordered schedule with routine summaries.
 4. `UpdateTrainingProgram`: update an owned PRIVATE template. Name,
    description, and duration are optional patch fields; omitted values are
    preserved. A supplied schedule replaces the complete schedule, including

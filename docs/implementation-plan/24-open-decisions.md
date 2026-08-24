@@ -129,7 +129,12 @@ Choose off-host uptime/alerting, error tracking, and log retention with privacy/
 - Custom exercises: optional `ownerId` on `Exercise` versus a separate `CustomExercise`. Revisit only with sharing/moderation/search rules.
 - Exercise relationships: directionality, inverse generation, duplicate/conflict rules, and curator UI.
 - Training program versioning versus live routine reference.
-- Session canonical load/distance units and correction/audit policy.
+- Phase 8 session decisions: canonical load unit and decimal precision;
+  entered/display units; first-slice warm-up fact; completed-history
+  correction/audit semantics; exact source provenance and snapshot columns;
+  active-session concurrency/idempotency; timezone capture; and performance-data
+  export/deletion/retention. Duration/distance units remain a later-modality
+  decision.
 - Analytics formulas, working-set classification, unilateral/bodyweight conventions.
 - General athletic-quality curation rubric and public value.
 - Sport taxonomy, evidence/confidence policy, positions/events.

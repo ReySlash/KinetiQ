@@ -82,8 +82,11 @@ This work may begin earlier and must be complete before any shared environment e
 ## Post-MVP releases
 
 - **R10:** training programs and weekly schedules
-- **R11:** session launch, snapshots, and completed strength sets
-- **R12:** session history and corrections
+- **R11:** Phase 8 domain/persistence plus routine/freestyle session start,
+  prescription snapshots, mutable completed strength sets, lifecycle commands,
+  and active-workout retrieval
+- **R12:** mobile-first recording/history UI, workout and exercise history
+  reads, and the separately approved completed-history correction path
 - **R13:** deterministic overview analytics and PRs
 - **R14:** muscle/movement demand analytics with explicit heuristics
 - **R15:** opt-in rules-based progression recommendations
@@ -113,4 +116,5 @@ At plan creation all releases are `PLANNED`. Update this table when work begins;
 | R6 Auth/admin hardening | In progress — Better Auth backend wiring exists; web flows and full HTTP authorization matrix remain | R0; gates shared R2–R5 |
 | R7–R8 Routines | Implemented in backend/UI slices; final MVP acceptance and production hardening remain | R2, R6 |
 | R9 Production MVP | Planned | R0–R8 |
-| R10+ Later phases | Deferred | R9 and preceding data layers |
+| R10 Training programs | Backend template/schedule slice implemented; frontend and release acceptance remain | R9 |
+| R11+ Sessions and later phases | Planned/deferred; Phase 8 is specified but not implemented | Auth + routines; R10/active-program adoption is not required for standalone or routine starts |

@@ -4,6 +4,11 @@
 
 Analytics turn historical training into understandable summaries. They are post-MVP because trustworthy calculations require stable completed-session data. Initial metrics must be deterministic, explainable, and reproducible.
 
+Phase 9 does not begin until the Phase 8 `WorkoutSession ->
+ExercisePerformance -> CompletedSet` history is stable, owner-isolated, and
+snapshot-safe. See [workout sessions](14-workout-sessions.md). Analytics consume
+that history; they do not redefine its write model.
+
 ## Data categories
 
 | Category | Examples | Persistence policy |
@@ -25,13 +30,34 @@ Do not store every chart point or aggregate until performance measurements justi
 - Strength trend using e1RM or best comparable set
 - Routine adherence when a schedule exists
 
-Muscle-set estimates, demand exposure, stagnation, movement balance, and recommendations follow after the base calculations are validated.
+Basic muscle-set estimates may be included only after the base calculations are
+validated. Complex fatigue modeling, readiness models, AI coaching, and opaque
+recommendations remain later work.
 
 ## Metric definitions
 
 Every metric specification must state input rows, inclusion/exclusion rules, timezone/week boundary, units, formula, rounding, missing-data behavior, minimum sample size, and version. Warm-ups, skipped sets, unilateral load conventions, bodyweight exercises, assisted load, and duration work need explicit treatment rather than silent assumptions.
 
 Weekly muscle sets should distinguish direct/primary and indirect/secondary/stabilizer contributions. Recommendation: initially report raw completed exercise sets grouped by assignment role rather than convert them into fractional “effective sets.” If fractional weighting is added, label it a heuristic and expose weights/version.
+
+The derivation path is:
+
+```text
+CompletedSet
+    ↓
+ExercisePerformance
+    ↓
+Exercise
+    ↓
+ExerciseMuscle (role, involvementScore)
+```
+
+Suitable language includes “muscle exposure,” “weighted set exposure,”
+“training distribution,” and “estimated muscle-set equivalents.” Do not present
+involvement-based output as physiologically exact effective sets. Possible later
+views include primary/secondary exposure, weekly muscle distribution, movement-
+pattern distribution, and weighted muscle-set exposure; user-visible heuristics
+should identify their method and assumptions.
 
 ## Architecture
 
@@ -85,4 +111,3 @@ Each released metric is reproducible from raw owned data, documented and version
 ## Future extensions and open questions
 
 Movement balance, axial exposure, sport-quality exposure, stagnation, recovery trends, cohort comparisons, and predictive models are later. Open decisions include formula choice, working-set classification, bodyweight load conventions, and privacy classification. AI is explicitly outside the first recommendation releases.
-

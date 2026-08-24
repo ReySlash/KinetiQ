@@ -39,37 +39,46 @@ Nginx ───── /api/* ───► NestJS API ───► Prisma ──�
 
 Prefer same-site deployment (`app.example.com` with `/api` proxying) to simplify cookies, CORS, and CSRF posture. Next.js renders pages and owns browser interaction; it must not directly query PostgreSQL. NestJS is the only business-data authority.
 
-## Backend modules
+## Current and planned backend modules
 
 - `ConfigModule`: validated environment configuration
 - `SharedInfrastructureModule`: composed shared infrastructure boundary
 - `SharedConfigModule`: validated environment configuration
 - `SharedDatabaseModule`: Prisma client and transaction boundary
 - `SharedAuthModule`: Better Auth request/session integration
-- `UsersModule`: minimal application user/profile and roles
+- Future `UsersModule`: application user/profile operations if needed beyond Better Auth
+- `MuscleGroupsModule`: public controlled muscle-group reads and admin writes
 - `MusclesModule`: public controlled reference reads
 - `ExercisesModule`: exercise identity and composed profile operations
-- `MediaModule`: upload policy and `StorageService`
+- Future `MediaModule`: post-MVP upload policy and Cloudinary asset management
 - `RoutinesModule`: owned templates and prescriptions
 - `HealthModule`: liveness/readiness
-- Later: `TrainingProgramsModule`, `WorkoutSessionsModule`, `AnalyticsModule`
+- `TrainingProgramsModule`: reusable multi-week templates and relative routine schedules
+- Later: `WorkoutSessionsModule`, `AnalyticsModule`
 
 Modules may share IDs and public service interfaces, but should not reach into one another’s Prisma repositories. Cross-aggregate writes (for example exercise plus muscle assignments and profiles) are coordinated by one application service in one transaction.
 
-## Training Programs architecture pilot
+## Feature-local Clean Architecture
 
-`TrainingProgramsModule` is the first isolated pilot of a lean Clean Architecture/DDD vertical slice inside the existing modular monolith. This is not approval for a repository-wide rewrite. Existing modules keep their current structure until the pilot is implemented, tested, and evaluated.
+`TrainingProgramsModule` began as the isolated pilot for lean Clean
+Architecture/DDD inside the modular monolith. The current `routines` and
+`training-programs` modules now both use the approved feature-local layers,
+command/query ports, and Prisma adapters. Other current modules have also been
+migrated deliberately; this remains a modular monolith, not a microservice or a
+reason to add generic framework abstractions.
 
-The pilot uses feature ownership first and layers inside the feature:
+Layered modules use feature ownership first and layers inside the feature:
 
 ```text
 apps/api/src/modules/training-programs/
   domain/
     entities/
     errors/
-    repositories/
   application/
+    ports/
     use-cases/
+      commands/
+      queries/
     models/
   infrastructure/
     prisma/
@@ -88,21 +97,29 @@ infrastructure ──────────┘
 ```
 
 - **Domain** owns the `TrainingProgram` aggregate, schedule-entry behavior, invariants, and domain errors. It imports no NestJS, Prisma, Swagger, class-validator, or HTTP types.
-- **Application** owns use-case orchestration and transport-neutral input/output models. It depends on domain contracts, not concrete persistence.
+- **Application** owns use-case orchestration, command/query ports, and transport-neutral input/output models. It depends on the domain, not concrete persistence.
 - **Infrastructure** implements feature-specific repository ports with Prisma, maps database rows to domain/application models, and owns atomic persistence details.
 - **Presentation** owns NestJS controllers, authentication decorators, HTTP request/response DTOs, Swagger annotations, and translation from application/domain errors to the established HTTP contract.
 - **Module composition** binds repository tokens to Prisma implementations and wires use cases/controllers.
 
-Keep the pilot lean:
+Keep layered feature modules lean:
 
-- Keep shared domain primitives limited to the proven `Entity` and `UniqueId` kernel; do not add generic repositories, use cases, result wrappers, event buses, or a CQRS dependency.
-- Introduce a value object only when it protects a meaningful compound invariant or behavior. Do not wrap `ownerId`, name, or description merely to avoid primitives.
+- The current shared domain kernel contains `Entity`, the base `ValueObject`,
+  generated `UniqueId`, and validated `ExistingUuid`. Do not add generic
+  repositories, use cases, result wrappers, event buses, or a CQRS dependency.
+- Introduce a value object only when it centralizes validation or protects a
+  meaningful invariant/behavior; do not wrap primitives solely to increase file
+  count.
 - Repository methods are aggregate/use-case specific and preserve ownership and transaction guarantees; do not expose generic unscoped CRUD.
 - Prisma types and generated enums do not cross the infrastructure boundary.
 - Shared database, authentication, and configuration infrastructure lives under `modules/shared/infrastructure`; feature modules import focused shared modules explicitly, while `AppModule` composes them through `SharedInfrastructureModule`.
 - Cross-feature access uses narrow ports or feature-owned repository operations; a module never imports another feature’s Prisma implementation.
 
-After the backend slice is complete, evaluate file count, rule placement, test clarity, transaction handling, and change cost. Migrate another feature only with a separate approved decision.
+Phase 8 should use the same boundary under
+`apps/api/src/modules/workout-sessions/`. Its command side mutates the owned
+`WorkoutSession` aggregate; its query side may return specialized historical
+read models. See [workout sessions](14-workout-sessions.md) for the intended
+module shape and scope.
 
 ## Frontend architecture
 
@@ -113,9 +130,9 @@ Use server components for public, read-oriented page shells and metadata where u
 1. Nginx terminates HTTPS and proxies based on path.
 2. Better Auth session cookies are secure, HTTP-only, and same-site.
 3. NestJS resolves the authenticated principal and role.
-4. Controllers validate DTOs and delegate to application services or, in the Training Programs pilot, explicit application use cases.
+4. Controllers validate DTOs and delegate to explicit application use cases in layered feature modules or focused services in unmigrated modules.
 5. Services/use cases enforce domain rules and query-level ownership through feature contracts.
-6. Prisma executes constrained reads/writes directly for existing modules or behind the Training Programs infrastructure adapter, using transactions for aggregate changes.
+6. Prisma executes constrained reads/writes behind feature adapters in layered modules or directly in focused legacy services, using transactions for aggregate changes.
 7. A global exception filter returns the standard problem response with a request ID.
 
 ## Alternatives considered

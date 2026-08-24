@@ -77,13 +77,13 @@ Authentication is integrated after public reference-library slices so early work
 
 ## Phase status
 
-| Phase | Status at plan creation | Exit condition |
+| Phase | Current status | Exit condition |
 | --- | --- | --- |
 | Foundation | Planned | Web/API/database run locally and in CI |
 | Reference library | Planned | Seeded muscles and admin exercise management work end to end |
 | Routine MVP | Planned | Authenticated users manage only their routines |
 | Production MVP | Planned | Security, tests, deployment, backup and restore drill pass |
-| Training programs and scheduling | Deferred | Training programs can schedule reusable routines |
-| Performance and analytics | Deferred | Immutable session history supports explainable metrics |
+| Training programs and scheduling | Backend persistence/API implemented; product release deferred | Training programs can schedule reusable routines |
+| Performance and analytics | Phase 8 specified; implementation deferred | Immutable `WorkoutSession` history supports explainable metrics |
 | Recommendations and recovery | Deferred | Rules use sufficient real data and expose rationale |
 | Coach/athlete | Exploratory | Tenancy and consent model is validated |

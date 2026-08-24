@@ -15,13 +15,21 @@ Testing should protect domain invariants, ownership, transaction boundaries, his
 - **API E2E (Supertest):** a real Nest app, auth/session test helpers, real test database, and HTTP contracts.
 - **OpenAPI contract checks:** generation succeeds; optionally diff committed schema on intentional changes.
 
-For the Training Programs Clean Architecture pilot, tests follow the dependency boundaries:
+For the layered Routines and Training Programs modules, tests follow the
+dependency boundaries established by the original Training Programs pilot:
 
 - **Domain tests:** aggregate invariants and state transitions with no Nest testing module or database.
 - **Use-case tests:** orchestration, authorization decisions, and error propagation using narrow repository fakes/mocks.
 - **Mapper tests:** explicit Prisma-row to domain/response mapping, including nullable fields and schedule ordering.
 - **Prisma repository integration tests:** real PostgreSQL ownership filters, routine eligibility, atomic child replacement, uniqueness, and referential actions.
 - **Controller/DTO tests:** HTTP validation, auth principal extraction, Swagger response contracts, and error translation; controllers do not retest domain logic.
+
+The planned Workout Sessions module follows the same dependency-boundary test
+strategy. Because it stores history, Phase 8 additionally requires lifecycle
+transition tests, authenticated child mutation through the owned
+`WorkoutSession` aggregate, real PostgreSQL decimal/ordering/transaction tests,
+and purpose-built workout/exercise-history query tests. Its detailed matrix is
+in [workout sessions](14-workout-sessions.md).
 
 ### Frontend
 
@@ -41,7 +49,10 @@ For the Training Programs Clean Architecture pilot, tests follow the dependency 
 | Routine owner isolation | Policy | Scoped query | Two-user matrix | Two-user Playwright smoke |
 | Training program slot unique and within duration | Domain/DTO | Unique constraint/transaction | Invalid and duplicate schedule | Later editor validation |
 | Training program owner isolation | Use case | Scoped repository query | Anonymous/two-user/global matrix | Later two-user smoke |
-| Session history survives template edits | Later unit | Snapshot relations | Regression E2E | History comparison |
+| Session owner and child isolation | Phase 8 aggregate/use case | Owner-scoped parent/child writes | Anonymous/two-user negative matrix | Two-user smoke |
+| Session lifecycle and numeric invariants | Phase 8 domain/DTO | Decimal/order/status constraints | Invalid transitions and set values | Mutable/completed states |
+| Session history survives template edits | Phase 8 snapshot tests | Snapshot relations | Routine edit regression | History comparison |
+| Exercise archival preserves history | Phase 8 domain/query | Restrictive historical identity relation | Archive/history regression | Archived identity state |
 | Media failure leaves no incomplete data | Service | Metadata/object cleanup | Upload failure | Retry/prior image remains |
 
 ## Database test isolation
@@ -62,7 +73,9 @@ Create test utilities that obtain real Better Auth sessions for `USER_A`, `USER_
 - Anonymous/normal users cannot mutate exercises or upload media.
 - User B cannot discover, read, edit, delete, or duplicate user A’s routine.
 - Reorder conflicts do not leave duplicate positions.
-- Later: historical sessions remain unchanged after routine/exercise edits.
+- Phase 8: historical prescription snapshots remain unchanged after
+  routine/training-program edits, and exercise archival does not invalidate
+  workout or exercise history.
 - Upload/transform/database failures preserve the previous image and produce cleanup work.
 
 ## Frontend testing rules
