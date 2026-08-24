@@ -11,6 +11,7 @@ import {
 } from '../value-objects/completed-set-performance.vo';
 import { WorkoutOrder } from '../value-objects/workout-order.vo';
 import {
+  immutableDate,
   validateAuditTimestamps,
   validDate,
 } from '../utils/workout-session.validation';
@@ -38,9 +39,9 @@ export class CompletedSet extends Entity<UniqueId> {
     this.loadUnit = state.loadUnit;
     this.rir = state.rir;
     this.isWarmup = state.isWarmup;
-    this.completedAt = state.completedAt;
-    this.createdAt = state.createdAt;
-    this.updatedAt = state.updatedAt;
+    this.completedAtValue = immutableDate(state.completedAt);
+    this.createdAtValue = immutableDate(state.createdAt);
+    this.updatedAtValue = immutableDate(state.updatedAt);
     Object.freeze(this);
   }
 
@@ -51,9 +52,21 @@ export class CompletedSet extends Entity<UniqueId> {
   public readonly loadUnit: LoadUnitValue;
   public readonly rir: number | null;
   public readonly isWarmup: boolean;
-  public readonly completedAt: Date;
-  public readonly createdAt: Date;
-  public readonly updatedAt: Date;
+  private readonly completedAtValue: Date;
+  private readonly createdAtValue: Date;
+  private readonly updatedAtValue: Date;
+
+  get completedAt(): Date {
+    return this.completedAtValue;
+  }
+
+  get createdAt(): Date {
+    return this.createdAtValue;
+  }
+
+  get updatedAt(): Date {
+    return this.updatedAtValue;
+  }
 
   // Create a new completed set
   static create(

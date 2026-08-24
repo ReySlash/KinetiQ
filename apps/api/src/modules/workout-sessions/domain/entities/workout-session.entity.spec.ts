@@ -186,6 +186,25 @@ describe('WorkoutSession aggregate', () => {
     expect(set.completedAt).toBe(completedAt);
   });
 
+  it('protects historical timestamps from Date mutators', () => {
+    const completedAt = new Date('2026-08-24T10:05:00.000Z');
+    const session = addBenchPress();
+    const recorded = session.recordSet(
+      session.exercisePerformances[0].id.value,
+      {
+        repetitions: 5,
+        load: '225',
+        loadUnit: 'LB',
+        completedAt,
+      },
+    );
+    const set = recorded.exercisePerformances[0].completedSets[0];
+
+    expect(Object.isFrozen(set.completedAt)).toBe(true);
+    expect(() => set.completedAt.setTime(Date.now())).toThrow(TypeError);
+    expect(set.completedAt.toISOString()).toBe('2026-08-24T10:05:00.000Z');
+  });
+
   it('updates set facts without changing the training-event timestamp', () => {
     const recorded = recordBenchPressSet();
     const performance = recorded.exercisePerformances[0];

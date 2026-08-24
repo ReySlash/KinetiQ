@@ -9,6 +9,7 @@ import { ExerciseNameSnapshot } from '../value-objects/historical-name.vo';
 import { PrescriptionSnapshot } from '../value-objects/prescription-snapshot.vo';
 import { WorkoutOrder } from '../value-objects/workout-order.vo';
 import {
+  immutableDate,
   optionalUuid,
   validateAuditTimestamps,
 } from '../utils/workout-session.validation';
@@ -132,8 +133,8 @@ export class ExercisePerformance extends Entity<UniqueId> {
         'Routine-based exercise performances require a prescription snapshot.',
       );
     }
-    this.createdAt = state.createdAt;
-    this.updatedAt = state.updatedAt;
+    this.createdAtValue = immutableDate(state.createdAt);
+    this.updatedAtValue = immutableDate(state.updatedAt);
     this.completedSets = Object.freeze([...state.completedSets]);
     // Validate that all completed sets belong to this exercise performance
     this.completedSets.forEach((set) => {
@@ -154,9 +155,17 @@ export class ExercisePerformance extends Entity<UniqueId> {
   public readonly order: number;
   public readonly exerciseNameSnapshot: string;
   public readonly prescription: PrescriptionSnapshot | null;
-  public readonly createdAt: Date;
-  public readonly updatedAt: Date;
+  private readonly createdAtValue: Date;
+  private readonly updatedAtValue: Date;
   public readonly completedSets: readonly CompletedSet[];
+
+  get createdAt(): Date {
+    return this.createdAtValue;
+  }
+
+  get updatedAt(): Date {
+    return this.updatedAtValue;
+  }
 
   static create(
     workoutSessionId: string,

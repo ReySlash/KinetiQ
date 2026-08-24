@@ -11,6 +11,7 @@ import { IanaTimezone } from '../value-objects/iana-timezone.vo';
 import { WorkoutSessionStatus } from '../value-objects/workout-session-status.vo';
 import {
   optionalUuid,
+  immutableDate,
   validateAuditTimestamps,
   validDate,
   validVersion,
@@ -134,11 +135,15 @@ export class WorkoutSession extends Entity<UniqueId> {
     // Lifecycle
     this.status = state.status;
     this.timezone = state.timezone;
-    this.startedAt = state.startedAt;
-    this.completedAt = state.completedAt;
-    this.cancelledAt = state.cancelledAt;
-    this.createdAt = state.createdAt;
-    this.updatedAt = state.updatedAt;
+    this.startedAtValue = immutableDate(state.startedAt);
+    this.completedAtValue = state.completedAt
+      ? immutableDate(state.completedAt)
+      : null;
+    this.cancelledAtValue = state.cancelledAt
+      ? immutableDate(state.cancelledAt)
+      : null;
+    this.createdAtValue = immutableDate(state.createdAt);
+    this.updatedAtValue = immutableDate(state.updatedAt);
     this.version = state.version;
     this.exercisePerformances = Object.freeze([...state.exercisePerformances]);
     Object.freeze(this);
@@ -149,13 +154,33 @@ export class WorkoutSession extends Entity<UniqueId> {
   public readonly sourceRoutineNameSnapshot: string | null;
   public readonly status: PrimitiveWorkoutSession['status'];
   public readonly timezone: string;
-  public readonly startedAt: Date;
-  public readonly completedAt: Date | null;
-  public readonly cancelledAt: Date | null;
-  public readonly createdAt: Date;
-  public readonly updatedAt: Date;
+  private readonly startedAtValue: Date;
+  private readonly completedAtValue: Date | null;
+  private readonly cancelledAtValue: Date | null;
+  private readonly createdAtValue: Date;
+  private readonly updatedAtValue: Date;
   public readonly version: number;
   public readonly exercisePerformances: readonly ExercisePerformance[];
+
+  get startedAt(): Date {
+    return this.startedAtValue;
+  }
+
+  get completedAt(): Date | null {
+    return this.completedAtValue;
+  }
+
+  get cancelledAt(): Date | null {
+    return this.cancelledAtValue;
+  }
+
+  get createdAt(): Date {
+    return this.createdAtValue;
+  }
+
+  get updatedAt(): Date {
+    return this.updatedAtValue;
+  }
 
   // Returns total number of completed sets across all exercise performances in a workout session.
   get completedSetCount(): number {

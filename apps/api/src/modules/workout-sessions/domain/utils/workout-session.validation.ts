@@ -10,6 +10,46 @@ export function validDate(value: Date, label: string): Date {
   return value;
 }
 
+const DATE_MUTATORS = [
+  'setDate',
+  'setFullYear',
+  'setHours',
+  'setMilliseconds',
+  'setMonth',
+  'setSeconds',
+  'setTime',
+  'setUTCDate',
+  'setUTCFullYear',
+  'setUTCHours',
+  'setUTCMilliseconds',
+  'setUTCMonth',
+  'setUTCSeconds',
+  'setYear',
+] as const;
+
+/** Freezes a Date while preserving its identity for domain event timestamps. */
+export function immutableDate(value: Date): Date {
+  validDate(value, 'Timestamp');
+  if (Object.isFrozen(value)) {
+    const hasImmutableMutators = DATE_MUTATORS.every((mutator) =>
+      Object.prototype.hasOwnProperty.call(value, mutator),
+    );
+    if (hasImmutableMutators) return value;
+    value = new Date(value);
+  }
+
+  for (const mutator of DATE_MUTATORS) {
+    Object.defineProperty(value, mutator, {
+      configurable: false,
+      value: () => {
+        throw new TypeError('Immutable domain timestamps cannot be changed.');
+      },
+      writable: false,
+    });
+  }
+  return Object.freeze(value);
+}
+
 // Ensure the value is a valid UUID or null
 export function optionalUuid(value: string | null | undefined): string | null {
   return value === undefined || value === null
