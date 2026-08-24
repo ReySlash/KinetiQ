@@ -16,6 +16,25 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Frontend testing
+
+Run the deterministic unit and component suite with Vitest, RTL, and MSW:
+
+```bash
+pnpm test:unit
+pnpm test:coverage
+```
+
+The browser suites are intentionally separate:
+
+```bash
+pnpm test:browser:mocked  # Playwright with mocked API responses
+pnpm test:a11y            # Playwright + axe-core
+pnpm test:smoke           # real API smoke tests when credentials are configured
+```
+
+Set `WEB_SMOKE_EMAIL`, `WEB_SMOKE_PASSWORD`, and `WEB_SMOKE_BASE_URL` for the real API smoke suite. CI runs deterministic suites on every change and only enables real API smoke when its dedicated test database credentials are available.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

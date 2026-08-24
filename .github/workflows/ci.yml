@@ -77,3 +77,110 @@ jobs:
 
       - name: Build web
         run: pnpm --filter web build
+
+  web-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web test:unit
+
+  web-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web test:coverage
+
+  web-browser-mocked:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web test:browser:mocked
+
+  web-accessibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web test:a11y
+
+  web-real-api-smoke:
+    if: ${{ secrets.WEB_SMOKE_EMAIL != '' && secrets.WEB_SMOKE_PASSWORD != '' && secrets.WEB_SMOKE_DATABASE_URL != '' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.4-alpine3.24
+        env:
+          POSTGRES_DB: kinetiq_test
+          POSTGRES_USER: kinetiq
+          POSTGRES_PASSWORD: kinetiq
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U kinetiq -d kinetiq_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: ${{ secrets.WEB_SMOKE_DATABASE_URL }}
+      NODE_ENV: test
+      PORT: 3000
+      WEB_ORIGIN: http://localhost:3001
+      API_URL: http://localhost:3000/api/
+      BETTER_AUTH_SECRET: ${{ secrets.WEB_SMOKE_AUTH_SECRET }}
+      WEB_SMOKE_EMAIL: ${{ secrets.WEB_SMOKE_EMAIL }}
+      WEB_SMOKE_PASSWORD: ${{ secrets.WEB_SMOKE_PASSWORD }}
+      WEB_SMOKE_BASE_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter api prisma:migrate:deploy
+      - run: pnpm --filter api build
+      - run: pnpm --filter api start:prod > /tmp/kinetiq-api.log 2>&1 &
+      - run: |
+          for attempt in {1..30}; do
+            curl --fail --silent http://localhost:3000/api/health > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/kinetiq-api.log
+          exit 1
+      - run: pnpm --filter web dev > /tmp/kinetiq-web.log 2>&1 &
+      - run: |
+          for attempt in {1..30}; do
+            curl --fail --silent http://localhost:3001/sign-in > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/kinetiq-web.log
+          exit 1
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web test:smoke
