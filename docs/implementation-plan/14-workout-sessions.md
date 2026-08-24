@@ -185,9 +185,11 @@ Core invariants include:
 - a completion timestamp cannot precede the session start;
 - a session transition cannot silently discard or rewrite recorded history.
 
-Warm-up classification is useful for strength analytics, but whether the first
-`CompletedSet` includes an `isWarmup` fact remains a pre-schema decision. Do not
-introduce a larger set-status hierarchy merely to support it.
+Warm-up classification is included in the first schema as the boolean
+`CompletedSet.isWarmup` fact. Warm-up sets remain valid historical observations,
+but are excluded from working-set volume, PR detection, and muscle-set
+estimates by default unless a metric explicitly requests them. Do not introduce
+a larger set-status hierarchy merely to support this distinction.
 
 ## Historical-data and identity rules
 
