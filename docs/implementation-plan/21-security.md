@@ -63,6 +63,7 @@ Apply per-IP/account rate limits to auth, search, writes, and uploads with sensi
 
 - Authorization matrix at API/service layers, including guessed IDs and nested resources
 - CSRF/origin/cookie tests in production-like HTTPS configuration
+- Session revocation, malformed/expired cookie, and protected-endpoint non-disclosure E2E tests run only against an explicitly isolated test database; the harness applies migrations, truncates public data, and seeds essential fixtures without creating or dropping the database.
 - DTO fuzz/boundary and mass-assignment tests
 - Upload polyglot/wrong MIME/oversize/dimension/path tests
 - Dependency, secret, and container scans in CI

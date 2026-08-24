@@ -44,6 +44,14 @@ function getSessionUserId(body: unknown): string {
   return body.user.id;
 }
 
+function getSessionCookieValue(cookies: string[]): string {
+  const cookie = cookies.find((value) =>
+    value.startsWith('better-auth.session_token='),
+  );
+  if (!cookie) throw new Error('Session cookie was not returned.');
+  return decodeURIComponent(cookie.split(';', 1)[0].split('=', 2)[1]);
+}
+
 describe('HTTP authentication and authorization (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -210,6 +218,60 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await request(app.getHttpServer())
       .delete(`/admin/muscles/${id}`)
       .expect(401);
+  });
+
+  it('revokes the active session on sign-out and rejects cookie reuse', async () => {
+    const cookies = await signIn(user);
+
+    await request(app.getHttpServer())
+      .get('/api/auth/get-session')
+      .set('Cookie', cookies)
+      .expect(200);
+    await request(app.getHttpServer())
+      .post('/api/auth/sign-out')
+      .set('Cookie', cookies)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get('/api/auth/get-session')
+      .set('Cookie', cookies)
+      .expect(200)
+      .expect(({ body }) => expect(body).toBeNull());
+    const protectedResponse = await request(app.getHttpServer())
+      .get('/training-programs')
+      .set('Cookie', cookies)
+      .expect(401);
+    expect(JSON.stringify(protectedResponse.body)).not.toContain('session');
+  });
+
+  it.each(['not-a-session-token', 'malformed.token.value', '%E0%A4%A'])(
+    'rejects a malformed session cookie (%s)',
+    async (cookieValue) => {
+      const response = await request(app.getHttpServer())
+        .get('/training-programs')
+        .set('Cookie', `better-auth.session_token=${cookieValue}`)
+        .expect(401);
+
+      expect(JSON.stringify(response.body)).not.toContain(cookieValue);
+      expect(JSON.stringify(response.body)).not.toContain('session');
+      expect(JSON.stringify(response.body)).not.toContain('token');
+    },
+  );
+
+  it('rejects a session whose database expiry has passed', async () => {
+    const cookies = await signIn(user);
+    const token = getSessionCookieValue(cookies);
+    await prisma.session.update({
+      where: { token },
+      data: { expiresAt: new Date(0) },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/training-programs')
+      .set('Cookie', cookies)
+      .expect(401);
+    expect(JSON.stringify(response.body)).not.toContain(token);
+    expect(JSON.stringify(response.body)).not.toContain('session');
   });
 
   it('rejects unsafe browser requests from untrusted origins', async () => {

@@ -75,6 +75,8 @@ Use Better Auth’s documented password policy and rate-limit sign-in/signup/res
 
 Deleted/banned users with live sessions, role demotion, session expiry during a form submit, duplicate emails/provider linking, account deletion with owned resources, clock skew, auth service database migration, and compromised admin account. Define account deletion behavior before enabling it; MVP may omit self-service deletion.
 
+Role-refresh E2E coverage is intentionally deferred until the MVP exposes a role-changing operation. Session revocation and expired-cookie rejection remain required for the current authentication surface.
+
 ## Dependencies and implementation sequence
 
 Choose auth method and adapter, generate/apply auth schema, integrate server handler, resolve Nest principal, add role bootstrap, protect admin writes, build pages/session UX, then add routine ownership and negative tests. Reference-library public reads do not depend on auth.
