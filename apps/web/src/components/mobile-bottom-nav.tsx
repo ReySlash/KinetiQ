@@ -7,7 +7,7 @@ import { navigationItems } from "@/components/side-nav";
 import { cn } from "@/lib/utils";
 
 const primaryNavigation = navigationItems.filter(({ href }) =>
-  ["/dashboard", "/exercises", "/routines", "/training-programs"].includes(
+  ["/dashboard", "/workout-sessions", "/exercises", "/routines"].includes(
     href,
   ),
 );

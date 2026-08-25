@@ -88,6 +88,7 @@ export type ExerciseDetails = {
 };
 
 export type Exercise = {
+  id: string;
   name: string;
   slug: string;
   thumbnailUrl: string | null;

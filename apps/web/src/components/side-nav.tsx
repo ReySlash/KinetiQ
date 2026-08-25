@@ -8,6 +8,7 @@ import { GiStrong } from "react-icons/gi";
 import { IoFitness } from "react-icons/io5";
 import { BsClipboard2DataFill } from "react-icons/bs";
 import { FaChartBar, FaChartLine, FaCalendarAlt } from "react-icons/fa";
+import { Dumbbell } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -35,6 +36,11 @@ export const navigationItems = [
     href: "/routines",
     label: "Routines",
     icon: IoFitness,
+  },
+  {
+    href: "/workout-sessions",
+    label: "Workouts",
+    icon: Dumbbell,
   },
   {
     href: "/training-programs",
