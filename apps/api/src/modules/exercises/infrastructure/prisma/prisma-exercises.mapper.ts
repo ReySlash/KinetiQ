@@ -7,6 +7,7 @@ import type {
 import { Exercise } from '../../domain/entities/exercise.entity';
 
 export const exerciseFindAllSelect = {
+  id: true,
   name: true,
   slug: true,
   thumbnailUrl: true,

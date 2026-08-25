@@ -35,7 +35,7 @@ export class PrismaExercisesAdapter
       const rows = await this.prisma.exercise.findMany(
         buildExercisesFindAllQuery(query),
       );
-      return rows.map(toListItem);
+      return rows.map((row) => toListItem(row));
     } catch {
       throw new ExerciseQueryError();
     }

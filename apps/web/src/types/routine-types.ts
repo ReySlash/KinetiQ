@@ -47,6 +47,7 @@ export type RoutineDetail = {
 };
 
 export type ExerciseOption = {
+  id: string;
   name: string;
   slug: string;
   thumbnailUrl: string | null;

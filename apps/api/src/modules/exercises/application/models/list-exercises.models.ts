@@ -14,6 +14,7 @@ export type ListExercisesQuery = {
 };
 
 export type ExerciseListItem = {
+  id: string;
   name: string;
   slug: string;
   thumbnailUrl: string | null;
