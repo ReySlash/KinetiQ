@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
@@ -55,7 +56,10 @@ async function resetPublicTables(databaseUrl: string): Promise<void> {
 
 export default async function globalSetup(): Promise<void> {
   const apiRoot = resolve(__dirname, '..');
-  dotenv.config({ path: resolve(apiRoot, '.env.test') });
+  const testEnvPath = resolve(apiRoot, '.env.test');
+  if (existsSync(testEnvPath)) {
+    dotenv.config({ path: testEnvPath });
+  }
   process.env.NODE_ENV = 'test';
   const databaseUrl = requireTestDatabaseUrl();
 

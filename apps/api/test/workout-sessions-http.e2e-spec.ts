@@ -2,11 +2,9 @@ import 'reflect-metadata';
 
 import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
 import { PlatformRole } from '../generated/prisma/client';
 import { PrismaService } from '../src/modules/shared/infrastructure/database/prisma/prisma.service';
-import { AppModule } from '../src/app.module';
-import request from 'supertest';
+import { apiRequest as request, createE2eApp } from './create-e2e-app';
 import type { App } from 'supertest/types';
 
 type TestPrincipal = {
@@ -97,12 +95,7 @@ describe('Workout sessions HTTP authorization and concurrency (e2e)', () => {
     process.env.RESEND_API_KEY = 'test-resend-key';
     process.env.RESEND_FROM_EMAIL = 'KinetiQ <test@example.test>';
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createE2eApp();
     prisma = app.get(PrismaService);
   });
 
@@ -185,7 +178,7 @@ describe('Workout sessions HTTP authorization and concurrency (e2e)', () => {
       .get('/api/workout-sessions/active')
       .set('Cookie', otherUserCookies)
       .expect(200);
-    expect(otherActive.body).toBeNull();
+    expect(otherActive.text).toBe('');
   });
 
   it('allows exactly one concurrent active start through the PostgreSQL partial unique index', async () => {

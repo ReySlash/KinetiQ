@@ -16,8 +16,8 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
 
   it('enforces one in-progress session per owner and optimistic version updates', async () => {
     await pool.query(
-      `INSERT INTO "user" ("id", "name", "email")
-       VALUES ($1::uuid, $2, $3)`,
+      `INSERT INTO "user" ("id", "name", "email", "updatedAt")
+       VALUES ($1::uuid, $2, $3, NOW())`,
       [ownerId, 'Workout Test User', `${ownerId}@example.test`],
     );
     await pool.query(

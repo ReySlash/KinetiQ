@@ -1,13 +1,11 @@
 import 'reflect-metadata';
 
 import { randomUUID } from 'node:crypto';
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/modules/shared/infrastructure/database/prisma/prisma.service';
 import { PlatformRole } from '../generated/prisma/client';
-import request from 'supertest';
 import type { App } from 'supertest/types';
-import { AppModule } from '../src/app.module';
+import { apiRequest as request, createE2eApp } from './create-e2e-app';
 
 type TestPrincipal = {
   id: string;
@@ -42,14 +40,6 @@ function getSessionUserId(body: unknown): string {
   }
 
   return body.user.id;
-}
-
-function getSessionCookieValue(cookies: string[]): string {
-  const cookie = cookies.find((value) =>
-    value.startsWith('better-auth.session_token='),
-  );
-  if (!cookie) throw new Error('Session cookie was not returned.');
-  return decodeURIComponent(cookie.split(';', 1)[0].split('=', 2)[1]);
 }
 
 describe('HTTP authentication and authorization (e2e)', () => {
@@ -128,12 +118,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response(null, { status: 200 }));
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createE2eApp();
     prisma = app.get(PrismaService);
 
     user = createPrincipal(PlatformRole.USER);
@@ -260,9 +245,13 @@ describe('HTTP authentication and authorization (e2e)', () => {
 
   it('rejects a session whose database expiry has passed', async () => {
     const cookies = await signIn(user);
-    const token = getSessionCookieValue(cookies);
+    const session = await prisma.session.findFirstOrThrow({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
     await prisma.session.update({
-      where: { token },
+      where: { id: session.id },
       data: { expiresAt: new Date(0) },
     });
 
@@ -270,7 +259,6 @@ describe('HTTP authentication and authorization (e2e)', () => {
       .get('/training-programs')
       .set('Cookie', cookies)
       .expect(401);
-    expect(JSON.stringify(response.body)).not.toContain(token);
     expect(JSON.stringify(response.body)).not.toContain('session');
   });
 

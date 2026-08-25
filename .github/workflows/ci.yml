@@ -78,6 +78,53 @@ jobs:
       - name: Build web
         run: pnpm --filter web build
 
+  api-e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18.4-alpine3.24
+        env:
+          POSTGRES_DB: kinetiq_test
+          POSTGRES_USER: kinetiq
+          POSTGRES_PASSWORD: kinetiq
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U kinetiq -d kinetiq_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://kinetiq:kinetiq@localhost:5432/kinetiq_test?schema=public
+      NODE_ENV: test
+      PORT: 3000
+      WEB_ORIGIN: http://localhost:3001
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: test-only-better-auth-secret-32-characters
+      RESEND_API_KEY: test-resend-key
+      RESEND_FROM_EMAIL: KinetiQ <test@example.test>
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run API e2e tests
+        run: pnpm --filter api test:e2e
+
   web-unit:
     runs-on: ubuntu-latest
     steps:

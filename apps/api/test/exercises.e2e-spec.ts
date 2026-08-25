@@ -2,11 +2,9 @@ import 'reflect-metadata';
 
 import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
 import type { App } from 'supertest/types';
 import { PlatformRole } from '../generated/prisma/client';
-import { AppModule } from '../src/app.module';
+import { apiRequest as request, createE2eApp } from './create-e2e-app';
 import { PrismaService } from '../src/modules/shared/infrastructure/database/prisma/prisma.service';
 
 describe('Exercises HTTP flow (e2e)', () => {
@@ -45,12 +43,7 @@ describe('Exercises HTTP flow (e2e)', () => {
   }
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createE2eApp();
     prisma = app.get(PrismaService);
 
     const publicExercise = await prisma.exercise.findFirst({

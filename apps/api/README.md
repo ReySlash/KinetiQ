@@ -57,6 +57,25 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+### API e2e tests
+
+API e2e tests use a dedicated, disposable PostgreSQL database named
+`kinetiq_test`. Start the test database, copy the test environment template,
+and run the suite from the repository root:
+
+```bash
+$ pnpm --filter api test:e2e:db:up
+$ cp apps/api/.env.test.example apps/api/.env.test
+$ pnpm --filter api test:e2e
+```
+
+The e2e setup refuses database URLs that do not clearly identify a test
+database. Stop and remove the test container when finished:
+
+```bash
+$ pnpm --filter api test:e2e:db:down
+```
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
