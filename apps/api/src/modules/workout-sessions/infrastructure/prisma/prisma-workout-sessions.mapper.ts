@@ -195,7 +195,18 @@ export function toNestedExercisePerformanceCreateData(
   performance: PrimitiveExercisePerformance,
 ): Prisma.ExercisePerformanceCreateWithoutWorkoutSessionInput {
   return {
-    ...toExercisePerformanceScalarData(performance),
+    id: performance.id,
+    order: performance.order,
+    exerciseNameSnapshot: performance.exerciseNameSnapshot,
+    targetSetCount: performance.targetSetCount,
+    targetMinReps: performance.targetMinReps,
+    targetMaxReps: performance.targetMaxReps,
+    targetRir: performance.targetRir,
+    targetRestSeconds: performance.targetRestSeconds,
+    targetTempo: performance.targetTempo,
+    prescriptionNotes: performance.prescriptionNotes,
+    createdAt: performance.createdAt,
+    updatedAt: performance.updatedAt,
     exercise: { connect: { id: performance.exerciseId } },
     sourceRoutineExercise: performance.sourceRoutineExerciseId
       ? { connect: { id: performance.sourceRoutineExerciseId } }

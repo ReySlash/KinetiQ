@@ -14,7 +14,10 @@ import {
   WorkoutSessionQueryError,
   WorkoutSessionRoutineUnavailableError,
 } from '../application/errors/workout-session.application.errors';
-import { WorkoutSessionValidationError } from '../domain/errors/workout-session.errors';
+import {
+  WorkoutSessionStateError,
+  WorkoutSessionValidationError,
+} from '../domain/errors/workout-session.errors';
 
 export function toWorkoutSessionsHttpException(error: unknown): Error {
   if (error instanceof WorkoutSessionNotFoundError) {
@@ -32,7 +35,10 @@ export function toWorkoutSessionsHttpException(error: unknown): Error {
   ) {
     return new UnprocessableEntityException(error.message);
   }
-  if (error instanceof WorkoutSessionValidationError) {
+  if (
+    error instanceof WorkoutSessionValidationError ||
+    error instanceof WorkoutSessionStateError
+  ) {
     return new BadRequestException(error.message);
   }
   if (
