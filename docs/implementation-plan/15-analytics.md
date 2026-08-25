@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-Analytics turn historical training into understandable summaries. They are post-MVP because trustworthy calculations require stable completed-session data. Initial metrics must be deterministic, explainable, and reproducible.
+Analytics turn historical training into understandable summaries. They are part of the MVP and depend on trustworthy completed-session data. Initial metrics must be deterministic, explainable, and reproducible.
 
 Phase 9 does not begin until the Phase 8 `WorkoutSession ->
 ExercisePerformance -> CompletedSet` history is stable, owner-isolated, and

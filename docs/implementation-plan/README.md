@@ -2,7 +2,7 @@
 
 ## What this project is
 
-KinetiQ is a full-stack fitness development platform that begins with a trustworthy exercise reference library and a practical routine builder. Later releases add scheduled training, workout performance, explainable analytics, progression guidance, recovery signals, and optional coach–athlete workflows.
+KinetiQ is a full-stack fitness development platform that begins with a trustworthy exercise reference library and a practical routine builder. The MVP also includes workout performance records and explainable analytics; later releases add progression guidance, recovery signals, and optional coach–athlete workflows.
 
 The plan is deliberately incremental. A single developer should be able to ship each release as a usable vertical slice, gather feedback, and change later models without first building the final product. Editorial exercise ratings are relative classifications, not medical or scientific measurements.
 
@@ -41,8 +41,8 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [11](11-routine-builder.md) | User-owned reusable workout templates | MVP |
 | [12](12-authentication-and-authorization.md) | Better Auth integration and ownership | MVP |
 | [13](13-training-programs.md) | Reusable multi-week programs and relative routine schedules | Post-MVP |
-| [14](14-workout-sessions.md) | Historical performed training | Post-MVP |
-| [15](15-analytics.md) | Derived metrics and recommendations | Post-MVP |
+| [14](14-workout-sessions.md) | Historical performed training | MVP |
+| [15](15-analytics.md) | Derived metrics and recommendations | MVP |
 | [16](16-testing-strategy.md) | Test pyramid, fixtures, and gates | MVP |
 | [17](17-api-design.md) | REST conventions and contracts | MVP |
 | [18](18-frontend-architecture.md) | Next.js pages, state, forms, accessibility | MVP |
@@ -58,9 +58,9 @@ When documents disagree, the more specific feature document wins. Changes that a
 
 ## First production MVP boundary
 
-The MVP includes seeded, read-only muscle data; admin-managed global exercises; optional Cloudinary image URLs when approved assets exist; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; routine exercise prescriptions; duplication; responsive UI; automated backend/frontend tests; and Docker deployment.
+The MVP includes seeded, read-only muscle data; admin-managed global exercises; optional Cloudinary image URLs when approved assets exist; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; routine exercise prescriptions; duplication; WorkoutSession performance records; initial explainable analytics; responsive UI; automated backend/frontend tests; and Docker deployment.
 
-The MVP explicitly excludes image uploads and image-management workflows, performed-workout tracking, training-program/calendar scheduling, analytics, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
+The MVP explicitly excludes image uploads and image-management workflows, training-program/calendar scheduling, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
 
 ## Recommended implementation order
 
@@ -71,7 +71,8 @@ The MVP explicitly excludes image uploads and image-management workflows, perfor
 5. Integrate Better Auth and protect admin exercise mutations.
 6. Add owned routines and prescriptions, including duplication and ordering.
 7. Harden accessibility, security, observability, backups, and deployment; run the MVP acceptance suite.
-8. After MVP, add Cloudinary image asset management and upload workflows.
+8. Implement WorkoutSession performance records and the first explainable analytics queries within the MVP boundary.
+9. After MVP, add Cloudinary image asset management and upload workflows.
 
 Authentication is integrated after public reference-library slices so early work stays small. Before production data exists, admin mutation endpoints must be protected; no insecure production staging period is acceptable.
 
@@ -84,6 +85,6 @@ Authentication is integrated after public reference-library slices so early work
 | Routine MVP | Planned | Authenticated users manage only their routines |
 | Production MVP | Planned | Security, tests, deployment, backup and restore drill pass |
 | Training programs and scheduling | Backend persistence/API implemented; product release deferred | Training programs can schedule reusable routines |
-| Performance and analytics | Phase 8 specified; implementation deferred | Immutable `WorkoutSession` history supports explainable metrics |
+| Performance and analytics | MVP scope; implementation in progress | Immutable `WorkoutSession` history supports explainable metrics |
 | Recommendations and recovery | Deferred | Rules use sufficient real data and expose rationale |
 | Coach/athlete | Exploratory | Tenancy and consent model is validated |
