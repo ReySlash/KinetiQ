@@ -22,6 +22,7 @@ export class RecordWorkoutSetUseCase {
       },
       this.queries,
     );
+
     const updated = workout.recordSet(input.exercisePerformanceId, {
       repetitions: input.repetitions,
       load: input.load,
