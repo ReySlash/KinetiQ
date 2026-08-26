@@ -94,10 +94,13 @@ export function WorkoutSessionsLibrary({
               </SelectContent>
             </Select>
           </div>
+        </div>
+        <div className="flex w-full max-w-md justify-center gap-2 md:w-auto md:max-w-none md:justify-end">
           <Button
             onClick={() => void handleStart()}
             disabled={isStarting}
-            className="min-h-10"
+            size="lg"
+            className="min-w-0 flex-1 md:flex-none md:px-4 hover:cursor-pointer"
           >
             {routineSlug !== "freestyle" ? <Play /> : <Plus />}
             {isStarting
@@ -106,10 +109,15 @@ export function WorkoutSessionsLibrary({
                 ? "Start workout"
                 : "Start empty workout"}
           </Button>
+          <StyledLink
+            href="/routines"
+            variant="outline"
+            size="lg"
+            className="min-w-0 flex-1 md:flex-none md:px-4"
+          >
+            Manage routines
+          </StyledLink>
         </div>
-        <StyledLink href="/routines" variant="outline" size="sm">
-          Manage routines
-        </StyledLink>
       </div>
       {startError && (
         <p
