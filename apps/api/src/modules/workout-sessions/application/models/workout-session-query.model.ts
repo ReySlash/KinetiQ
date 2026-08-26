@@ -2,6 +2,7 @@ import type { WorkoutSessionStatusValue } from '../../domain/value-objects/worko
 
 export type WorkoutSessionListQuery = {
   ownerId: string;
+  q?: string;
   status?: WorkoutSessionStatusValue;
   from?: Date;
   to?: Date;

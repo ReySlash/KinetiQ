@@ -1,6 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsDate, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
+import {
+  IsDate,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 const STATUSES = ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const;
 const parseInteger = ({ value }: { value: unknown }): unknown => {
@@ -9,8 +18,20 @@ const parseInteger = ({ value }: { value: unknown }): unknown => {
   const parsed = Number(value);
   return Number.isInteger(parsed) ? parsed : value;
 };
+const trimString = ({ value }: { value: unknown }): unknown =>
+  typeof value === 'string' ? value.trim() : value;
 
 export class ListWorkoutHistoryQueryDto {
+  @ApiPropertyOptional({
+    description: 'Case-insensitive partial match against the routine name.',
+    maxLength: 100,
+  })
+  @IsOptional()
+  @Transform(trimString)
+  @IsString()
+  @MaxLength(100)
+  q?: string;
+
   @ApiPropertyOptional({ enum: STATUSES })
   @IsOptional()
   @IsIn(STATUSES)

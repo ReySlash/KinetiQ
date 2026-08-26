@@ -269,7 +269,8 @@ invariants.
 - record, update, and delete sets while the session is mutable;
 - complete or cancel a workout through explicit transitions;
 - retrieve the active workout and one historical workout;
-- list workout history;
+- list workout history, with optional case-insensitive partial search by the
+  historical routine name snapshot;
 - retrieve history for an exercise.
 
 Starting from a routine should create the `WorkoutSession` and its initial

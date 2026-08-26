@@ -39,13 +39,24 @@ function validateDateRange(from: Date | undefined, to: Date | undefined): void {
   }
 }
 
+function normalizeSearchQuery(q: string | undefined): string | undefined {
+  if (q === undefined) return undefined;
+  const normalized = q.trim();
+  if (normalized.length > 100) {
+    throw new WorkoutSessionValidationError(
+      'Workout history search must be 100 characters or fewer.',
+    );
+  }
+  return normalized || undefined;
+}
+
 export function validateWorkoutHistoryQuery(
   query: WorkoutSessionListQuery,
 ): WorkoutSessionListQuery {
   ExistingUuid.create(query.ownerId);
   validatePage(query.limit, query.offset);
   validateDateRange(query.from, query.to);
-  return query;
+  return { ...query, q: normalizeSearchQuery(query.q) };
 }
 
 export function validateExerciseHistoryQuery(

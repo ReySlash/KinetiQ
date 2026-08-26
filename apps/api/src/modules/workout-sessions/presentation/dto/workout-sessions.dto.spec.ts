@@ -104,6 +104,15 @@ describe('workout-session query DTOs', () => {
     expect(dto.to).toBeInstanceOf(Date);
   });
 
+  it('trims a history routine-name search query', async () => {
+    const dto = plainToInstance(ListWorkoutHistoryQueryDto, {
+      q: '  upper body  ',
+    });
+
+    await expect(validate(dto)).resolves.toHaveLength(0);
+    expect(dto.q).toBe('upper body');
+  });
+
   it('rejects invalid history status and pagination', async () => {
     const result = await errors(ListWorkoutHistoryQueryDto, {
       status: 'PLANNED',
@@ -111,6 +120,14 @@ describe('workout-session query DTOs', () => {
       offset: -1,
     });
     expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('rejects an oversized history routine-name search query', async () => {
+    const result = await errors(ListWorkoutHistoryQueryDto, {
+      q: 'a'.repeat(101),
+    });
+
+    expect(result).toHaveLength(1);
   });
 
   it('validates exercise-history pagination and exercise identity', async () => {

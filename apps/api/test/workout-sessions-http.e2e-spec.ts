@@ -181,6 +181,76 @@ describe('Workout sessions HTTP authorization and concurrency (e2e)', () => {
     expect(otherActive.text).toBe('');
   });
 
+  it('searches history by routine name while preserving owner isolation', async () => {
+    const owner = createPrincipal();
+    const otherUser = createPrincipal();
+    principals.push(owner, otherUser);
+    await signUp(owner);
+    await signUp(otherUser);
+    const ownerCookies = await signIn(owner);
+    const otherUserCookies = await signIn(otherUser);
+
+    const matchingId = randomUUID();
+    const ownerNonMatchingId = randomUUID();
+    const otherUserMatchingId = randomUUID();
+    const startedAt = new Date('2026-08-20T10:00:00.000Z');
+    await prisma.workoutSession.createMany({
+      data: [
+        {
+          id: matchingId,
+          ownerId: owner.id!,
+          sourceRoutineNameSnapshot: 'Upper Body Strength',
+          status: 'COMPLETED',
+          timezone: 'Asia/Qatar',
+          startedAt,
+          completedAt: startedAt,
+        },
+        {
+          id: ownerNonMatchingId,
+          ownerId: owner.id!,
+          sourceRoutineNameSnapshot: 'Lower Body Strength',
+          status: 'COMPLETED',
+          timezone: 'Asia/Qatar',
+          startedAt,
+          completedAt: startedAt,
+        },
+        {
+          id: otherUserMatchingId,
+          ownerId: otherUser.id!,
+          sourceRoutineNameSnapshot: 'Upper Body Strength',
+          status: 'COMPLETED',
+          timezone: 'Asia/Qatar',
+          startedAt,
+          completedAt: startedAt,
+        },
+      ],
+    });
+
+    const ownerHistory = await request(app.getHttpServer())
+      .get('/api/workout-sessions?q=%20UPPER%20')
+      .set('Cookie', ownerCookies)
+      .expect(200);
+
+    expect(ownerHistory.body).toEqual([
+      expect.objectContaining({
+        id: matchingId,
+        sourceRoutineNameSnapshot: 'Upper Body Strength',
+      }),
+    ]);
+
+    const otherUserHistory = await request(app.getHttpServer())
+      .get('/api/workout-sessions?q=upper')
+      .set('Cookie', otherUserCookies)
+      .expect(200);
+
+    expect(otherUserHistory.body).toEqual([
+      expect.objectContaining({
+        id: otherUserMatchingId,
+        sourceRoutineNameSnapshot: 'Upper Body Strength',
+      }),
+    ]);
+  });
+
   it('allows exactly one concurrent active start through the PostgreSQL partial unique index', async () => {
     const principal = createPrincipal();
     principals.push(principal);

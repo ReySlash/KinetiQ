@@ -187,6 +187,7 @@ describe('WorkoutSessionsController', () => {
     const completedAt = new Date('2026-08-25T10:00:00.000Z');
     const cancelledAt = new Date('2026-08-25T10:05:00.000Z');
     const history = Object.assign(new ListWorkoutHistoryQueryDto(), {
+      q: 'upper body',
       limit: 20,
       offset: 0,
     });

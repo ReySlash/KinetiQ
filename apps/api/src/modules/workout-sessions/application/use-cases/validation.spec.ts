@@ -30,6 +30,26 @@ describe('Workout session application query validation', () => {
     ).toThrow(WorkoutSessionValidationError);
   });
 
+  it('normalizes routine-name search and rejects oversized values', () => {
+    expect(
+      validateWorkoutHistoryQuery({
+        ownerId,
+        q: '  upper body  ',
+        limit: 20,
+        offset: 0,
+      }),
+    ).toMatchObject({ ownerId, q: 'upper body' });
+
+    expect(() =>
+      validateWorkoutHistoryQuery({
+        ownerId,
+        q: 'a'.repeat(101),
+        limit: 20,
+        offset: 0,
+      }),
+    ).toThrow(WorkoutSessionValidationError);
+  });
+
   it('validates both owner and exercise identity for exercise history', () => {
     expect(
       validateExerciseHistoryQuery({

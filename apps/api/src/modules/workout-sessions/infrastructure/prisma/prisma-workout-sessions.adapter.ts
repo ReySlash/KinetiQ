@@ -169,6 +169,14 @@ export class PrismaWorkoutSessionsAdapter
       const rows = await this.prisma.workoutSession.findMany({
         where: {
           ownerId: query.ownerId,
+          ...(query.q
+            ? {
+                sourceRoutineNameSnapshot: {
+                  contains: query.q,
+                  mode: 'insensitive',
+                },
+              }
+            : {}),
           ...(query.status ? { status: query.status } : {}),
           ...(query.from || query.to
             ? {

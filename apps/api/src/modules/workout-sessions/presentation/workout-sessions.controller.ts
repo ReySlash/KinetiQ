@@ -146,6 +146,13 @@ export class WorkoutSessionsController {
   @Get()
   @ApiOperation({ summary: 'List workout history' })
   @ApiQuery({
+    name: 'q',
+    required: false,
+    type: String,
+    maxLength: 100,
+    description: 'Case-insensitive partial match against the routine name.',
+  })
+  @ApiQuery({
     name: 'status',
     required: false,
     enum: ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'],

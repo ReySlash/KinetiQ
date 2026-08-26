@@ -208,6 +208,31 @@ describe('PrismaWorkoutSessionsAdapter', () => {
     );
   });
 
+  it('filters history by the case-insensitive routine name snapshot', async () => {
+    workoutSessionFindMany.mockResolvedValue([]);
+
+    await expect(
+      adapter.listHistory({
+        ownerId,
+        q: 'upper body',
+        limit: 20,
+        offset: 0,
+      }),
+    ).resolves.toEqual([]);
+
+    expect(workoutSessionFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          ownerId,
+          sourceRoutineNameSnapshot: {
+            contains: 'upper body',
+            mode: 'insensitive',
+          },
+        },
+      }),
+    );
+  });
+
   it('uses owner-scoped exercise history queries', async () => {
     exercisePerformanceFindMany.mockResolvedValue([]);
 
