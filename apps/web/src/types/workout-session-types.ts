@@ -61,6 +61,7 @@ export type WorkoutSessionMutation = {
 };
 
 export type WorkoutSessionFilters = {
+  q?: string;
   status?: WorkoutSessionStatus;
   from?: Date;
   to?: Date;

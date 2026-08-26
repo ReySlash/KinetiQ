@@ -14,6 +14,7 @@ export async function fetchWorkoutSessions(
   filters: WorkoutSessionFilters = {},
 ): Promise<WorkoutSessionsFetchResult> {
   const params = new URLSearchParams();
+  if (filters.q) params.set("q", filters.q);
   if (filters.status) params.set("status", filters.status);
   if (filters.from) params.set("from", filters.from.toISOString());
   if (filters.to) params.set("to", filters.to.toISOString());

@@ -1,15 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { History, Play, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { startWorkout } from "@/lib/workout-sessions-api";
+import { History } from "lucide-react";
 import type { RoutineListItem } from "@/types/routine-types";
 import type { WorkoutSessionListItem } from "@/types/workout-session-types";
-import StyledLink from "@/components/styled-link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,15 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { WorkoutSessionFilters } from "./workout-session-filters";
+import { StartWorkoutDialog } from "./start-workout-dialog";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
@@ -45,90 +33,17 @@ export function WorkoutSessionsLibrary({
   sessions: WorkoutSessionListItem[];
   routines: RoutineListItem[];
 }) {
-  const router = useRouter();
-  const [routineSlug, setRoutineSlug] = useState("freestyle");
-  const [isStarting, setIsStarting] = useState(false);
-  const [startError, setStartError] = useState<string | null>(null);
-
-  async function handleStart() {
-    setIsStarting(true);
-    setStartError(null);
-    try {
-      const response = await startWorkout({
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ...(routineSlug !== "freestyle" ? { routineSlug } : {}),
-      });
-      router.push(`/workout-sessions/${response.id}`);
-    } catch (error) {
-      setStartError(
-        error instanceof Error ? error.message : "Unable to start the workout.",
-      );
-    } finally {
-      setIsStarting(false);
-    }
-  }
-
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
-      <div className="flex flex-col gap-3 border-b border-border/70 bg-background/30 p-3 md:flex-row md:items-end md:justify-between">
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,18rem)_auto] sm:items-end">
-          <div className="grid gap-2">
-            <Label htmlFor="workout-routine">Start from a routine</Label>
-            <Select
-              value={routineSlug}
-              onValueChange={(value) => setRoutineSlug(value ?? "freestyle")}
-            >
-              <SelectTrigger
-                id="workout-routine"
-                aria-label="Start from a routine"
-              >
-                <SelectValue placeholder="Freestyle workout" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="freestyle">Freestyle workout</SelectItem>
-                {routines.map((routine) => (
-                  <SelectItem key={routine.slug} value={routine.slug}>
-                    {routine.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="flex flex-col gap-1 border-b border-border/70 bg-background/30 p-1 md:flex-row md:items-center md:justify-between md:p-2">
+        <div className="w-full md:order-2 md:w-[min(100%,38rem)]">
+          <WorkoutSessionFilters />
         </div>
-        <div className="flex w-full max-w-md justify-center gap-2 md:w-auto md:max-w-none md:justify-end">
-          <Button
-            onClick={() => void handleStart()}
-            disabled={isStarting}
-            size="lg"
-            className="min-w-0 flex-1 md:flex-none md:px-4 hover:cursor-pointer"
-          >
-            {routineSlug !== "freestyle" ? <Play /> : <Plus />}
-            {isStarting
-              ? "Starting…"
-              : routineSlug !== "freestyle"
-                ? "Start workout"
-                : "Start empty workout"}
-          </Button>
-          <StyledLink
-            href="/routines"
-            variant="outline"
-            size="lg"
-            className="min-w-0 flex-1 md:flex-none md:px-4"
-          >
-            Manage routines
-          </StyledLink>
+        <div className="flex justify-center gap-2 md:order-1 md:w-auto md:justify-start">
+          <StartWorkoutDialog routines={routines} />
         </div>
       </div>
-      {startError && (
-        <p
-          role="alert"
-          className="border-b border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-        >
-          {startError}
-        </p>
-      )}
-      <WorkoutSessionFilters />
-      <div className="min-h-0 flex-1 overflow-auto p-3 md:p-5">
+      <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
         {sessions.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -142,7 +57,7 @@ export function WorkoutSessionsLibrary({
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2 md:gap-3 md:grid-cols-2 xl:grid-cols-3">
             {sessions.map((session) => (
               <Link
                 key={session.id}

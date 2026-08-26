@@ -1,41 +1,34 @@
 "use client";
 
 import type { ComponentProps } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type FormSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 
-type SearchFormProps = {
+type WorkoutSessionSearchFormProps = {
   search: string;
   searchError: string | null;
   isPending: boolean;
-  ariaLabel?: string;
-  placeholder?: string;
-  submitTitle?: string;
   onSearchChange: (value: string) => void;
   onSubmit: FormSubmitHandler;
 };
 
-export function SearchForm(props: SearchFormProps) {
-  const {
-    search,
-    searchError,
-    isPending,
-    ariaLabel = "Search exercises",
-    placeholder = "Search by name, or related muscles.",
-    submitTitle = "Search exercises",
-    onSearchChange,
-    onSubmit,
-  } = props;
-
+export function WorkoutSessionSearchForm({
+  search,
+  searchError,
+  isPending,
+  onSearchChange,
+  onSubmit,
+}: WorkoutSessionSearchFormProps) {
   return (
-    <form className="flex gap-2 flex-row w-full md:w-1/2" onSubmit={onSubmit}>
+    <form className="flex w-full flex-row gap-2" onSubmit={onSubmit}>
       <div className="flex w-full flex-col gap-1">
         <Input
-          aria-label={ariaLabel}
+          aria-label="Search workouts by routine name"
           type="search"
-          placeholder={placeholder}
+          placeholder="Search workouts by routine name."
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -46,7 +39,7 @@ export function SearchForm(props: SearchFormProps) {
         type="submit"
         disabled={isPending}
         className="cursor-pointer"
-        title={submitTitle}
+        title="Search workouts by routine name"
       >
         Search
       </Button>

@@ -35,6 +35,7 @@ export default async function WorkoutSessionsPage({
 }) {
   const params = await searchParams;
   const result = await fetchWorkoutSessions({
+    q: typeof params.q === "string" ? params.q.trim() || undefined : undefined,
     status: parseStatus(params.status),
     from: parseDate(params.from),
     to: parseDate(params.to),
