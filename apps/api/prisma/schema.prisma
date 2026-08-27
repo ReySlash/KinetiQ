@@ -83,6 +83,20 @@ enum WorkoutSessionStatus {
   CANCELLED
 }
 
+enum UserTrainingProgramStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum UserProgramWorkoutStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
 enum LoadUnit {
   KG
   LB
@@ -94,19 +108,20 @@ enum PlatformRole {
 }
 
 model User {
-  id               String            @id @db.Uuid
-  name             String
-  email            String            @unique
-  emailVerified    Boolean           @default(false)
-  image            String?
-  role             PlatformRole      @default(USER)
-  createdAt        DateTime          @default(now()) @db.Timestamptz(3)
-  updatedAt        DateTime          @updatedAt @db.Timestamptz(3)
-  sessions         Session[]
-  accounts         Account[]
-  routines         Routine[]
-  trainingPrograms TrainingProgram[]
-  workoutSessions  WorkoutSession[]
+  id                   String                @id @db.Uuid
+  name                 String
+  email                String                @unique
+  emailVerified        Boolean               @default(false)
+  image                String?
+  role                 PlatformRole          @default(USER)
+  createdAt            DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime              @updatedAt @db.Timestamptz(3)
+  sessions             Session[]
+  accounts             Account[]
+  routines             Routine[]
+  trainingPrograms     TrainingProgram[]
+  userTrainingPrograms UserTrainingProgram[]
+  workoutSessions      WorkoutSession[]
 
   @@map("user")
 }
@@ -318,18 +333,19 @@ model ExerciseDemandProfile {
 }
 
 model Routine {
-  id               String                   @id @db.Uuid
-  ownerId          String                   @db.Uuid
-  slug             String                   @unique
-  name             String
-  description      String?
-  visibility       RoutineVisibility        @default(PRIVATE)
-  createdAt        DateTime                 @default(now()) @db.Timestamptz(3)
-  updatedAt        DateTime                 @updatedAt @db.Timestamptz(3)
-  owner            User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  exercises        RoutineExercise[]
-  trainingPrograms TrainingProgramRoutine[]
-  sourceSessions   WorkoutSession[]         @relation("WorkoutSessionSourceRoutine")
+  id                     String                   @id @db.Uuid
+  ownerId                String                   @db.Uuid
+  slug                   String                   @unique
+  name                   String
+  description            String?
+  visibility             RoutineVisibility        @default(PRIVATE)
+  createdAt              DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime                 @updatedAt @db.Timestamptz(3)
+  owner                  User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  exercises              RoutineExercise[]
+  trainingPrograms       TrainingProgramRoutine[]
+  sourceSessions         WorkoutSession[]         @relation("WorkoutSessionSourceRoutine")
+  adoptedProgramWorkouts UserProgramWorkout[]     @relation("UserProgramWorkoutSourceRoutine")
 
   @@index([ownerId, updatedAt])
   @@index([ownerId, name])
@@ -370,8 +386,9 @@ model TrainingProgram {
   createdAt     DateTime                  @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime                  @updatedAt @db.Timestamptz(3)
 
-  owner    User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  routines TrainingProgramRoutine[]
+  owner           User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  routines        TrainingProgramRoutine[]
+  adoptedPrograms UserTrainingProgram[]
 
   @@index([ownerId, updatedAt])
   @@index([ownerId, name])
@@ -389,12 +406,59 @@ model TrainingProgramRoutine {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  trainingProgram TrainingProgram @relation(fields: [trainingProgramId], references: [id], onDelete: Cascade)
-  routine         Routine         @relation(fields: [routineId], references: [id], onDelete: Restrict)
+  trainingProgram        TrainingProgram      @relation(fields: [trainingProgramId], references: [id], onDelete: Cascade)
+  routine                Routine              @relation(fields: [routineId], references: [id], onDelete: Restrict)
+  adoptedProgramWorkouts UserProgramWorkout[] @relation("UserProgramWorkoutSourceProgramRoutine")
 
   @@unique([trainingProgramId, weekNumber, dayNumber])
   @@index([trainingProgramId, weekNumber, dayNumber])
   @@index([routineId])
+}
+
+model UserTrainingProgram {
+  id                      String                    @id @db.Uuid
+  ownerId                 String                    @db.Uuid
+  sourceTrainingProgramId String?                   @db.Uuid
+  programNameSnapshot     String
+  durationWeeksSnapshot   Int
+  status                  UserTrainingProgramStatus @default(ACTIVE)
+  startedAt               DateTime                  @db.Timestamptz(3)
+  completedAt             DateTime?                 @db.Timestamptz(3)
+  cancelledAt             DateTime?                 @db.Timestamptz(3)
+  createdAt               DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime                  @updatedAt @db.Timestamptz(3)
+
+  owner                 User                 @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  sourceTrainingProgram TrainingProgram?     @relation(fields: [sourceTrainingProgramId], references: [id], onDelete: SetNull)
+  workouts              UserProgramWorkout[]
+
+  @@index([ownerId, status, updatedAt])
+  @@index([sourceTrainingProgramId])
+}
+
+model UserProgramWorkout {
+  id                             String                   @id @db.Uuid
+  userTrainingProgramId          String                   @db.Uuid
+  sourceTrainingProgramRoutineId String?                  @db.Uuid
+  sourceRoutineId                String?                  @db.Uuid
+  weekNumber                     Int
+  dayNumber                      Int
+  routineNameSnapshot            String
+  programSlotNotesSnapshot       String?
+  status                         UserProgramWorkoutStatus @default(PENDING)
+  createdAt                      DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                      DateTime                 @updatedAt @db.Timestamptz(3)
+
+  userTrainingProgram          UserTrainingProgram     @relation(fields: [userTrainingProgramId], references: [id], onDelete: Restrict)
+  sourceTrainingProgramRoutine TrainingProgramRoutine? @relation("UserProgramWorkoutSourceProgramRoutine", fields: [sourceTrainingProgramRoutineId], references: [id], onDelete: SetNull)
+  sourceRoutine                Routine?                @relation("UserProgramWorkoutSourceRoutine", fields: [sourceRoutineId], references: [id], onDelete: SetNull)
+  sessionAttempts              WorkoutSession[]
+
+  @@unique([userTrainingProgramId, weekNumber, dayNumber])
+  @@index([userTrainingProgramId, weekNumber, dayNumber])
+  @@index([userTrainingProgramId, status, weekNumber, dayNumber])
+  @@index([sourceTrainingProgramRoutineId])
+  @@index([sourceRoutineId])
 }
 
 model WorkoutSession {
@@ -402,6 +466,7 @@ model WorkoutSession {
   ownerId                   String               @db.Uuid
   sourceRoutineId           String?              @db.Uuid
   sourceRoutineNameSnapshot String?
+  userProgramWorkoutId      String?              @db.Uuid
   status                    WorkoutSessionStatus @default(IN_PROGRESS)
   timezone                  String
   startedAt                 DateTime             @db.Timestamptz(3)
@@ -411,13 +476,15 @@ model WorkoutSession {
   updatedAt                 DateTime             @updatedAt @db.Timestamptz(3)
   version                   Int                  @default(0)
 
-  owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  sourceRoutine Routine?              @relation("WorkoutSessionSourceRoutine", fields: [sourceRoutineId], references: [id], onDelete: SetNull)
-  performances  ExercisePerformance[]
+  owner              User                  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  sourceRoutine      Routine?              @relation("WorkoutSessionSourceRoutine", fields: [sourceRoutineId], references: [id], onDelete: SetNull)
+  userProgramWorkout UserProgramWorkout?   @relation(fields: [userProgramWorkoutId], references: [id], onDelete: SetNull)
+  performances       ExercisePerformance[]
 
   @@index([ownerId, startedAt])
   @@index([ownerId, status, startedAt])
   @@index([sourceRoutineId])
+  @@index([userProgramWorkoutId])
 }
 
 model ExercisePerformance {

@@ -129,6 +129,138 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
     });
   });
 
+  it('persists adopted schedules and enforces adopted-program attempt invariants', async () => {
+    const adoptedOwnerId = randomUUID();
+    const adoptedProgramId = randomUUID();
+    const duplicateProgramId = randomUUID();
+    const occurrenceId = randomUUID();
+    const completedOccurrenceId = randomUUID();
+    const inProgressSessionId = randomUUID();
+    const duplicateInProgressSessionId = randomUUID();
+    const completedSessionId = randomUUID();
+    const duplicateCompletedSessionId = randomUUID();
+
+    await pool.query(
+      `INSERT INTO "user" ("id", "name", "email", "updatedAt")
+       VALUES ($1::uuid, $2, $3, NOW())`,
+      [
+        adoptedOwnerId,
+        'Adopted Program Test User',
+        `${adoptedOwnerId}@example.test`,
+      ],
+    );
+    await pool.query(
+      `INSERT INTO "UserTrainingProgram"
+        ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "startedAt", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, $3, $4, NOW(), NOW())`,
+      [adoptedProgramId, adoptedOwnerId, 'Strength Foundation', 8],
+    );
+
+    await expect(
+      pool.query(
+        `INSERT INTO "UserTrainingProgram"
+          ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "startedAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3, $4, NOW(), NOW())`,
+        [duplicateProgramId, adoptedOwnerId, 'Another Program', 4],
+      ),
+    ).rejects.toMatchObject({ code: '23505' });
+
+    await pool.query(
+      `INSERT INTO "UserProgramWorkout"
+        ("id", "userTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "programSlotNotesSnapshot", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, 1, 1, $3, $4, NOW())`,
+      [
+        occurrenceId,
+        adoptedProgramId,
+        'Upper Body Strength',
+        'Start with a controlled warm-up',
+      ],
+    );
+    await pool.query(
+      `INSERT INTO "WorkoutSession"
+        ("id", "ownerId", "userProgramWorkoutId", "timezone", "startedAt", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, $3::uuid, $4, NOW(), NOW())`,
+      [inProgressSessionId, adoptedOwnerId, occurrenceId, 'Asia/Qatar'],
+    );
+
+    const persisted = await pool.query<{
+      programNameSnapshot: string;
+      weekNumber: number;
+      routineNameSnapshot: string;
+      userProgramWorkoutId: string;
+    }>(
+      `SELECT program."programNameSnapshot", workout."weekNumber",
+              workout."routineNameSnapshot", session."userProgramWorkoutId"
+       FROM "UserTrainingProgram" AS program
+       JOIN "UserProgramWorkout" AS workout
+         ON workout."userTrainingProgramId" = program."id"
+       JOIN "WorkoutSession" AS session
+         ON session."userProgramWorkoutId" = workout."id"
+       WHERE program."id" = $1::uuid`,
+      [adoptedProgramId],
+    );
+    expect(persisted.rows[0]).toEqual({
+      programNameSnapshot: 'Strength Foundation',
+      weekNumber: 1,
+      routineNameSnapshot: 'Upper Body Strength',
+      userProgramWorkoutId: occurrenceId,
+    });
+
+    await expect(
+      pool.query(
+        `INSERT INTO "WorkoutSession"
+          ("id", "ownerId", "userProgramWorkoutId", "timezone", "startedAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3::uuid, $4, NOW(), NOW())`,
+        [
+          duplicateInProgressSessionId,
+          adoptedOwnerId,
+          occurrenceId,
+          'Asia/Qatar',
+        ],
+      ),
+    ).rejects.toMatchObject({ code: '23505' });
+
+    await pool.query(
+      `INSERT INTO "UserProgramWorkout"
+        ("id", "userTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, 1, 2, $3, NOW())`,
+      [completedOccurrenceId, adoptedProgramId, 'Lower Body Strength'],
+    );
+    await pool.query(
+      `INSERT INTO "WorkoutSession"
+        ("id", "ownerId", "userProgramWorkoutId", "status", "timezone", "startedAt", "completedAt", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, $3::uuid, 'COMPLETED', $4, NOW(), NOW(), NOW())`,
+      [completedSessionId, adoptedOwnerId, completedOccurrenceId, 'Asia/Qatar'],
+    );
+
+    await expect(
+      pool.query(
+        `INSERT INTO "WorkoutSession"
+          ("id", "ownerId", "userProgramWorkoutId", "status", "timezone", "startedAt", "completedAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3::uuid, 'COMPLETED', $4, NOW(), NOW(), NOW())`,
+        [
+          duplicateCompletedSessionId,
+          adoptedOwnerId,
+          completedOccurrenceId,
+          'Asia/Qatar',
+        ],
+      ),
+    ).rejects.toMatchObject({ code: '23505' });
+
+    await pool.query(`DELETE FROM "UserProgramWorkout" WHERE "id" = $1::uuid`, [
+      occurrenceId,
+    ]);
+    const preservedSession = await pool.query<{
+      userProgramWorkoutId: string | null;
+    }>(
+      `SELECT "userProgramWorkoutId"
+       FROM "WorkoutSession"
+       WHERE "id" = $1::uuid`,
+      [inProgressSessionId],
+    );
+    expect(preservedSession.rows[0]?.userProgramWorkoutId).toBeNull();
+  });
+
   afterAll(async () => {
     await pool?.end();
   });
