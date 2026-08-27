@@ -42,7 +42,7 @@ export function RoutinesLibrary({
           </StyledLink>
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-auto p-3 md:p-5">
+      <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
         {routines.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">

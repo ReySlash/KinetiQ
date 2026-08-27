@@ -14,7 +14,7 @@ export function TrainingProgramsLibrary({ programs, scope }: { programs: Trainin
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
       <TrainingProgramsFilters />
       {scope === "my" && <div className="flex justify-end p-2"><StyledLink href="/training-programs/new" size="lg"><Plus />New training program</StyledLink></div>}
-      <div className="min-h-0 flex-1 overflow-auto p-3 md:p-5">
+      <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
         {programs.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">

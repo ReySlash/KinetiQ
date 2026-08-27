@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import StyledLink from "@/components/styled-link";
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import { fetchRoutines } from "@/lib/routines-server";
 import { fetchWorkoutSessions } from "@/lib/workout-sessions-server";
 import { WorkoutSessionsLibrary } from "./components/workout-sessions-library";
@@ -22,8 +27,12 @@ function parseDate(value: string | string[] | undefined) {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-function parseStatus(value: string | string[] | undefined): WorkoutSessionStatus | undefined {
-  return value === "IN_PROGRESS" || value === "COMPLETED" || value === "CANCELLED"
+function parseStatus(
+  value: string | string[] | undefined,
+): WorkoutSessionStatus | undefined {
+  return value === "IN_PROGRESS" ||
+    value === "COMPLETED" ||
+    value === "CANCELLED"
     ? value
     : undefined;
 }
@@ -57,7 +66,10 @@ export default async function WorkoutSessionsPage({
             <CardDescription>
               Your workout history is private and belongs to your account.
             </CardDescription>
-            <StyledLink href="/sign-in?callbackURL=%2Fworkout-sessions" size="lg">
+            <StyledLink
+              href="/sign-in?callbackURL=%2Fworkout-sessions"
+              size="lg"
+            >
               Sign in
             </StyledLink>
           </CardContent>
@@ -65,7 +77,11 @@ export default async function WorkoutSessionsPage({
       ) : (
         <WorkoutSessionsLibrary
           sessions={result.sessions}
-          routines={routinesResult.status === "authenticated" ? routinesResult.routines : []}
+          routines={
+            routinesResult.status === "authenticated"
+              ? routinesResult.routines
+              : []
+          }
         />
       )}
     </main>
