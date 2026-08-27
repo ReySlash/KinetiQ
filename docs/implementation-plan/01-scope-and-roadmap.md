@@ -17,6 +17,7 @@ This roadmap prevents the final vision from expanding the first release. Each re
 - Public exercise list/detail with search, pagination, and useful filters
 - Better Auth sessions, authenticated app shell, and an administrator role
 - Private user-owned routines with ordered prescriptions, duplication, and deletion
+- Reusable multi-week training-program templates and user-owned adopted-program execution
 - WorkoutSession records with completed sets and historical prescription snapshots
 - Initial explainable analytics derived from raw workout history
 - Responsive, accessible UI and proportionate automated tests
@@ -24,7 +25,7 @@ This roadmap prevents the final vision from expanding the first release. Each re
 
 ### Excluded
 
-Training programs and calendars, recommendation engines, subjective recovery, fatigue tracking, coach organizations, sport-specific mappings, social activity, AI, nutrition, payments, notifications, user-created exercises, image uploads, image-management workflows, and multiple exercise media assets.
+Named weekdays, scheduled calendar dates, calendar synchronization, recommendation engines, subjective recovery, fatigue tracking, coach organizations, sport-specific mappings, social activity, AI, nutrition, payments, notifications, user-created exercises, image uploads, image-management workflows, and multiple exercise media assets.
 
 ## Release phases
 
@@ -66,18 +67,34 @@ do not add performance records.
 
 Ship a usable historical-training vertical slice built around
 `WorkoutSession -> ExercisePerformance -> CompletedSet`. Support freestyle and
-routine-based workout start without depending on the future active-program
-layer. Store authoritative prescription snapshots and strength/repetition set
+routine-based workout start independently of adopted-program execution. Store
+authoritative prescription snapshots and strength/repetition set
 facts, enforce owned aggregate mutations and the
 `IN_PROGRESS -> COMPLETED|CANCELLED` lifecycle, and provide active-workout,
 workout-history, and exercise-history reads. The active experience is
 mobile-first. Duration/distance modes can follow. See
 [workout sessions](14-workout-sessions.md).
 
+### Phase 8.5 — Adopted programs and integrated execution (MVP)
+
+Introduce `UserTrainingProgram` and `UserProgramWorkout` as the user-owned
+execution layer between reusable training-program templates and historical
+workout sessions. Adoption copies the relative program schedule, tracks
+lifecycle and progress, launches only the next pending occurrence, preserves
+cancelled attempts for retry, supports explicit skip behavior, and carries
+stable program provenance into workout history. Ship the active-program
+frontend and ownership, concurrency, atomic-transaction, and snapshot tests.
+
+This phase does not add named weekdays, calendar dates, rescheduling, or
+calendar synchronization. Routine prescriptions remain live until an
+occurrence starts; the resulting `ExercisePerformance` snapshot is historical
+authority after start. See [training programs](13-training-programs.md).
+
 ### Phase 9 — Basic analytics (MVP)
 
-Begin only after Phase 8 history is stable and trustworthy. Add completed
-sessions, consistency, volume, estimated 1RM, PR detection, exercise frequency,
+Begin only after Phase 8.5 integrated execution and history are stable and
+trustworthy. Add completed sessions, consistency, volume, estimated 1RM, PR
+detection, exercise frequency,
 and basic muscle-set estimates. Compute from raw history initially and label
 heuristic involvement/formula assumptions; advanced fatigue and opaque coaching
 remain later work.
@@ -102,11 +119,12 @@ Foundation
                   └─ Production MVP
                       └─ Media and training programs
                       └─ Workout sessions
-                          └─ Analytics
-                              └─ Recommendations/recovery
+                          └─ Adopted-program execution
+                              └─ Analytics
+                                  └─ Recommendations/recovery
 ```
 
-Authentication can be developed alongside exercise profiles, but routines cannot ship without it. Analytics cannot precede stable historical sessions.
+Authentication can be developed alongside exercise profiles, but routines cannot ship without it. Analytics cannot precede stable historical sessions and adopted-program execution.
 
 ## Release management rules
 

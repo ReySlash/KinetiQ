@@ -111,12 +111,12 @@ Materialized aggregates are deferred until query measurements show a need. If ca
   exercise prescription snapshots atomically where practical. Subsequent child
   mutations resolve and mutate through the owned `WorkoutSession` aggregate.
 - Program-workout start, completion, and cancellation cross the adopted-program
-  and session aggregates. Each command must go through one source-aware
-  application persistence port whose infrastructure adapter executes one Prisma
-  transaction. The adopted-program execution port owns launch; the existing
-  workout-session command port owns session completion/cancellation and must
-  propagate a linked occurrence transition atomically. Do not coordinate either
-  path with sequential repository calls or HTTP calls between local modules.
+  and session aggregates. Each cross-aggregate command must be persisted through
+  exactly one atomic application-port operation. The adopted-program execution
+  port owns launch; explicit operations on the existing workout-session command
+  side own session completion/cancellation and propagate linked occurrence
+  transitions atomically. Do not coordinate either path with sequential
+  repository calls or HTTP calls between local modules.
 
 ## Cross-domain authorization
 

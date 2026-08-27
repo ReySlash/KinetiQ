@@ -131,16 +131,17 @@ template. A `WorkoutSession` remains independently valid when started from a
 standalone routine or as freestyle training. Calendar dates and weekday mapping
 are not part of the initial adopted-program slice.
 
-Program-workout launch belongs to a source-aware execution port in the planned
-`user-training-programs` application layer. Its Prisma adapter creates the
-session snapshots and advances the occurrence in one transaction. The existing
-workout-session command port remains the owner of session completion and
-cancellation; its infrastructure contract must atomically propagate a linked
-occurrence and parent-program transition. Calling separate repositories
-sequentially, importing Prisma into application/domain code, or using HTTP
-between local modules is not an acceptable substitute. This one-way ownership
-must avoid circular imports between `WorkoutSessionsModule` and the planned
-`UserTrainingProgramsModule`.
+Each cross-aggregate command must be persisted through exactly one atomic
+application-port operation. Program-workout launch belongs to a source-aware
+execution port in the planned `user-training-programs` application layer. The
+existing workout-session command-side contract owns explicit completion and
+cancellation operations that propagate linked occurrence/program transitions;
+these must not be hidden inside its generic `update()` method. Calling separate
+repositories sequentially, importing Prisma into application/domain code, or
+using HTTP between local modules is not an acceptable substitute. This one-way
+ownership must avoid circular imports between `WorkoutSessionsModule` and the
+planned `UserTrainingProgramsModule`. The exact atomic steps are specified in
+[training programs](13-training-programs.md#atomic-application-port-operations).
 
 ## Aggregate and lifecycle
 
@@ -331,9 +332,10 @@ these categories distinct:
 - **Recommendations:** later progression, load/repetition, or recovery-related
   suggestions based on sufficient data.
 
-Phase 9 begins only after Phase 8 provides stable, trustworthy history. Initial
-analytics remain completed sessions, consistency, volume, estimated 1RM, PR
-detection, exercise frequency, and basic muscle-set estimates. Materialized
+Phase 9 begins only after Phase 8 and the Phase 8.5 adopted-program integration
+provide stable, trustworthy history. Initial analytics remain completed
+sessions, consistency, volume, estimated 1RM, PR detection, exercise frequency,
+and basic muscle-set estimates. Materialized
 analytics tables are deferred until measured query performance justifies them;
 any later cache/materialization must be rebuildable from raw history and
 versioned where appropriate.
@@ -381,17 +383,36 @@ attempts, and obvious duplicate-set creation. The first slice uses optimistic
 version checks and the one-active-session database constraint; broader request
 idempotency remains later work.
 
-## Implementation sequence after approval
+The Phase 8.5 integration additionally requires lifecycle tests for both adopted
+aggregates; activation access and empty-schedule tests; schedule-copy and
+snapshot-timing tests; start/skip, duplicate-start, activation, completion, and
+cancellation race tests; atomic rollback tests; cancellation/retry history;
+automatic parent completion; unavailable-source/explicit-skip behavior; owner
+isolation; and program provenance in active-session and history UI. See the
+complete matrix in [testing strategy](16-testing-strategy.md).
 
-1. Implement the infrastructure Prisma mappers and adapters, including
-   transactional aggregate persistence, constraints, indexes, and real
-   PostgreSQL integration tests.
-2. Add presentation DTOs, error mapping, Swagger contracts, and API E2E tests.
-3. Build the mobile-first active-workout vertical slice and history reads.
-4. Verify clean/current migrations, lint, type checks, all relevant tests, and
-   production builds before beginning Phase 9.
+## Planned Phase 8.5 integration sequence
 
-## Remaining decisions before production
+1. Add the planned schema relations, reviewed partial indexes, and forward-only
+   migration with clean/current database verification.
+2. Implement `UserTrainingProgram` and `UserProgramWorkout` lifecycle rules with
+   focused domain tests first.
+3. Add adopted-program application ports, use cases, read models, and narrow
+   orchestration tests.
+4. Implement activation, launch, skip, session completion, and session
+   cancellation as atomic conditional Prisma operations with real PostgreSQL
+   concurrency/rollback tests.
+5. Add authenticated DTOs, canonical routes, Swagger contracts, safe error
+   mapping, and API ownership/journey tests.
+6. Build the responsive active-program page and integrate adoption/start actions
+   into existing program and routine pages.
+7. Add program context to active sessions and stable adopted-program provenance
+   to workout history, including return-to-program progress behavior.
+8. Run formatting checks, lint, type checks, unit/component, integration, API
+   E2E, browser, Prisma, migration, and production-build verification before
+   beginning Phase 9.
+
+## Accepted session decisions and remaining deferrals
 
 The following decisions are now approved for the Phase 8 MVP:
 
@@ -405,8 +426,10 @@ The following decisions are now approved for the Phase 8 MVP:
 5. Optimistic aggregate version checks and one active session per user; broader
    request idempotency remains later work.
 6. Session timezone capture using IANA metadata plus UTC timestamps.
-7. Account export, deletion, and retention policy for long-lived performance
-   history.
+
+Account export, deletion, and retention for long-lived performance history
+remain deferred product/privacy decisions; they are not approved by this
+session-slice contract.
 
 Do not add duration/distance modes, analytics tables, progression engines,
 recovery models, or correction abstractions while adding the approved
@@ -414,10 +437,13 @@ adopted-program integration.
 
 ## Definition of done
 
-An authenticated user can start, resume, record, complete/cancel, and retrieve
-only their workouts; routine-based sessions preserve authoritative prescription
-snapshots; exercise archival does not break history; lifecycle and numeric
-invariants hold at the appropriate layers; the mobile workflow is usable; and
-the ownership, transaction, migration, and immutability suites pass.
-Implementation status must continue to be supported by repository code and
-verification results rather than this document alone.
+Freestyle and standalone-routine sessions continue to start, resume, record,
+complete/cancel, and render correctly. Program-origin sessions start only from
+the next pending occurrence of an active adopted program. Occurrence/session
+transitions are atomic; cancellation preserves the attempt and permits retry;
+completion advances exactly once; explicit skip advances progress; the final
+resolved occurrence makes the parent terminal `COMPLETED`; and program context
+renders from stable snapshots. Ownership, concurrency, transaction, migration,
+immutability, API, and frontend suites pass. Implementation status must continue
+to be supported by repository code and verification results rather than this
+document alone.

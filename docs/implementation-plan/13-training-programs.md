@@ -62,7 +62,7 @@ notes about that scheduled routine occurrence.
   training. These models preserve what the athlete actually did rather than
   treating mutable templates as history.
 
-The future execution hierarchy is intentionally separate:
+The planned integrated execution hierarchy is intentionally separate:
 
 ```text
 TrainingProgram
@@ -82,6 +82,64 @@ The adopted-program models are not yet part of the current persistence schema.
 Workout sessions already support standalone routines and freestyle workouts;
 the next execution slice will add program-workout provenance without removing
 those source modes. See [workout sessions](14-workout-sessions.md).
+
+### Reusable template lifecycle
+
+`TrainingProgram` is editable reusable prescription data. It has visibility and
+ownership but no runtime progress status. Editing its name, duration, or
+schedule changes the template only. It never pauses, completes, or advances,
+and template changes do not mutate an already copied adopted schedule.
+
+### Planned `UserTrainingProgram` lifecycle
+
+```text
+ACTIVE
+  ├──> PAUSED
+  ├──> COMPLETED
+  └──> CANCELLED
+
+PAUSED
+  ├──> ACTIVE
+  └──> CANCELLED
+```
+
+- A newly adopted program starts as `ACTIVE`.
+- `ACTIVE` and `PAUSED` are non-terminal; `COMPLETED` and `CANCELLED` are
+  terminal.
+- Only one non-terminal adopted program may exist per owner.
+- The program becomes `COMPLETED` automatically when every occurrence is
+  `COMPLETED` or `SKIPPED`.
+- Starting or skipping an occurrence requires the parent program to be
+  `ACTIVE`. A paused program cannot progress.
+- Pausing or cancelling is rejected while an occurrence has an active
+  `IN_PROGRESS` session. The user must complete or cancel that session first.
+- Cancelling preserves the adopted program, its copied schedule, progress, and
+  session attempts as history; it is not a hard delete.
+
+### Planned `UserProgramWorkout` lifecycle
+
+```text
+PENDING
+  ├──> IN_PROGRESS
+  └──> SKIPPED
+
+IN_PROGRESS
+  ├──> COMPLETED
+  └──> PENDING
+```
+
+- `IN_PROGRESS -> PENDING` occurs only when the linked workout-session attempt
+  is cancelled.
+- `COMPLETED` and `SKIPPED` are terminal and cannot be started again through the
+  normal workflow.
+- An `IN_PROGRESS` occurrence cannot be skipped.
+- The next occurrence is the first `PENDING` occurrence ordered by
+  `weekNumber`, then `dayNumber`. The slot uniqueness constraint makes an ID
+  tie-breaker unnecessary as a domain rule.
+- Only the next pending occurrence may be started or skipped. A later occurrence
+  cannot be started while an earlier one remains `PENDING`.
+- If the next occurrence's source routine is unavailable, it remains `PENDING`
+  until the user explicitly skips it or the source becomes available.
 
 ## Relative program scheduling
 
@@ -206,7 +264,7 @@ must explain the problem and allow the user to skip that occurrence explicitly.
 It must not silently start a later slot. This is the interim behavior until an
 archive policy replaces the relevant hard-delete limitations.
 
-## MVP persistence model
+## Implemented training-program template persistence model
 
 ```prisma
 enum TrainingProgramVisibility {
@@ -264,6 +322,146 @@ also creates a PostgreSQL unique index with the same leading columns. It can be
 reconsidered later using query plans, but this slice preserves the approved
 model exactly.
 
+## Planned adopted-program persistence model
+
+The following Prisma-like contract documents the approved design only. It does
+not describe models that already exist in `schema.prisma`. `ownerId` is used
+instead of `userId` to match the existing Routine, TrainingProgram, and
+WorkoutSession ownership convention.
+
+```prisma
+enum UserTrainingProgramStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum UserProgramWorkoutStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+model UserTrainingProgram {
+  id                      String                    @id @db.Uuid
+  ownerId                 String                    @db.Uuid
+  sourceTrainingProgramId String?                   @db.Uuid
+  programNameSnapshot     String
+  durationWeeksSnapshot   Int
+  status                  UserTrainingProgramStatus @default(ACTIVE)
+  startedAt               DateTime                  @db.Timestamptz(3)
+  completedAt             DateTime?                 @db.Timestamptz(3)
+  cancelledAt             DateTime?                 @db.Timestamptz(3)
+  createdAt               DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime                  @updatedAt @db.Timestamptz(3)
+
+  owner                 User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  sourceTrainingProgram TrainingProgram?         @relation(fields: [sourceTrainingProgramId], references: [id], onDelete: SetNull)
+  workouts              UserProgramWorkout[]
+
+  @@index([ownerId, status, updatedAt])
+  @@index([sourceTrainingProgramId])
+}
+
+model UserProgramWorkout {
+  id                             String                   @id @db.Uuid
+  userTrainingProgramId          String                   @db.Uuid
+  sourceTrainingProgramRoutineId String?                  @db.Uuid
+  sourceRoutineId                String?                  @db.Uuid
+  weekNumber                     Int
+  dayNumber                      Int
+  routineNameSnapshot            String
+  programSlotNotesSnapshot       String?
+  status                         UserProgramWorkoutStatus @default(PENDING)
+  createdAt                      DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                      DateTime                 @updatedAt @db.Timestamptz(3)
+
+  userTrainingProgram          UserTrainingProgram    @relation(fields: [userTrainingProgramId], references: [id], onDelete: Restrict)
+  sourceTrainingProgramRoutine TrainingProgramRoutine? @relation(fields: [sourceTrainingProgramRoutineId], references: [id], onDelete: SetNull)
+  sourceRoutine                Routine?               @relation(fields: [sourceRoutineId], references: [id], onDelete: SetNull)
+  sessionAttempts              WorkoutSession[]
+
+  @@unique([userTrainingProgramId, weekNumber, dayNumber])
+  @@index([userTrainingProgramId, weekNumber, dayNumber])
+  @@index([userTrainingProgramId, status, weekNumber, dayNumber])
+  @@index([sourceTrainingProgramRoutineId])
+  @@index([sourceRoutineId])
+}
+
+model WorkoutSession {
+  // Existing fields remain.
+  userProgramWorkoutId String?             @db.Uuid
+  userProgramWorkout   UserProgramWorkout? @relation(fields: [userProgramWorkoutId], references: [id], onDelete: SetNull)
+
+  @@index([userProgramWorkoutId])
+}
+```
+
+The attempt cardinality is deliberately one-to-many:
+
+```text
+UserProgramWorkout 1 ─── N WorkoutSession
+```
+
+An occurrence has zero attempts before first start, one current attempt while
+`IN_PROGRESS`, any number of preserved cancelled attempts, and at most one
+completed attempt. `WorkoutSession.userProgramWorkoutId` must not be unique.
+Conditional occurrence transitions are the primary concurrency control. The
+implementation should additionally use reviewed PostgreSQL partial unique
+indexes to reinforce at most one `IN_PROGRESS` attempt and at most one
+`COMPLETED` attempt per non-null occurrence.
+
+Prisma cannot declare the required partial unique indexes directly. The planned
+implementation must create them in a reviewed PostgreSQL migration. Their
+semantic form is:
+
+```sql
+CREATE UNIQUE INDEX "UserTrainingProgram_one_non_terminal_per_owner_idx"
+ON "UserTrainingProgram" ("ownerId")
+WHERE "status" IN ('ACTIVE', 'PAUSED');
+
+CREATE UNIQUE INDEX "WorkoutSession_one_in_progress_per_program_workout_idx"
+ON "WorkoutSession" ("userProgramWorkoutId")
+WHERE "userProgramWorkoutId" IS NOT NULL AND "status" = 'IN_PROGRESS';
+
+CREATE UNIQUE INDEX "WorkoutSession_one_completed_per_program_workout_idx"
+ON "WorkoutSession" ("userProgramWorkoutId")
+WHERE "userProgramWorkoutId" IS NOT NULL AND "status" = 'COMPLETED';
+```
+
+The exact generated identifiers may be chosen during implementation. Source
+template relations use `SetNull`; deleting a template must never cascade into an
+adopted program, occurrence, session, performance, or completed set. Adopted
+programs and occurrences are completed, skipped, or cancelled rather than
+normally hard-deleted. The owner relation remains restrictive until the
+separate account export/deletion/retention policy defines an explicit purge.
+
+### Snapshot stages and authority
+
+Activation copies the program name, declared duration, week number, day number,
+routine name, program-slot notes, and nullable provenance IDs into the adopted
+program and occurrences. Later template schedule edits do not rewrite those
+values.
+
+The adopted schedule is stable after activation, but the routine prescription
+remains live until its occurrence starts. At start, the current routine is
+resolved and copied into ordered `ExercisePerformance` rows with:
+
+- stable exercise UUID;
+- exercise-name snapshot;
+- exercise order;
+- target set count;
+- minimum and maximum repetitions;
+- target RIR;
+- rest duration;
+- tempo;
+- prescription notes.
+
+After start, the `ExercisePerformance` snapshot is the historical authority.
+Broader program/template versioning remains deferred.
+
 ## Future extensibility without premature hierarchy
 
 Independent `(weekNumber, dayNumber)` rows already allow different routines on
@@ -280,11 +478,11 @@ TrainingProgram
 ```
 
 `ProgramPhase`, `ProgramWeek`, and `ProgramDay` should be introduced only if a
-concrete future workflow requires metadata or behavior at those levels. Also
-kept outside this template aggregate are adopted-program execution, weekday
-enums, direct program exercises, progression rules,
-percentage-based loading, mesocycles, `daysPerWeek`, and frontend-specific
-fields.
+concrete future workflow requires metadata or behavior at those levels.
+Adopted-program execution is the separate planned aggregate described above,
+not part of the reusable template aggregate. Weekday enums, direct program
+exercises, progression rules, percentage-based loading, mesocycles,
+`daysPerWeek`, and frontend-specific fields remain outside the current design.
 
 ## Backend architecture
 
@@ -408,7 +606,7 @@ exercise data. HTTP/application commands use `routineSlug` as the stable
 external identifier. The Prisma adapter resolves it to `Routine.id` when
 persisting `TrainingProgramRoutine` rows.
 
-## Implemented backend slice and future operations
+## Implemented training-program template API
 
 The implemented operations are:
 
@@ -426,7 +624,7 @@ optional `schedule` that defaults to an empty array. Identity, owner,
 visibility, and timestamps are server-controlled. Whether supplied or omitted,
 the slug base is normalized and gets an eight-character UUID suffix.
 
-### Use cases
+### Template use cases
 
 1. `CreateTrainingProgram`: create one private owned template and its complete
    schedule atomically.
@@ -442,8 +640,10 @@ the slug base is normalized and gets an eight-character UUID suffix.
 5. `DeleteTrainingProgram`: delete an owned private template; database cascade
    removes only its schedule rows.
 
-Global program creation/editing, duplication, activation, archive state,
-calendar placement, and session launch are excluded.
+Global program creation/editing, duplication, adopted-program execution,
+archive state, and calendar placement are excluded from the implemented
+template API. The approved adopted-program contract is documented separately
+below.
 
 ### HTTP routes
 
@@ -589,6 +789,191 @@ API problem/error conventions:
 Do not log session tokens, full mutation payloads, private notes, or Prisma
 errors containing sensitive parameters.
 
+## Planned adopted-program application and API contract
+
+### Adopted-program use cases
+
+The planned `user-training-programs` feature exposes transport-neutral use
+cases with owner identity supplied by the authenticated principal:
+
+```text
+ActivateTrainingProgram
+GetActiveUserTrainingProgram
+GetUserTrainingProgram
+PauseUserTrainingProgram
+ResumeUserTrainingProgram
+CancelUserTrainingProgram
+StartProgramWorkout
+SkipProgramWorkout
+```
+
+Activation accepts an accessible `GLOBAL` template or a `PRIVATE` template
+owned by the principal. Another user's private template remains concealed as
+not found. Activation rejects an empty schedule and atomically creates the
+`ACTIVE` adopted program plus every copied occurrence. Owner IDs are never
+accepted from request bodies, and occurrence commands resolve through the owned
+`UserTrainingProgram` rather than authorizing a child ID independently.
+
+### Canonical routes
+
+Every route requires authentication and uses UUID parameters for adopted
+resources:
+
+```text
+POST /api/user-training-programs
+GET  /api/user-training-programs/active
+GET  /api/user-training-programs/:id
+POST /api/user-training-programs/:id/pause
+POST /api/user-training-programs/:id/resume
+POST /api/user-training-programs/:id/cancel
+POST /api/user-training-programs/:id/workouts/:occurrenceId/start
+POST /api/user-training-programs/:id/workouts/:occurrenceId/skip
+```
+
+Activation receives only the source program slug. Lifecycle actions need no
+owner or status fields in their bodies. Program-workout start receives the
+session timezone and an optional explicit start timestamp under the same rules
+as the existing workout-session API. `occurrenceId` deliberately distinguishes
+the copied program occurrence from the resulting `WorkoutSession` ID.
+
+Activation returns `201` with the adopted-program ID, `ACTIVE` status, and
+`startedAt`. Program lifecycle and skip commands return `200` with the affected
+resource ID, resulting status, and `updatedAt`; clients then refetch the active
+read model. Start returns `201` with `workoutSessionId`, `occurrenceId`, session
+status, and occurrence status.
+
+`GET /active` returns `200` with the non-terminal adopted-program read model or
+`null` when none exists, matching the existing active-workout read convention.
+`GET /:id` includes terminal history and returns concealed `404` for missing or
+unowned IDs.
+
+### Active-program read model
+
+The active/detail response must expose policy results rather than requiring the
+frontend to reconstruct them:
+
+```ts
+type UserTrainingProgramDetail = {
+  id: string;
+  programNameSnapshot: string;
+  status: "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
+  durationWeeksSnapshot: number;
+  startedAt: string;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  totalCount: number;
+  completedCount: number;
+  skippedCount: number;
+  resolvedCount: number;
+  progressPercent: number;
+  occurrences: UserProgramWorkoutDetail[];
+  nextPendingOccurrence: UserProgramWorkoutDetail | null;
+  actions: {
+    canPause: boolean;
+    canResume: boolean;
+    canCancel: boolean;
+    canStartNext: boolean;
+    canSkipNext: boolean;
+  };
+};
+
+type UserProgramWorkoutDetail = {
+  id: string;
+  weekNumber: number;
+  dayNumber: number;
+  routineNameSnapshot: string;
+  programSlotNotesSnapshot: string | null;
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
+  sourceRoutineAvailable: boolean;
+  sessionAttemptIds: string[];
+  activeSessionId: string | null;
+  latestSessionId: string | null;
+};
+```
+
+`resolvedCount` equals `completedCount + skippedCount`, and
+`progressPercent = resolvedCount / totalCount * 100`. Completed and skipped
+counts remain separate so progress never presents skipped work as completed
+work. The server selects `nextPendingOccurrence` by week/day order and computes
+all action flags. The client must not independently decide which occurrence is
+next or whether a lifecycle action is legal.
+
+Workout-session detail and history read models add an explicit source kind:
+`FREESTYLE`, `ROUTINE`, or `PROGRAM_WORKOUT`. Program-origin rows expose the
+adopted-program ID, program-name snapshot, week/day snapshots, occurrence ID,
+and routine-name snapshot from the preserved adopted schedule. Mutable source
+template names are never the historical authority.
+
+### Atomic application-port operations
+
+Each cross-aggregate command must be persisted through exactly one atomic
+application-port operation. Business transitions and required conditional
+states are explicit in the application contracts and domain model; the Prisma
+adapters execute them but do not invent hidden lifecycle policy.
+
+`StartProgramWorkout` is owned by a source-aware execution port in the planned
+`user-training-programs` application layer. Its infrastructure adapter must
+atomically:
+
+1. verify the principal owns the adopted program;
+2. require the parent program to be `ACTIVE`;
+3. verify the occurrence is the next `PENDING` occurrence;
+4. verify no other active workout session exists for the owner;
+5. resolve the source routine and active exercises;
+6. create the `WorkoutSession`;
+7. create ordered `ExercisePerformance` prescription snapshots;
+8. associate the session with the occurrence;
+9. conditionally transition the occurrence to `IN_PROGRESS`.
+
+No partial session or occurrence transition may remain if any step fails.
+
+Completion and cancellation remain owned through explicit operations on the
+existing workout-session command-side application contract. They must not be
+implemented as surprising side effects of its generic aggregate `update()`
+method. The completion operation atomically:
+
+1. conditionally completes the owned `WorkoutSession` using its expected
+   version;
+2. transitions the linked occurrence from `IN_PROGRESS` to `COMPLETED`;
+3. transitions the parent program from `ACTIVE` to `COMPLETED` if every
+   occurrence is now `COMPLETED` or `SKIPPED`.
+
+The cancellation operation atomically:
+
+1. conditionally cancels the owned `WorkoutSession` using its expected version;
+2. preserves the cancelled session and recorded facts;
+3. transitions the linked occurrence from `IN_PROGRESS` back to `PENDING`;
+4. leaves the parent program `ACTIVE` so it can be paused or cancelled through
+   a separate explicit command.
+
+`SkipProgramWorkout` conditionally skips only the next `PENDING` occurrence of
+an `ACTIVE` program and completes the parent when no unresolved occurrence
+remains. Pause and program cancellation conditionally verify that no linked
+occurrence has an active session. Every race loses with a stable concurrency or
+lifecycle conflict and leaves no partial state.
+
+This design intentionally lets the relevant Prisma adapters participate in one
+cross-feature database transaction while application and domain layers remain
+free of Prisma. Do not introduce a distributed transaction, event bus, NestJS
+CQRS bus, local HTTP call, circular NestJS module import, or generic Unit of Work
+without a demonstrated need.
+
+### Authorization and errors
+
+- Missing authentication returns `401`.
+- A missing adopted program, another owner's adopted program, another owner's
+  private source template, or a child occurrence outside the owned parent
+  returns the same concealed `404`.
+- Transport validation errors return the repository-standard `400` response.
+- Empty-program activation and unavailable routine source return `422` with a
+  stable application error code. Unavailable start leaves the occurrence
+  `PENDING` and enables explicit skip only when it is still the next occurrence.
+- An existing `ACTIVE` or `PAUSED` program, an existing active workout, invalid
+  lifecycle transition, stale version/conditional update, duplicate start, or
+  start/skip race returns `409` with a stable conflict code.
+- Persistence errors never expose Prisma metadata, SQL, private notes, or source
+  ownership details.
+
 ## Testing requirements for the backend slice
 
 - Domain: duration, week/day bounds, duplicate slots, canonical ordering,
@@ -610,27 +995,34 @@ errors containing sensitive parameters.
 Do not add placeholder “is defined” tests. Each test must prove behavior at the
 cheapest appropriate layer.
 
-## Implementation sequence after contract approval
+The planned adopted-program slice additionally requires domain lifecycle and
+next-occurrence tests; application authorization and transition tests; real
+PostgreSQL partial-index, conditional-update, concurrency, rollback, and
+referential-action tests; API ownership and complete-journey tests; and frontend
+active-program, session-context, retry, skip, and progress tests. The exhaustive
+scenario list and browser critical path are maintained in
+[testing strategy](16-testing-strategy.md).
 
-1. Create only the folders/files needed for domain invariants and repository
-   contracts; add domain tests first.
-2. Add application use cases and behavior-focused tests using repository fakes.
-3. Implement the Prisma mapper/repository and real PostgreSQL integration tests.
-4. Add presentation DTOs, controller, Swagger documentation, and error mapping.
-5. Wire the feature module into `AppModule`.
-6. Add API E2E ownership and lifecycle coverage.
-7. Add the Routine delete-conflict translation and its regression test.
-8. Run Prisma validation, lint, typecheck, unit/integration/E2E tests, and build.
+## Implemented template-slice sequence and verification
 
-## Persistence verification completed
+The reusable template domain, application, Prisma, HTTP, and frontend slices are
+implemented. Their original sequence is historical rather than instructions for
+new work. Do not seed training programs merely to satisfy the adopted-program
+slice.
 
-Format and validate the Prisma schema, generate and inspect a forward-only
-migration, and run the existing backend suite. The persistence slice completed
-those checks. Do not seed Training Programs as part of the backend slice.
+The routine delete path still does not translate a
+`TrainingProgramRoutine` foreign-key restriction into the intended stable
+template-in-use `409`; it currently maps the persistence failure through the
+exercise-unavailable path. Do not claim that integration fix is implemented
+until repository code and a regression test prove it.
 
-## Remaining decisions requiring explicit approval before coding
+The next implementation sequence is the Phase 8.5 adopted-program integration
+described in [workout sessions](14-workout-sessions.md).
 
-1. Define delete behavior and include the Routine delete-conflict translation
-   when delete-related work is approved.
-2. Define any global-program management path; normal users currently create
-   PRIVATE programs only.
+## Deferred decisions
+
+Global-program administration, coach-assigned programs, routine/program
+archival, broader program versioning, account-data retention/deletion, calendar
+mapping, and routine/program progression recommendations remain deferred in
+[open decisions](24-open-decisions.md). They do not block the approved
+adopted-program slice.

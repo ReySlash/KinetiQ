@@ -79,6 +79,26 @@ Create test utilities that obtain real Better Auth sessions for `USER_A`, `USER_
 - Phase 8: historical prescription snapshots remain unchanged after
   routine/training-program edits, and exercise archival does not invalidate
   workout or exercise history.
+- Adopted-program activation succeeds from a GLOBAL template and an owned
+  PRIVATE template, conceals another user's private template, and rejects an
+  empty schedule.
+- Concurrent activation attempts produce one non-terminal program and one stable
+  conflict; the database partial unique index is exercised directly.
+- Adoption copies the relative schedule, and later template edits do not rewrite
+  the adopted program or occurrences.
+- Only the next pending occurrence can start or skip; start/skip and duplicate-
+  start races leave one valid result with no partial session.
+- Starting a program workout conflicts with another active session and atomic
+  launch rollback leaves both session and occurrence unchanged.
+- Completion advances the occurrence and parent exactly once; resolving the
+  final occurrence completes the parent program.
+- Cancellation preserves the session, returns the occurrence to `PENDING`, and
+  retry preserves both attempts while allowing at most one completed attempt.
+- Pause/cancel is rejected while a program session is active.
+- An unavailable source routine leaves the next occurrence `PENDING`; explicit
+  skip advances to the following occurrence.
+- Two-user tests isolate adopted programs, occurrences, attempts, and lifecycle
+  commands.
 - Upload/transform/database failures preserve the previous image and produce cleanup work.
 
 ## Frontend testing rules
@@ -92,6 +112,10 @@ Playwright’s MVP suite should cover:
 3. Normal user cannot reach/mutate admin actions.
 4. User creates a routine, adds/reorders prescriptions, duplicates, edits, and deletes it.
 5. Second user cannot access the first user’s routine by URL/API.
+6. User opens a global program, adopts it, sees the copied active schedule,
+   starts the next workout, records at least one set, completes the session,
+   returns to the active program, and sees updated progress and the next
+   occurrence.
 
 Use accessibility snapshots/keyboard steps where meaningful. Avoid visual snapshot testing as the primary proof; add a small visual regression set later if stable rendering infrastructure exists.
 

@@ -77,17 +77,16 @@ This work may begin earlier and must be complete before any shared environment e
 
 **Deliver:** production images/Compose/Nginx/Certbot, chosen PostgreSQL/object storage, full CI gates, security headers/rate limits, structured logs/alerts, backups, runbooks, restoration and rollback rehearsal.
 
-**Acceptance:** production-like deploy/smoke, two-user security suite, admin exercise lifecycle, routine lifecycle, HTTPS renewal test, off-host backup and isolated restore meet RPO/RTO. This is the MVP release.
+**Acceptance:** production-like deploy/smoke, two-user security suite, admin exercise lifecycle, routine lifecycle, HTTPS renewal test, off-host backup and isolated restore meet RPO/RTO. This establishes the production baseline; the current MVP product target continues through adopted-program execution.
 
-## Post-MVP releases
+## Current-target and later releases after the production baseline
 
-- **R10:** training programs and weekly schedules
-- **R11:** Phase 8 domain/persistence plus routine/freestyle session start,
-  prescription snapshots, mutable completed strength sets, lifecycle commands,
-  and active-workout retrieval
-- **R12:** mobile-first recording/history UI, workout and exercise history
-  reads, and the separately approved completed-history correction path
-- **R13:** deterministic overview analytics and PRs
+- **R10:** reusable training-program templates and relative weekly schedules
+- **R11:** standalone Phase 8 routine/freestyle session persistence, lifecycle,
+  mobile recording, and history UI
+- **R12:** Phase 8.5 adopted programs, copied schedules, integrated
+  program-origin sessions, progress, retry/skip behavior, and active-program UI
+- **R13:** deterministic overview analytics and PRs after integrated execution
 - **R14:** muscle/movement demand analytics with explicit heuristics
 - **R15:** opt-in rules-based progression recommendations
 - **R16:** recovery check-ins and fatigue-context experiments
@@ -105,16 +104,18 @@ Implement R0 as a narrowly scoped foundation pull request: workspace structure, 
 
 At plan creation all releases are `PLANNED`. Update this table when work begins; do not mark a release done until its acceptance block passes.
 
-| Release | Status | Depends on |
-| --- | --- | --- |
-| R0 Foundation | In progress — runtime, CI, and operational documentation are implemented; clean-environment verification remains | — |
-| R1 Muscles | Implemented in code; acceptance and clean-database verification remain | R0 |
-| R2 Exercise identity | Implemented in code; admin/shared-environment security gate remains | R1 |
-| R3 Muscle assignments | Implemented in code; acceptance verification remains | R2 |
-| R4 Profiles | Implemented in code; acceptance verification remains | R3 |
-| R5 Media | Deferred until post-MVP image generation is ready | R2, Cloudinary decisions |
-| R6 Auth/admin hardening | In progress — Better Auth backend wiring exists; web flows and full HTTP authorization matrix remain | R0; gates shared R2–R5 |
-| R7–R8 Routines | Implemented in backend/UI slices; final MVP acceptance and production hardening remain | R2, R6 |
-| R9 Production MVP | Planned | R0–R8 |
-| R10 Training programs | Backend template/schedule slice implemented; frontend and release acceptance remain | R9 |
-| R11+ Sessions and later phases | Planned/deferred; Phase 8 is specified but not implemented | Auth + routines; R10/active-program adoption is not required for standalone or routine starts |
+| Release                         | Status                                                                                                           | Depends on                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| R0 Foundation                   | In progress — runtime, CI, and operational documentation are implemented; clean-environment verification remains | —                             |
+| R1 Muscles                      | Implemented in code; acceptance and clean-database verification remain                                           | R0                            |
+| R2 Exercise identity            | Implemented in code; admin/shared-environment security gate remains                                              | R1                            |
+| R3 Muscle assignments           | Implemented in code; acceptance verification remains                                                             | R2                            |
+| R4 Profiles                     | Implemented in code; acceptance verification remains                                                             | R3                            |
+| R5 Media                        | Deferred until post-MVP image generation is ready                                                                | R2, Cloudinary decisions      |
+| R6 Auth/admin hardening         | In progress — Better Auth backend wiring exists; web flows and full HTTP authorization matrix remain             | R0; gates shared R2–R5        |
+| R7–R8 Routines                  | Implemented in backend/UI slices; final MVP acceptance and production hardening remain                           | R2, R6                        |
+| R9 Production MVP               | Planned                                                                                                          | R0–R8                         |
+| R10 Training-program templates  | Backend and frontend template/schedule slices implemented; release acceptance remains                            | R9                            |
+| R11 Standalone sessions         | Backend and frontend routine/freestyle slice implemented; acceptance remains                                     | Auth + routines               |
+| R12 Adopted-program execution   | Planned current-target slice                                                                                     | R10, R11                      |
+| R13+ Analytics and later phases | Planned/deferred                                                                                                 | R12 stable integrated history |

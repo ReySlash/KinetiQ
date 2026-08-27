@@ -4,19 +4,20 @@
 
 Analytics turn historical training into understandable summaries. They are part of the MVP and depend on trustworthy completed-session data. Initial metrics must be deterministic, explainable, and reproducible.
 
-Phase 9 does not begin until the Phase 8 `WorkoutSession ->
-ExercisePerformance -> CompletedSet` history is stable, owner-isolated, and
-snapshot-safe. See [workout sessions](14-workout-sessions.md). Analytics consume
-that history; they do not redefine its write model.
+Phase 9 does not begin until the Phase 8 standalone session slice and Phase 8.5
+adopted-program integration are stable, owner-isolated, and snapshot-safe. See
+[workout sessions](14-workout-sessions.md) and
+[training programs](13-training-programs.md). Analytics consume that history;
+they do not redefine its write model.
 
 ## Data categories
 
-| Category | Examples | Persistence policy |
-| --- | --- | --- |
-| Raw stored data | Completed sets, session timestamps, RIR, routine snapshots | Persist as source of truth |
-| Derived metric | Sessions/week, volume load, exercise frequency | Compute on read initially |
-| Heuristic estimate | e1RM, indirect muscle set equivalents, fatigue exposure | Compute with method/version and caveat |
-| Recommendation | Increase load, hold, deload consideration | Issue only with data sufficiency; persist decision/audit if acted on |
+| Category           | Examples                                                   | Persistence policy                                                   |
+| ------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------- |
+| Raw stored data    | Completed sets, session timestamps, RIR, routine snapshots | Persist as source of truth                                           |
+| Derived metric     | Sessions/week, volume load, exercise frequency             | Compute on read initially                                            |
+| Heuristic estimate | e1RM, indirect muscle set equivalents, fatigue exposure    | Compute with method/version and caveat                               |
+| Recommendation     | Increase load, hold, deload consideration                  | Issue only with data sufficiency; persist decision/audit if acted on |
 
 Do not store every chart point or aggregate until performance measurements justify caching. Any materialization must be rebuildable from raw data and keyed by algorithm version.
 

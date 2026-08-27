@@ -6,25 +6,30 @@ Record choices that materially affect implementation. Resolve a decision just be
 
 ## Accepted architectural decisions
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Application shape | Next.js web + NestJS modular-monolith API + one PostgreSQL database | Realistic for one developer; clear boundaries without distributed overhead |
-| API style | REST `/api` with Swagger/OpenAPI; versioning deferred | Required stack, simple resource workflows, generated client opportunity |
-| Contract sharing | Generate client types; do not share Prisma models/server DTO implementations | Prevent server leakage and tight coupling |
-| Score scale | Integer 0–5 with global labels plus per-field definitions | Consistent editorial comparisons |
-| Exercise composition | Identity, muscle join, capability profile, demand profile separate | Prevent large mixed table and preserve semantics |
-| Equipment | Seeded reference table + explicit join | Multi-value and likely evolving metadata |
-| Movement pattern | Seeded reference table | Editorial taxonomy may evolve |
-| Stable behavior classifications | Prisma enums | Code-governed, small vocabularies |
-| Exercise media | Optional Cloudinary-served URLs in MVP; upload/management post-MVP | Avoids binary upload scope while generated assets are prepared |
-| Sport transfer | No universal score; sport mapping deferred | Context dependent and not MVP value |
-| Routine ordering | Dense integers, unique within routine | Simple and sufficient for small templates |
-| Routine duplicate exercise | Allowed through surrogate `RoutineExercise.id` | Same movement may appear in separate blocks |
-| Ownership | Constrain database queries by ID and authenticated owner ID | Prevent IDOR and existence leaks |
-| Analytics persistence | Raw history stored; derived/heuristic metrics computed initially | Explainable and avoids stale aggregates |
-| Production media | Cloudinary for approved generated assets; upload architecture deferred | Provider handles image delivery while MVP avoids upload workflows |
-| Muscle involvement scale | Store and validate integers 0–5; warn on usually-unnecessary zero assignments | Matches the project-wide required scale while preserving explicit “negligible” meaning |
-| Training Programs backend architecture | Pilot lean Clean Architecture/DDD layers inside one vertical feature module; leave existing modules unchanged | Tests architectural value on a rule-bearing aggregate without authorizing a repository-wide rewrite |
+| Decision                                | Choice                                                                                                                                                                                                                 | Rationale                                                                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Application shape                       | Next.js web + NestJS modular-monolith API + one PostgreSQL database                                                                                                                                                    | Realistic for one developer; clear boundaries without distributed overhead                                                      |
+| API style                               | REST `/api` with Swagger/OpenAPI; versioning deferred                                                                                                                                                                  | Required stack, simple resource workflows, generated client opportunity                                                         |
+| Contract sharing                        | Generate client types; do not share Prisma models/server DTO implementations                                                                                                                                           | Prevent server leakage and tight coupling                                                                                       |
+| Score scale                             | Integer 0–5 with global labels plus per-field definitions                                                                                                                                                              | Consistent editorial comparisons                                                                                                |
+| Exercise composition                    | Identity, muscle join, capability profile, demand profile separate                                                                                                                                                     | Prevent large mixed table and preserve semantics                                                                                |
+| Equipment                               | Seeded reference table + explicit join                                                                                                                                                                                 | Multi-value and likely evolving metadata                                                                                        |
+| Movement pattern                        | Seeded reference table                                                                                                                                                                                                 | Editorial taxonomy may evolve                                                                                                   |
+| Stable behavior classifications         | Prisma enums                                                                                                                                                                                                           | Code-governed, small vocabularies                                                                                               |
+| Exercise media                          | Optional Cloudinary-served URLs in MVP; upload/management post-MVP                                                                                                                                                     | Avoids binary upload scope while generated assets are prepared                                                                  |
+| Sport transfer                          | No universal score; sport mapping deferred                                                                                                                                                                             | Context dependent and not MVP value                                                                                             |
+| Routine ordering                        | Dense integers, unique within routine                                                                                                                                                                                  | Simple and sufficient for small templates                                                                                       |
+| Routine duplicate exercise              | Allowed through surrogate `RoutineExercise.id`                                                                                                                                                                         | Same movement may appear in separate blocks                                                                                     |
+| Ownership                               | Constrain database queries by ID and authenticated owner ID                                                                                                                                                            | Prevent IDOR and existence leaks                                                                                                |
+| Analytics persistence                   | Raw history stored; derived/heuristic metrics computed initially                                                                                                                                                       | Explainable and avoids stale aggregates                                                                                         |
+| Production media                        | Cloudinary for approved generated assets; upload architecture deferred                                                                                                                                                 | Provider handles image delivery while MVP avoids upload workflows                                                               |
+| Muscle involvement scale                | Store and validate integers 0–5; warn on usually-unnecessary zero assignments                                                                                                                                          | Matches the project-wide required scale while preserving explicit “negligible” meaning                                          |
+| Training Programs backend architecture  | Pilot lean Clean Architecture/DDD layers inside one vertical feature module; leave existing modules unchanged                                                                                                          | Tests architectural value on a rule-bearing aggregate without authorizing a repository-wide rewrite                             |
+| Workout-session strength facts          | Canonical kilograms in `Decimal(7,2)`, retain entered KG/LB, and store `CompletedSet.isWarmup`                                                                                                                         | Preserves precise raw facts and the user-entered unit without expanding into later modalities                                   |
+| Workout-session history                 | Completed/cancelled sessions are immutable through normal commands; routine provenance is nullable with `SetNull`; prescription snapshots are explicit columns                                                         | Template changes or deletion must not rewrite historical performance                                                            |
+| Workout-session concurrency and time    | Optimistic session versions, one database-enforced active session per user, IANA timezone metadata, and UTC timestamps                                                                                                 | Protects aggregate mutations and renders history in the recorded context                                                        |
+| Adopted-program interim snapshot policy | Copy the program name, declared duration, and relative schedule at adoption; resolve the live routine prescription when an occurrence starts; use the resulting `ExercisePerformance` snapshot as historical authority | Preserves adopted progress while avoiding premature program-versioning infrastructure                                           |
+| Adopted-program transaction ownership   | Launch is one atomic `user-training-programs` application-port operation; completion/cancellation use explicit workout-session command-side operations that atomically propagate linked occurrence/program transitions | Keeps Prisma in infrastructure, prevents partial cross-aggregate state, and avoids circular modules or distributed coordination |
 
 ## Decisions required before R0
 
@@ -128,18 +133,23 @@ Choose off-host uptime/alerting, error tracking, and log retention with privacy/
 
 - Custom exercises: optional `ownerId` on `Exercise` versus a separate `CustomExercise`. Revisit only with sharing/moderation/search rules.
 - Exercise relationships: directionality, inverse generation, duplicate/conflict rules, and curator UI.
-- Training program versioning versus live routine reference.
-- Phase 8 session decisions: canonical load unit and decimal precision;
-  entered/display units; first-slice warm-up fact; completed-history
-  correction/audit semantics; exact source provenance and snapshot columns;
-  active-session concurrency/idempotency; timezone capture; and performance-data
-  export/deletion/retention. Duration/distance units remain a later-modality
-  decision.
+- Broader training-program versioning beyond the accepted copied-schedule,
+  live-routine, session-snapshot interim policy.
+- Completed-history correction and audit workflow.
+- Broader request idempotency beyond optimistic session versions, conditional
+  occurrence transitions, and database uniqueness constraints.
+- Routine and training-program archival policy beyond history-preserving source
+  relations and explicit unavailable-source behavior.
+- Calendar mapping, named weekdays, scheduled dates, rescheduling, and calendar
+  synchronization.
+- Coach-assigned programs and their consent/ownership lifecycle.
+- Routine/program progression recommendations and percentage-based loading.
+- Duration/distance workout modalities and their units.
 - Analytics formulas, working-set classification, unilateral/bodyweight conventions.
 - General athletic-quality curation rubric and public value.
 - Sport taxonomy, evidence/confidence policy, positions/events.
 - Coach organization tenancy, consent, grant expiry, audit, billing.
-- Account export/deletion and long-term performance-data privacy.
+- Account export/deletion, retention, and long-term performance-data privacy.
 
 ## Decision template
 
