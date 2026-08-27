@@ -150,7 +150,7 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
       ],
     );
     await pool.query(
-      `INSERT INTO "UserTrainingProgram"
+      `INSERT INTO "AdoptedTrainingProgram"
         ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "startedAt", "updatedAt")
        VALUES ($1::uuid, $2::uuid, $3, $4, NOW(), NOW())`,
       [adoptedProgramId, adoptedOwnerId, 'Strength Foundation', 8],
@@ -158,7 +158,7 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
 
     await expect(
       pool.query(
-        `INSERT INTO "UserTrainingProgram"
+        `INSERT INTO "AdoptedTrainingProgram"
           ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "startedAt", "updatedAt")
          VALUES ($1::uuid, $2::uuid, $3, $4, NOW(), NOW())`,
         [duplicateProgramId, adoptedOwnerId, 'Another Program', 4],
@@ -166,8 +166,8 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
     ).rejects.toMatchObject({ code: '23505' });
 
     await pool.query(
-      `INSERT INTO "UserProgramWorkout"
-        ("id", "userTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "programSlotNotesSnapshot", "updatedAt")
+      `INSERT INTO "ProgramWorkoutOccurrence"
+        ("id", "adoptedTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "programSlotNotesSnapshot", "updatedAt")
        VALUES ($1::uuid, $2::uuid, 1, 1, $3, $4, NOW())`,
       [
         occurrenceId,
@@ -178,7 +178,7 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
     );
     await pool.query(
       `INSERT INTO "WorkoutSession"
-        ("id", "ownerId", "userProgramWorkoutId", "timezone", "startedAt", "updatedAt")
+        ("id", "ownerId", "programWorkoutOccurrenceId", "timezone", "startedAt", "updatedAt")
        VALUES ($1::uuid, $2::uuid, $3::uuid, $4, NOW(), NOW())`,
       [inProgressSessionId, adoptedOwnerId, occurrenceId, 'Asia/Qatar'],
     );
@@ -187,15 +187,15 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
       programNameSnapshot: string;
       weekNumber: number;
       routineNameSnapshot: string;
-      userProgramWorkoutId: string;
+      programWorkoutOccurrenceId: string;
     }>(
       `SELECT program."programNameSnapshot", workout."weekNumber",
-              workout."routineNameSnapshot", session."userProgramWorkoutId"
-       FROM "UserTrainingProgram" AS program
-       JOIN "UserProgramWorkout" AS workout
-         ON workout."userTrainingProgramId" = program."id"
+              workout."routineNameSnapshot", session."programWorkoutOccurrenceId"
+       FROM "AdoptedTrainingProgram" AS program
+       JOIN "ProgramWorkoutOccurrence" AS workout
+         ON workout."adoptedTrainingProgramId" = program."id"
        JOIN "WorkoutSession" AS session
-         ON session."userProgramWorkoutId" = workout."id"
+         ON session."programWorkoutOccurrenceId" = workout."id"
        WHERE program."id" = $1::uuid`,
       [adoptedProgramId],
     );
@@ -203,13 +203,13 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
       programNameSnapshot: 'Strength Foundation',
       weekNumber: 1,
       routineNameSnapshot: 'Upper Body Strength',
-      userProgramWorkoutId: occurrenceId,
+      programWorkoutOccurrenceId: occurrenceId,
     });
 
     await expect(
       pool.query(
         `INSERT INTO "WorkoutSession"
-          ("id", "ownerId", "userProgramWorkoutId", "timezone", "startedAt", "updatedAt")
+          ("id", "ownerId", "programWorkoutOccurrenceId", "timezone", "startedAt", "updatedAt")
          VALUES ($1::uuid, $2::uuid, $3::uuid, $4, NOW(), NOW())`,
         [
           duplicateInProgressSessionId,
@@ -221,14 +221,14 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
     ).rejects.toMatchObject({ code: '23505' });
 
     await pool.query(
-      `INSERT INTO "UserProgramWorkout"
-        ("id", "userTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "updatedAt")
+      `INSERT INTO "ProgramWorkoutOccurrence"
+        ("id", "adoptedTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "updatedAt")
        VALUES ($1::uuid, $2::uuid, 1, 2, $3, NOW())`,
       [completedOccurrenceId, adoptedProgramId, 'Lower Body Strength'],
     );
     await pool.query(
       `INSERT INTO "WorkoutSession"
-        ("id", "ownerId", "userProgramWorkoutId", "status", "timezone", "startedAt", "completedAt", "updatedAt")
+        ("id", "ownerId", "programWorkoutOccurrenceId", "status", "timezone", "startedAt", "completedAt", "updatedAt")
        VALUES ($1::uuid, $2::uuid, $3::uuid, 'COMPLETED', $4, NOW(), NOW(), NOW())`,
       [completedSessionId, adoptedOwnerId, completedOccurrenceId, 'Asia/Qatar'],
     );
@@ -236,7 +236,7 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
     await expect(
       pool.query(
         `INSERT INTO "WorkoutSession"
-          ("id", "ownerId", "userProgramWorkoutId", "status", "timezone", "startedAt", "completedAt", "updatedAt")
+          ("id", "ownerId", "programWorkoutOccurrenceId", "status", "timezone", "startedAt", "completedAt", "updatedAt")
          VALUES ($1::uuid, $2::uuid, $3::uuid, 'COMPLETED', $4, NOW(), NOW(), NOW())`,
         [
           duplicateCompletedSessionId,
@@ -247,18 +247,19 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
       ),
     ).rejects.toMatchObject({ code: '23505' });
 
-    await pool.query(`DELETE FROM "UserProgramWorkout" WHERE "id" = $1::uuid`, [
-      occurrenceId,
-    ]);
+    await pool.query(
+      `DELETE FROM "ProgramWorkoutOccurrence" WHERE "id" = $1::uuid`,
+      [occurrenceId],
+    );
     const preservedSession = await pool.query<{
-      userProgramWorkoutId: string | null;
+      programWorkoutOccurrenceId: string | null;
     }>(
-      `SELECT "userProgramWorkoutId"
+      `SELECT "programWorkoutOccurrenceId"
        FROM "WorkoutSession"
        WHERE "id" = $1::uuid`,
       [inProgressSessionId],
     );
-    expect(preservedSession.rows[0]?.userProgramWorkoutId).toBeNull();
+    expect(preservedSession.rows[0]?.programWorkoutOccurrenceId).toBeNull();
   });
 
   afterAll(async () => {

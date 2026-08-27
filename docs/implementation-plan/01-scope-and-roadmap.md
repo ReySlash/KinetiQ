@@ -77,7 +77,7 @@ mobile-first. Duration/distance modes can follow. See
 
 ### Phase 8.5 — Adopted programs and integrated execution (MVP)
 
-Introduce `UserTrainingProgram` and `UserProgramWorkout` as the user-owned
+Introduce `AdoptedTrainingProgram` and `ProgramWorkoutOccurrence` as the user-owned
 execution layer between reusable training-program templates and historical
 workout sessions. Adoption copies the relative program schedule, tracks
 lifecycle and progress, launches only the next pending occurrence, preserves

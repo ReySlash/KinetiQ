@@ -110,22 +110,22 @@ A workout session currently may originate from:
 - a freestyle workout.
 
 The next execution slice adds a third source: a particular
-`UserProgramWorkout` from an adopted training program.
+`ProgramWorkoutOccurrence` from an adopted training program.
 
 The long-term relationship remains:
 
 ```text
 TrainingProgram
       ↓
-UserTrainingProgram
+AdoptedTrainingProgram
       ↓
-UserProgramWorkout
+ProgramWorkoutOccurrence
       ↓
 WorkoutSession
 ```
 
-`TrainingProgram` is a reusable template. The planned `UserTrainingProgram`
-copies its relative schedule into `UserProgramWorkout` occurrences. A
+`TrainingProgram` is a reusable template. The planned `AdoptedTrainingProgram`
+copies its relative schedule into `ProgramWorkoutOccurrence` records. A
 program-origin session references one occurrence rather than only the reusable
 template. A `WorkoutSession` remains independently valid when started from a
 standalone routine or as freestyle training. Calendar dates and weekday mapping
@@ -133,14 +133,14 @@ are not part of the initial adopted-program slice.
 
 Each cross-aggregate command must be persisted through exactly one atomic
 application-port operation. Program-workout launch belongs to a source-aware
-execution port in the planned `user-training-programs` application layer. The
+execution port in the planned `adopted-training-programs` application layer. The
 existing workout-session command-side contract owns explicit completion and
 cancellation operations that propagate linked occurrence/program transitions;
 these must not be hidden inside its generic `update()` method. Calling separate
 repositories sequentially, importing Prisma into application/domain code, or
 using HTTP between local modules is not an acceptable substitute. This one-way
 ownership must avoid circular imports between `WorkoutSessionsModule` and the
-planned `UserTrainingProgramsModule`. The exact atomic steps are specified in
+planned `AdoptedTrainingProgramsModule`. The exact atomic steps are specified in
 [training programs](13-training-programs.md#atomic-application-port-operations).
 
 ## Aggregate and lifecycle
@@ -395,7 +395,7 @@ complete matrix in [testing strategy](16-testing-strategy.md).
 
 1. Add the planned schema relations, reviewed partial indexes, and forward-only
    migration with clean/current database verification.
-2. Implement `UserTrainingProgram` and `UserProgramWorkout` lifecycle rules with
+2. Implement `AdoptedTrainingProgram` and `ProgramWorkoutOccurrence` lifecycle rules with
    focused domain tests first.
 3. Add adopted-program application ports, use cases, read models, and narrow
    orchestration tests.

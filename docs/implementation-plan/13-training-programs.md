@@ -53,10 +53,10 @@ notes about that scheduled routine occurrence.
 - **Training Program:** a reusable multi-week template containing relative
   routine placements. It is not a user's active execution of a program and has
   no actual calendar dates.
-- **Planned UserTrainingProgram:** a user's adopted instance of a program. This
+- **Planned AdoptedTrainingProgram:** a user's adopted instance of a program. This
   layer will own adoption state and progress through a copied relative schedule.
   Calendar mapping and scheduled dates remain deferred.
-- **Planned UserProgramWorkout:** one copied workout occurrence from the adopted
+- **Planned ProgramWorkoutOccurrence:** one copied workout occurrence from the adopted
   program schedule, with its own lifecycle and source snapshots.
 - **WorkoutSession and ExercisePerformance:** implemented historical performed
   training. These models preserve what the athlete actually did rather than
@@ -67,9 +67,9 @@ The planned integrated execution hierarchy is intentionally separate:
 ```text
 TrainingProgram
     ↓
-UserTrainingProgram
+AdoptedTrainingProgram
     ↓
-UserProgramWorkout
+ProgramWorkoutOccurrence
     ↓
 WorkoutSession
     ↓
@@ -90,7 +90,7 @@ ownership but no runtime progress status. Editing its name, duration, or
 schedule changes the template only. It never pauses, completes, or advances,
 and template changes do not mutate an already copied adopted schedule.
 
-### Planned `UserTrainingProgram` lifecycle
+### Planned `AdoptedTrainingProgram` lifecycle
 
 ```text
 ACTIVE
@@ -116,7 +116,7 @@ PAUSED
 - Cancelling preserves the adopted program, its copied schedule, progress, and
   session attempts as history; it is not a hard delete.
 
-### Planned `UserProgramWorkout` lifecycle
+### Planned `ProgramWorkoutOccurrence` lifecycle
 
 ```text
 PENDING
@@ -231,8 +231,8 @@ explicit workflow.
 
 ## Approved adopted-program integration decisions
 
-The next execution slice introduces `UserTrainingProgram` and
-`UserProgramWorkout` without merging the template, routine, and workout-session
+The next execution slice introduces `AdoptedTrainingProgram` and
+`ProgramWorkoutOccurrence` without merging the template, routine, and workout-session
 modules. The following decisions close the current design gaps before coding:
 
 - Activating a program with no schedule rows is rejected. An empty template may
@@ -242,11 +242,11 @@ modules. The following decisions close the current design gaps before coding:
   workouts has an `IN_PROGRESS` session. The user must complete or cancel that
   session first. An `IN_PROGRESS` slot cannot be skipped.
 - Cancelling a program-origin session preserves the cancelled session and
-  atomically returns its `UserProgramWorkout` to `PENDING`. Completion
+  atomically returns its `ProgramWorkoutOccurrence` to `PENDING`. Completion
   atomically completes the session, completes the occurrence, and completes the
   parent program when every occurrence is `COMPLETED` or `SKIPPED`.
 - Program-workout launch is owned by a source-aware execution port in the new
-  `user-training-programs` application layer. Its Prisma adapter creates the
+  `adopted-training-programs` application layer. Its Prisma adapter creates the
   session snapshots and advances the occurrence in one transaction. The
   existing workout-session command port remains the owner of session completion
   and cancellation; its infrastructure contract is extended to propagate a
@@ -255,7 +255,7 @@ modules. The following decisions close the current design gaps before coding:
   not call two repositories sequentially or make HTTP calls between local
   modules.
 
-The copied `UserProgramWorkout` schedule retains explicit name, week, day, and
+The copied `ProgramWorkoutOccurrence` schedule retains explicit name, week, day, and
 notes snapshots. Routine prescriptions are resolved and snapshotted into
 `ExercisePerformance` only when a session starts. If the source routine becomes
 unavailable before a pending occurrence starts, the start command returns a
@@ -330,27 +330,27 @@ instead of `userId` to match the existing Routine, TrainingProgram, and
 WorkoutSession ownership convention.
 
 ```prisma
-enum UserTrainingProgramStatus {
+enum AdoptedTrainingProgramStatus {
   ACTIVE
   PAUSED
   COMPLETED
   CANCELLED
 }
 
-enum UserProgramWorkoutStatus {
+enum ProgramWorkoutOccurrenceStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
   SKIPPED
 }
 
-model UserTrainingProgram {
+model AdoptedTrainingProgram {
   id                      String                    @id @db.Uuid
   ownerId                 String                    @db.Uuid
   sourceTrainingProgramId String?                   @db.Uuid
   programNameSnapshot     String
   durationWeeksSnapshot   Int
-  status                  UserTrainingProgramStatus @default(ACTIVE)
+  status                  AdoptedTrainingProgramStatus @default(ACTIVE)
   startedAt               DateTime                  @db.Timestamptz(3)
   completedAt             DateTime?                 @db.Timestamptz(3)
   cancelledAt             DateTime?                 @db.Timestamptz(3)
@@ -359,55 +359,55 @@ model UserTrainingProgram {
 
   owner                 User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   sourceTrainingProgram TrainingProgram?         @relation(fields: [sourceTrainingProgramId], references: [id], onDelete: SetNull)
-  workouts              UserProgramWorkout[]
+  workouts              ProgramWorkoutOccurrence[]
 
   @@index([ownerId, status, updatedAt])
   @@index([sourceTrainingProgramId])
 }
 
-model UserProgramWorkout {
+model ProgramWorkoutOccurrence {
   id                             String                   @id @db.Uuid
-  userTrainingProgramId          String                   @db.Uuid
+  adoptedTrainingProgramId       String                   @db.Uuid
   sourceTrainingProgramRoutineId String?                  @db.Uuid
   sourceRoutineId                String?                  @db.Uuid
   weekNumber                     Int
   dayNumber                      Int
   routineNameSnapshot            String
   programSlotNotesSnapshot       String?
-  status                         UserProgramWorkoutStatus @default(PENDING)
+  status                         ProgramWorkoutOccurrenceStatus @default(PENDING)
   createdAt                      DateTime                 @default(now()) @db.Timestamptz(3)
   updatedAt                      DateTime                 @updatedAt @db.Timestamptz(3)
 
-  userTrainingProgram          UserTrainingProgram    @relation(fields: [userTrainingProgramId], references: [id], onDelete: Restrict)
+  adoptedTrainingProgram       AdoptedTrainingProgram   @relation(fields: [adoptedTrainingProgramId], references: [id], onDelete: Restrict)
   sourceTrainingProgramRoutine TrainingProgramRoutine? @relation(fields: [sourceTrainingProgramRoutineId], references: [id], onDelete: SetNull)
   sourceRoutine                Routine?               @relation(fields: [sourceRoutineId], references: [id], onDelete: SetNull)
   sessionAttempts              WorkoutSession[]
 
-  @@unique([userTrainingProgramId, weekNumber, dayNumber])
-  @@index([userTrainingProgramId, weekNumber, dayNumber])
-  @@index([userTrainingProgramId, status, weekNumber, dayNumber])
+  @@unique([adoptedTrainingProgramId, weekNumber, dayNumber])
+  @@index([adoptedTrainingProgramId, weekNumber, dayNumber])
+  @@index([adoptedTrainingProgramId, status, weekNumber, dayNumber])
   @@index([sourceTrainingProgramRoutineId])
   @@index([sourceRoutineId])
 }
 
 model WorkoutSession {
   // Existing fields remain.
-  userProgramWorkoutId String?             @db.Uuid
-  userProgramWorkout   UserProgramWorkout? @relation(fields: [userProgramWorkoutId], references: [id], onDelete: SetNull)
+  programWorkoutOccurrenceId String?                  @db.Uuid
+  programWorkoutOccurrence   ProgramWorkoutOccurrence? @relation(fields: [programWorkoutOccurrenceId], references: [id], onDelete: SetNull)
 
-  @@index([userProgramWorkoutId])
+  @@index([programWorkoutOccurrenceId])
 }
 ```
 
 The attempt cardinality is deliberately one-to-many:
 
 ```text
-UserProgramWorkout 1 ─── N WorkoutSession
+ProgramWorkoutOccurrence 1 ─── N WorkoutSession
 ```
 
 An occurrence has zero attempts before first start, one current attempt while
 `IN_PROGRESS`, any number of preserved cancelled attempts, and at most one
-completed attempt. `WorkoutSession.userProgramWorkoutId` must not be unique.
+completed attempt. `WorkoutSession.programWorkoutOccurrenceId` must not be unique.
 Conditional occurrence transitions are the primary concurrency control. The
 implementation should additionally use reviewed PostgreSQL partial unique
 indexes to reinforce at most one `IN_PROGRESS` attempt and at most one
@@ -418,17 +418,17 @@ implementation must create them in a reviewed PostgreSQL migration. Their
 semantic form is:
 
 ```sql
-CREATE UNIQUE INDEX "UserTrainingProgram_one_non_terminal_per_owner_idx"
-ON "UserTrainingProgram" ("ownerId")
+CREATE UNIQUE INDEX "AdoptedTrainingProgram_one_non_terminal_per_owner_idx"
+ON "AdoptedTrainingProgram" ("ownerId")
 WHERE "status" IN ('ACTIVE', 'PAUSED');
 
 CREATE UNIQUE INDEX "WorkoutSession_one_in_progress_per_program_workout_idx"
-ON "WorkoutSession" ("userProgramWorkoutId")
-WHERE "userProgramWorkoutId" IS NOT NULL AND "status" = 'IN_PROGRESS';
+ON "WorkoutSession" ("programWorkoutOccurrenceId")
+WHERE "programWorkoutOccurrenceId" IS NOT NULL AND "status" = 'IN_PROGRESS';
 
 CREATE UNIQUE INDEX "WorkoutSession_one_completed_per_program_workout_idx"
-ON "WorkoutSession" ("userProgramWorkoutId")
-WHERE "userProgramWorkoutId" IS NOT NULL AND "status" = 'COMPLETED';
+ON "WorkoutSession" ("programWorkoutOccurrenceId")
+WHERE "programWorkoutOccurrenceId" IS NOT NULL AND "status" = 'COMPLETED';
 ```
 
 The exact generated identifiers may be chosen during implementation. Source
@@ -793,18 +793,18 @@ errors containing sensitive parameters.
 
 ### Adopted-program use cases
 
-The planned `user-training-programs` feature exposes transport-neutral use
+The planned `adopted-training-programs` feature exposes transport-neutral use
 cases with owner identity supplied by the authenticated principal:
 
 ```text
 ActivateTrainingProgram
-GetActiveUserTrainingProgram
-GetUserTrainingProgram
-PauseUserTrainingProgram
-ResumeUserTrainingProgram
-CancelUserTrainingProgram
-StartProgramWorkout
-SkipProgramWorkout
+GetActiveAdoptedTrainingProgram
+GetAdoptedTrainingProgram
+PauseAdoptedTrainingProgram
+ResumeAdoptedTrainingProgram
+CancelAdoptedTrainingProgram
+StartProgramWorkoutOccurrence
+SkipProgramWorkoutOccurrence
 ```
 
 Activation accepts an accessible `GLOBAL` template or a `PRIVATE` template
@@ -812,7 +812,7 @@ owned by the principal. Another user's private template remains concealed as
 not found. Activation rejects an empty schedule and atomically creates the
 `ACTIVE` adopted program plus every copied occurrence. Owner IDs are never
 accepted from request bodies, and occurrence commands resolve through the owned
-`UserTrainingProgram` rather than authorizing a child ID independently.
+`AdoptedTrainingProgram` rather than authorizing a child ID independently.
 
 ### Canonical routes
 
@@ -853,7 +853,7 @@ The active/detail response must expose policy results rather than requiring the
 frontend to reconstruct them:
 
 ```ts
-type UserTrainingProgramDetail = {
+type AdoptedTrainingProgramDetail = {
   id: string;
   programNameSnapshot: string;
   status: "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
@@ -866,8 +866,8 @@ type UserTrainingProgramDetail = {
   skippedCount: number;
   resolvedCount: number;
   progressPercent: number;
-  occurrences: UserProgramWorkoutDetail[];
-  nextPendingOccurrence: UserProgramWorkoutDetail | null;
+  occurrences: ProgramWorkoutOccurrenceDetail[];
+  nextPendingOccurrence: ProgramWorkoutOccurrenceDetail | null;
   actions: {
     canPause: boolean;
     canResume: boolean;
@@ -877,7 +877,7 @@ type UserTrainingProgramDetail = {
   };
 };
 
-type UserProgramWorkoutDetail = {
+type ProgramWorkoutOccurrenceDetail = {
   id: string;
   weekNumber: number;
   dayNumber: number;
@@ -911,8 +911,8 @@ application-port operation. Business transitions and required conditional
 states are explicit in the application contracts and domain model; the Prisma
 adapters execute them but do not invent hidden lifecycle policy.
 
-`StartProgramWorkout` is owned by a source-aware execution port in the planned
-`user-training-programs` application layer. Its infrastructure adapter must
+`StartProgramWorkoutOccurrence` is owned by a source-aware execution port in the planned
+`adopted-training-programs` application layer. Its infrastructure adapter must
 atomically:
 
 1. verify the principal owns the adopted program;
@@ -946,7 +946,7 @@ The cancellation operation atomically:
 4. leaves the parent program `ACTIVE` so it can be paused or cancelled through
    a separate explicit command.
 
-`SkipProgramWorkout` conditionally skips only the next `PENDING` occurrence of
+`SkipProgramWorkoutOccurrence` conditionally skips only the next `PENDING` occurrence of
 an `ACTIVE` program and completes the parent when no unresolved occurrence
 remains. Pause and program cancellation conditionally verify that no linked
 occurrence has an active session. Every race loses with a stable concurrency or

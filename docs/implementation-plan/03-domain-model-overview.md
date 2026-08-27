@@ -18,8 +18,8 @@ This document separates the kinds of data KinetiQ stores so the `Exercise` table
 | RoutineExercise           | Ordered prescription in a routine                                     | Same owner through routine                   |
 | TrainingProgram           | Reusable multi-week template scheduling routines by relative week/day | One user or protected platform owner         |
 | TrainingProgramRoutine    | Relative routine placement within a program template                  | Same owner context through program           |
-| UserTrainingProgram       | Planned user adoption and progress through a program template         | One authenticated user owner                 |
-| UserProgramWorkout        | Planned copied occurrence of one relative program slot                | Child through a user training program        |
+| AdoptedTrainingProgram    | Planned user adoption and progress through a program template         | One authenticated user owner                 |
+| ProgramWorkoutOccurrence  | Planned copied occurrence of one relative program slot                | Child through an adopted training program    |
 | WorkoutSession            | Historical workout occurrence and aggregate root                      | One authenticated user owner                 |
 | ExercisePerformance       | Performed-exercise record plus authoritative prescription snapshot    | Historical child through session             |
 | CompletedSet              | Raw strength/repetition performance fact                              | Historical child through performance/session |
@@ -41,8 +41,8 @@ Exercise ──1:1── CapabilityProfile
 
 Routine >── TrainingProgramRoutine ──> TrainingProgram
 
-TrainingProgram ──> UserTrainingProgram (planned execution layer)
-                          └─> UserProgramWorkout
+TrainingProgram ──> AdoptedTrainingProgram (planned execution layer)
+                          └─> ProgramWorkoutOccurrence
                                       └─> WorkoutSession
 
 RoutineExercise ── snapshot at routine-based workout start
@@ -53,7 +53,7 @@ WorkoutSession ─< ExercisePerformance ─< CompletedSet
 
 `WorkoutSession` can also originate directly from a routine or as a freestyle
 workout. Program-origin sessions will reference a particular
-`UserProgramWorkout`, not only the reusable `TrainingProgram`. The complete
+`ProgramWorkoutOccurrence`, not only the reusable `TrainingProgram`. The complete
 prescription/execution contract is defined in
 [workout sessions](14-workout-sessions.md).
 
