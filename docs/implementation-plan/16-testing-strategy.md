@@ -24,8 +24,8 @@ dependency boundaries established by the original Training Programs pilot:
 - **Prisma repository integration tests:** real PostgreSQL ownership filters, routine eligibility, atomic child replacement, uniqueness, and referential actions.
 - **Controller/DTO tests:** HTTP validation, auth principal extraction, Swagger response contracts, and error translation; controllers do not retest domain logic.
 
-The planned Workout Sessions module follows the same dependency-boundary test
-strategy. Because it stores history, Phase 8 additionally requires lifecycle
+The implemented Workout Sessions module follows the same dependency-boundary
+test strategy. Because it stores history, Phase 8 additionally requires lifecycle
 transition tests, authenticated child mutation through the owned
 `WorkoutSession` aggregate, real PostgreSQL decimal/ordering/transaction tests,
 and purpose-built workout/exercise-history query tests. Its detailed matrix is
@@ -40,20 +40,23 @@ in [workout sessions](14-workout-sessions.md).
 
 ## Required invariant matrix
 
-| Invariant | Unit/DTO | DB integration | API E2E | UI/E2E |
-| --- | --- | --- | --- | --- |
-| Scores remain in 0–5 | Yes | `CHECK` proof | Invalid payload | Field error |
-| Exercise/muscle pair unique | Duplicate validation | Compound PK/concurrency | Conflict/validation | Selector prevents duplicate |
-| Exercise aggregate atomic | Service behavior | Rollback | Failed child leaves nothing | Error preserves form |
-| Admin-only reference writes | Policy | — | User/anonymous denied | Admin navigation only |
-| Routine owner isolation | Policy | Scoped query | Two-user matrix | Two-user Playwright smoke |
-| Training program slot unique and within duration | Domain/DTO | Unique constraint/transaction | Invalid and duplicate schedule | Later editor validation |
-| Training program owner isolation | Use case | Scoped repository query | Anonymous/two-user/global matrix | Later two-user smoke |
-| Session owner and child isolation | Phase 8 aggregate/use case | Owner-scoped parent/child writes | Anonymous/two-user negative matrix | Two-user smoke |
-| Session lifecycle and numeric invariants | Phase 8 domain/DTO | Decimal/order/status constraints | Invalid transitions and set values | Mutable/completed states |
-| Session history survives template edits | Phase 8 snapshot tests | Snapshot relations | Routine edit regression | History comparison |
-| Exercise archival preserves history | Phase 8 domain/query | Restrictive historical identity relation | Archive/history regression | Archived identity state |
-| Media failure leaves no incomplete data | Service | Metadata/object cleanup | Upload failure | Retry/prior image remains |
+| Invariant                                        | Unit/DTO                   | DB integration                           | API E2E                            | UI/E2E                          |
+| ------------------------------------------------ | -------------------------- | ---------------------------------------- | ---------------------------------- | ------------------------------- |
+| Scores remain in 0–5                             | Yes                        | `CHECK` proof                            | Invalid payload                    | Field error                     |
+| Exercise/muscle pair unique                      | Duplicate validation       | Compound PK/concurrency                  | Conflict/validation                | Selector prevents duplicate     |
+| Exercise aggregate atomic                        | Service behavior           | Rollback                                 | Failed child leaves nothing        | Error preserves form            |
+| Admin-only reference writes                      | Policy                     | —                                        | User/anonymous denied              | Admin navigation only           |
+| Routine owner isolation                          | Policy                     | Scoped query                             | Two-user matrix                    | Two-user Playwright smoke       |
+| Training program slot unique and within duration | Domain/DTO                 | Unique constraint/transaction            | Invalid and duplicate schedule     | Later editor validation         |
+| Training program owner isolation                 | Use case                   | Scoped repository query                  | Anonymous/two-user/global matrix   | Later two-user smoke            |
+| One non-terminal adopted program per user        | Domain/use case            | Partial unique index/concurrency         | Concurrent activation conflict     | Start-program conflict state    |
+| Program occurrence advances exactly once         | Domain/use case            | Conditional update/transaction           | Complete/cancel/skip races         | Progress and next-workout state |
+| Program session and occurrence remain atomic     | Use case port contract     | Start/complete/cancel rollback           | Complete journey and retry         | Resume/return-to-program flow   |
+| Session owner and child isolation                | Phase 8 aggregate/use case | Owner-scoped parent/child writes         | Anonymous/two-user negative matrix | Two-user smoke                  |
+| Session lifecycle and numeric invariants         | Phase 8 domain/DTO         | Decimal/order/status constraints         | Invalid transitions and set values | Mutable/completed states        |
+| Session history survives template edits          | Phase 8 snapshot tests     | Snapshot relations                       | Routine edit regression            | History comparison              |
+| Exercise archival preserves history              | Phase 8 domain/query       | Restrictive historical identity relation | Archive/history regression         | Archived identity state         |
+| Media failure leaves no incomplete data          | Service                    | Metadata/object cleanup                  | Upload failure                     | Retry/prior image remains       |
 
 ## Database test isolation
 
@@ -97,6 +100,37 @@ Use accessibility snapshots/keyboard steps where meaningful. Avoid visual snapsh
 Coverage percentages are indicators, not the goal. Set an initial global floor around 70% statements/branches for business packages and higher targeted expectations for pure domain rules; do not pad tests to meet a number. CI gates: formatting/lint, type check, unit/component, migration/schema validation, integration/API E2E, production builds, and a smaller Playwright critical path. Full browser suites may run on main/PR depending on cost.
 
 Flaky tests are defects: quarantine only with an owner, issue, and expiry date. Record test artifacts (screenshots, traces, API logs) on failure without secrets.
+
+### Repository verification commands
+
+The root scripts do not currently represent every test category. In particular,
+`pnpm test` runs the API Jest suite only; it does not run the web unit or browser
+suites. Use the relevant explicit commands when verifying a cross-stack slice:
+
+```text
+pnpm lint
+pnpm typecheck
+pnpm --filter api test
+pnpm --filter api test:e2e
+pnpm --filter web test:unit
+pnpm --filter web test:browser:mocked
+pnpm --filter web test:a11y
+pnpm --filter web test:smoke
+pnpm --filter api exec prisma validate
+pnpm build
+```
+
+Migration work additionally requires applying migrations to both a clean
+PostgreSQL database and a database at the prior current schema, then running the
+database-specific integration suites. Record those commands and results in the
+task report.
+
+The existing `pnpm format` command writes formatted files and is not a
+non-mutating formatting check. Do not report it as a passing check merely
+because it completed. Until a repository-wide `format:check` script is added,
+run an appropriate Prettier `--check` command for supported files or state
+clearly that a non-mutating formatting check is unavailable. Adding or changing
+formatting tooling remains a separate repository decision.
 
 ## Performance and security tests
 

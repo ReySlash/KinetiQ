@@ -6,23 +6,24 @@ This document separates the kinds of data KinetiQ stores so the `Exercise` table
 
 ## Bounded concepts
 
-| Concept | Data character | Owner/lifecycle |
-| --- | --- | --- |
-| Muscle | Controlled anatomical reference | Internal seed/admin maintenance |
-| Exercise | Controlled movement identity | Admin curated |
-| ExerciseMuscle | Editorial involvement relationship | Admin curated with exercise |
-| ExerciseCapabilityProfile | Relative development potential | Admin curated, one per exercise |
-| ExerciseDemandProfile | Relative general demands/costs | Admin curated, one per exercise |
-| ExerciseAthleticQuality | General athletic-quality mapping | Later editorial data |
-| Routine | Reusable template | One user owner |
-| RoutineExercise | Ordered prescription in a routine | Same owner through routine |
-| TrainingProgram | Reusable multi-week template scheduling routines by relative week/day | One user or protected platform owner |
-| TrainingProgramRoutine | Relative routine placement within a program template | Same owner context through program |
-| ActiveProgram / UserTrainingProgram | User adoption and calendar mapping of a program template | Future, one user owner |
-| WorkoutSession | Planned Phase 8 historical workout occurrence and aggregate root | One authenticated user owner |
-| ExercisePerformance | Planned performed-exercise record plus authoritative prescription snapshot | Historical child through session |
-| CompletedSet | Planned raw strength/repetition performance fact | Historical child through performance/session |
-| RecoveryCheckIn | Athlete response/context | Later, one user owner |
+| Concept                   | Data character                                                        | Owner/lifecycle                              |
+| ------------------------- | --------------------------------------------------------------------- | -------------------------------------------- |
+| Muscle                    | Controlled anatomical reference                                       | Internal seed/admin maintenance              |
+| Exercise                  | Controlled movement identity                                          | Admin curated                                |
+| ExerciseMuscle            | Editorial involvement relationship                                    | Admin curated with exercise                  |
+| ExerciseCapabilityProfile | Relative development potential                                        | Admin curated, one per exercise              |
+| ExerciseDemandProfile     | Relative general demands/costs                                        | Admin curated, one per exercise              |
+| ExerciseAthleticQuality   | General athletic-quality mapping                                      | Later editorial data                         |
+| Routine                   | Reusable template                                                     | One user owner                               |
+| RoutineExercise           | Ordered prescription in a routine                                     | Same owner through routine                   |
+| TrainingProgram           | Reusable multi-week template scheduling routines by relative week/day | One user or protected platform owner         |
+| TrainingProgramRoutine    | Relative routine placement within a program template                  | Same owner context through program           |
+| UserTrainingProgram       | Planned user adoption and progress through a program template         | One authenticated user owner                 |
+| UserProgramWorkout        | Planned copied occurrence of one relative program slot                | Child through a user training program        |
+| WorkoutSession            | Historical workout occurrence and aggregate root                      | One authenticated user owner                 |
+| ExercisePerformance       | Performed-exercise record plus authoritative prescription snapshot    | Historical child through session             |
+| CompletedSet              | Raw strength/repetition performance fact                              | Historical child through performance/session |
+| RecoveryCheckIn           | Athlete response/context                                              | Later, one user owner                        |
 
 ## Relationship map
 
@@ -40,8 +41,9 @@ Exercise ──1:1── CapabilityProfile
 
 Routine >── TrainingProgramRoutine ──> TrainingProgram
 
-TrainingProgram ──> ActiveProgram / UserTrainingProgram (future)
-                          └─> WorkoutSession (future source)
+TrainingProgram ──> UserTrainingProgram (planned execution layer)
+                          └─> UserProgramWorkout
+                                      └─> WorkoutSession
 
 RoutineExercise ── snapshot at routine-based workout start
                           └─> ExercisePerformance ─< CompletedSet
@@ -50,8 +52,9 @@ WorkoutSession ─< ExercisePerformance ─< CompletedSet
 ```
 
 `WorkoutSession` can also originate directly from a routine or as a freestyle
-workout. It must not depend on `ActiveProgram` / `UserTrainingProgram` being
-implemented first. The complete prescription/execution contract is defined in
+workout. Program-origin sessions will reference a particular
+`UserProgramWorkout`, not only the reusable `TrainingProgram`. The complete
+prescription/execution contract is defined in
 [workout sessions](14-workout-sessions.md).
 
 ## Core modeling rules
@@ -70,18 +73,18 @@ implemented first. The complete prescription/execution contract is defined in
 
 ## Classification decisions
 
-| Value | MVP representation | Reason |
-| --- | --- | --- |
-| Equipment | Reference table + join | Multi-value, searchable, aliases/metadata likely |
-| Movement pattern | Reference table | User-facing taxonomy likely to evolve |
-| Body region | Stable Prisma enum initially | Small controlled set used by muscles and filters |
-| Broad muscle group | Reference table or seeded self-contained taxonomy | Has labels/order and may evolve |
-| Plane of motion | Enum plus exercise join only when implemented | Stable vocabulary; exercise can be multiplanar |
-| Skill level | Prisma enum | Stable ordered classification |
-| Muscle role | Prisma enum | Domain invariant (`PRIMARY`, `SECONDARY`, `STABILIZER`) |
-| Exercise relationship type | Prisma enum when feature ships | Behavior is code-governed |
-| Progression type | Prisma enum when routine progression ships | Behavior is code-governed |
-| Visibility | Prisma enum | Authorization behavior depends on it |
+| Value                      | MVP representation                                | Reason                                                  |
+| -------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| Equipment                  | Reference table + join                            | Multi-value, searchable, aliases/metadata likely        |
+| Movement pattern           | Reference table                                   | User-facing taxonomy likely to evolve                   |
+| Body region                | Stable Prisma enum initially                      | Small controlled set used by muscles and filters        |
+| Broad muscle group         | Reference table or seeded self-contained taxonomy | Has labels/order and may evolve                         |
+| Plane of motion            | Enum plus exercise join only when implemented     | Stable vocabulary; exercise can be multiplanar          |
+| Skill level                | Prisma enum                                       | Stable ordered classification                           |
+| Muscle role                | Prisma enum                                       | Domain invariant (`PRIMARY`, `SECONDARY`, `STABILIZER`) |
+| Exercise relationship type | Prisma enum when feature ships                    | Behavior is code-governed                               |
+| Progression type           | Prisma enum when routine progression ships        | Behavior is code-governed                               |
+| Visibility                 | Prisma enum                                       | Authorization behavior depends on it                    |
 
 Do not create CRUD screens for enum-like reference data. Seed and maintain equipment/movement patterns through reviewed data changes until non-developer editing becomes a real need.
 
@@ -107,6 +110,13 @@ Materialized aggregates are deferred until query measurements show a need. If ca
 - Starting a routine-based session should create the session and its initial
   exercise prescription snapshots atomically where practical. Subsequent child
   mutations resolve and mutate through the owned `WorkoutSession` aggregate.
+- Program-workout start, completion, and cancellation cross the adopted-program
+  and session aggregates. Each command must go through one source-aware
+  application persistence port whose infrastructure adapter executes one Prisma
+  transaction. The adopted-program execution port owns launch; the existing
+  workout-session command port owns session completion/cancellation and must
+  propagate a linked occurrence transition atomically. Do not coordinate either
+  path with sequential repository calls or HTTP calls between local modules.
 
 ## Cross-domain authorization
 

@@ -4,14 +4,15 @@
 
 A `TrainingProgram` is a reusable multi-week template that schedules existing
 routine templates. The persistence model and migration are complete. The
-backend-only Clean Architecture/DDD vertical slice currently implements list,
+Clean Architecture/DDD vertical slice currently implements list,
 slug-based detail, authenticated create, owner-scoped update, and owner-scoped
-delete. Create and update persist the complete aggregate,
+delete. The corresponding frontend library, builder, list, and detail screens
+are also implemented. Create and update persist the complete aggregate,
 including its optional schedule, in one transaction. List supports the approved
 visibility scopes, search, sorting, limit, and offset through a bounded read
-projection. The routes are documented with Swagger. Frontend screens, seeds,
-activation, calendar placement,
-performed-training models, and duplication remain out of scope.
+projection. The routes are documented with Swagger. Seeds, adoption/progress,
+calendar placement, and duplication are not part of the current template
+slice. Workout-session history exists as a separate implemented feature.
 
 The template hierarchy is:
 
@@ -52,19 +53,23 @@ notes about that scheduled routine occurrence.
 - **Training Program:** a reusable multi-week template containing relative
   routine placements. It is not a user's active execution of a program and has
   no actual calendar dates.
-- **Future ActiveProgram / UserTrainingProgram:** a user's adopted instance of a
-  program. This layer will own activation state, start date, calendar mapping,
-  and any user-specific execution concerns.
-- **Future WorkoutSession and ExercisePerformance:** historical planned and
-  performed training. These models will preserve what the athlete actually did
-  rather than treating mutable templates as history.
+- **Planned UserTrainingProgram:** a user's adopted instance of a program. This
+  layer will own adoption state and progress through a copied relative schedule.
+  Calendar mapping and scheduled dates remain deferred.
+- **Planned UserProgramWorkout:** one copied workout occurrence from the adopted
+  program schedule, with its own lifecycle and source snapshots.
+- **WorkoutSession and ExercisePerformance:** implemented historical performed
+  training. These models preserve what the athlete actually did rather than
+  treating mutable templates as history.
 
 The future execution hierarchy is intentionally separate:
 
 ```text
 TrainingProgram
     ↓
-ActiveProgram / UserTrainingProgram
+UserTrainingProgram
+    ↓
+UserProgramWorkout
     ↓
 WorkoutSession
     ↓
@@ -73,10 +78,10 @@ ExercisePerformance
 CompletedSet
 ```
 
-None of the future execution models are part of this persistence slice. Phase 8
-sessions will not require `ActiveProgram` / `UserTrainingProgram` first and may
-also start from a standalone routine or freestyle workout. See
-[workout sessions](14-workout-sessions.md).
+The adopted-program models are not yet part of the current persistence schema.
+Workout sessions already support standalone routines and freestyle workouts;
+the next execution slice will add program-workout provenance without removing
+those source modes. See [workout sessions](14-workout-sessions.md).
 
 ## Relative program scheduling
 
@@ -94,8 +99,9 @@ Week 1
 
 There is deliberately no Monday/Tuesday weekday enum. This keeps a template
 independent of the user's calendar, timezone, travel, and preferred training
-days. Actual dates and weekday mapping belong to the future active-program or
-workout-session layer.
+days. Actual dates and weekday mapping are not part of the initial
+adopted-program slice and require a later, separately approved calendar
+workflow.
 
 `TrainingProgram.durationWeeks` stores the declared duration explicitly. Do not
 derive program duration only from `MAX(weekNumber)`: a program may intentionally
@@ -164,6 +170,41 @@ templates with independent ownership and lifecycles.
 User deletion remains restricted through the program owner relation, matching
 the current routine ownership policy and leaving account deletion to a future
 explicit workflow.
+
+## Approved adopted-program integration decisions
+
+The next execution slice introduces `UserTrainingProgram` and
+`UserProgramWorkout` without merging the template, routine, and workout-session
+modules. The following decisions close the current design gaps before coding:
+
+- Activating a program with no schedule rows is rejected. An empty template may
+  remain valid while it is being authored, but it cannot become an active user
+  program with no work to progress through.
+- Pausing or cancelling an adopted program is rejected while one of its program
+  workouts has an `IN_PROGRESS` session. The user must complete or cancel that
+  session first. An `IN_PROGRESS` slot cannot be skipped.
+- Cancelling a program-origin session preserves the cancelled session and
+  atomically returns its `UserProgramWorkout` to `PENDING`. Completion
+  atomically completes the session, completes the occurrence, and completes the
+  parent program when every occurrence is `COMPLETED` or `SKIPPED`.
+- Program-workout launch is owned by a source-aware execution port in the new
+  `user-training-programs` application layer. Its Prisma adapter creates the
+  session snapshots and advances the occurrence in one transaction. The
+  existing workout-session command port remains the owner of session completion
+  and cancellation; its infrastructure contract is extended to propagate a
+  linked occurrence and parent-program transition in the same transaction. This
+  one-way ownership avoids circular NestJS module imports. The use cases must
+  not call two repositories sequentially or make HTTP calls between local
+  modules.
+
+The copied `UserProgramWorkout` schedule retains explicit name, week, day, and
+notes snapshots. Routine prescriptions are resolved and snapshotted into
+`ExercisePerformance` only when a session starts. If the source routine becomes
+unavailable before a pending occurrence starts, the start command returns a
+specific unavailable-source error and leaves the occurrence `PENDING`; the UI
+must explain the problem and allow the user to skip that occurrence explicitly.
+It must not silently start a later slot. This is the interim behavior until an
+archive policy replaces the relevant hard-delete limitations.
 
 ## MVP persistence model
 
@@ -240,8 +281,8 @@ TrainingProgram
 
 `ProgramPhase`, `ProgramWeek`, and `ProgramDay` should be introduced only if a
 concrete future workflow requires metadata or behavior at those levels. Also
-deferred are active/user programs, workout sessions, exercise performance,
-completed sets, weekday enums, direct program exercises, progression rules,
+kept outside this template aggregate are adopted-program execution, weekday
+enums, direct program exercises, progression rules,
 percentage-based loading, mesocycles, `daysPerWeek`, and frontend-specific
 fields.
 

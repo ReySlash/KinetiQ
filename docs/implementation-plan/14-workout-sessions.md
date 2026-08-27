@@ -2,11 +2,11 @@
 
 ## Purpose and status
 
-Phase 8 introduces the historical execution domain. The Prisma schema and
-migrations, domain aggregate, and application use cases are implemented. The
-infrastructure and presentation layers remain to be implemented. This
-document is the architectural source of truth for the remaining work and for
-the complete Phase 8 feature.
+Phase 8 introduced the historical execution domain. The Prisma schema,
+migrations, domain aggregate, application use cases, Prisma infrastructure,
+HTTP presentation, and initial frontend workflow are implemented. This
+document records the current session architecture and the approved boundary for
+the planned adopted-program integration.
 
 Use these concrete domain names consistently:
 
@@ -42,7 +42,7 @@ RoutineExercise
 Exercise
 ```
 
-The planned execution hierarchy is:
+The implemented standalone execution hierarchy is:
 
 ```text
 WorkoutSession
@@ -104,28 +104,43 @@ fields; any supplementary versioned snapshot payload must have a concrete need.
 
 ## Sources and active training programs
 
-A workout session may originate from:
+A workout session currently may originate from:
 
 - a standalone routine;
-- a future active/adopted training program;
 - a freestyle workout.
+
+The next execution slice adds a third source: a particular
+`UserProgramWorkout` from an adopted training program.
 
 The long-term relationship remains:
 
 ```text
 TrainingProgram
       ↓
-ActiveProgram / UserTrainingProgram
+UserTrainingProgram
+      ↓
+UserProgramWorkout
       ↓
 WorkoutSession
 ```
 
-`TrainingProgram` is a reusable template. `ActiveProgram` /
-`UserTrainingProgram` is a future user adoption and calendar-mapping concept.
-Phase 8 must not require that future layer first: a `WorkoutSession` can exist
-independently, and its source/provenance is optional according to how it was
-started. Actual calendar dates belong to this execution/adoption side, not to
-the relative week/day schedule of a training-program template.
+`TrainingProgram` is a reusable template. The planned `UserTrainingProgram`
+copies its relative schedule into `UserProgramWorkout` occurrences. A
+program-origin session references one occurrence rather than only the reusable
+template. A `WorkoutSession` remains independently valid when started from a
+standalone routine or as freestyle training. Calendar dates and weekday mapping
+are not part of the initial adopted-program slice.
+
+Program-workout launch belongs to a source-aware execution port in the planned
+`user-training-programs` application layer. Its Prisma adapter creates the
+session snapshots and advances the occurrence in one transaction. The existing
+workout-session command port remains the owner of session completion and
+cancellation; its infrastructure contract must atomically propagate a linked
+occurrence and parent-program transition. Calling separate repositories
+sequentially, importing Prisma into application/domain code, or using HTTP
+between local modules is not an acceptable substitute. This one-way ownership
+must avoid circular imports between `WorkoutSessionsModule` and the planned
+`UserTrainingProgramsModule`.
 
 ## Aggregate and lifecycle
 
@@ -216,8 +231,8 @@ and retention need explicit product policies before production launch.
 
 The implemented `routines` and `training-programs` modules use feature-local
 `application`, `domain`, `infrastructure`, and `presentation` layers with
-separate command/query ports and Prisma adapters. `WorkoutSessionsModule` should
-follow that established architecture:
+separate command/query ports and Prisma adapters. `WorkoutSessionsModule`
+follows that established architecture:
 
 ```text
 apps/api/src/modules/workout-sessions/
@@ -233,11 +248,11 @@ apps/api/src/modules/workout-sessions/
     workout-sessions.module.ts
 ```
 
-This is an intended boundary, not authorization to create empty files or a CQRS
+This is an implemented boundary, not authorization to add empty files or a CQRS
 framework. The command side coordinates aggregate transitions and transactional
 writes. The query side returns purpose-built read models and can grow specialized
 history projections without forcing analytics concerns into the domain write
-model. Initial conceptual queries are:
+model. The implemented queries are:
 
 ```text
 GetActiveWorkout
@@ -251,7 +266,7 @@ decorators remain inside presentation. The application layer owns transport-
 neutral use cases and ports, while the domain owns lifecycle and value
 invariants.
 
-## Phase 8 usable vertical slice
+## Implemented Phase 8 usable vertical slice
 
 ### Database and domain
 
@@ -273,8 +288,8 @@ invariants.
   historical routine name snapshot;
 - retrieve history for an exercise.
 
-Starting from a routine should create the `WorkoutSession` and its initial
-ordered `ExercisePerformance` prescription snapshots atomically where practical.
+Starting from a routine creates the `WorkoutSession` and its initial ordered
+`ExercisePerformance` prescription snapshots atomically.
 Recording or mutating a child must preserve aggregate ownership and the relevant
 transaction boundary.
 
@@ -393,9 +408,9 @@ The following decisions are now approved for the Phase 8 MVP:
 7. Account export, deletion, and retention policy for long-lived performance
    history.
 
-Do not add duration/distance modes, active-program coupling, analytics tables,
-progression engines, recovery models, or correction abstractions while resolving
-this first slice.
+Do not add duration/distance modes, analytics tables, progression engines,
+recovery models, or correction abstractions while adding the approved
+adopted-program integration.
 
 ## Definition of done
 
@@ -403,5 +418,6 @@ An authenticated user can start, resume, record, complete/cancel, and retrieve
 only their workouts; routine-based sessions preserve authoritative prescription
 snapshots; exercise archival does not break history; lifecycle and numeric
 invariants hold at the appropriate layers; the mobile workflow is usable; and
-the ownership, transaction, migration, and immutability suites pass. The
-existence of this document does not mark Phase 8 as implemented.
+the ownership, transaction, migration, and immutability suites pass.
+Implementation status must continue to be supported by repository code and
+verification results rather than this document alone.
