@@ -52,6 +52,6 @@ test.describe("mocked browser auth flows", () => {
     await page.getByLabel("Email").fill("wrong@example.com");
     await page.locator("#password").fill("wrong-password");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toHaveText("Invalid credentials");
+    await expect(page.getByText("Invalid credentials", { exact: true })).toBeVisible();
   });
 });

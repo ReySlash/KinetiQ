@@ -14,6 +14,8 @@ type TestPrincipal = {
   role: PlatformRole;
 };
 
+type FetchCall = [input: RequestInfo | URL, init?: RequestInit];
+
 const password = 'KinetiQ-test-password-123!';
 const emailPrefix = `http-auth-${randomUUID()}`;
 
@@ -50,7 +52,8 @@ describe('HTTP authentication and authorization (e2e)', () => {
   let admin: TestPrincipal;
   let exerciseSlug: string;
   let muscleSlug: string;
-  let emailFetchMock: jest.SpyInstance;
+  let originalFetch: typeof fetch;
+  let fetchCalls: FetchCall[];
 
   async function removeExistingPrincipal(email: string): Promise<void> {
     const existing = await prisma.user.findUnique({
@@ -114,9 +117,12 @@ describe('HTTP authentication and authorization (e2e)', () => {
   beforeAll(async () => {
     process.env.RESEND_API_KEY = 'test-resend-key';
     process.env.RESEND_FROM_EMAIL = 'KinetiQ <test@example.test>';
-    emailFetchMock = jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(new Response(null, { status: 200 }));
+    originalFetch = globalThis.fetch;
+    fetchCalls = [];
+    globalThis.fetch = (input, init) => {
+      fetchCalls.push([input, init]);
+      return Promise.resolve(new Response(null, { status: 200 }));
+    };
 
     app = await createE2eApp();
     prisma = app.get(PrismaService);
@@ -140,7 +146,7 @@ describe('HTTP authentication and authorization (e2e)', () => {
     await removeExistingPrincipal(user.email);
     await removeExistingPrincipal(secondUser.email);
     await removeExistingPrincipal(admin.email);
-    emailFetchMock.mockRestore();
+    globalThis.fetch = originalFetch;
     delete process.env.RESEND_API_KEY;
     delete process.env.RESEND_FROM_EMAIL;
     await app.close();
@@ -301,6 +307,8 @@ describe('HTTP authentication and authorization (e2e)', () => {
   });
 
   it('sends password reset requests through the mocked email provider', async () => {
+    fetchCalls = [];
+
     await request(app.getHttpServer())
       .post('/api/auth/request-password-reset')
       .send({
@@ -309,13 +317,16 @@ describe('HTTP authentication and authorization (e2e)', () => {
       })
       .expect(200);
 
-    expect(emailFetchMock).toHaveBeenCalledWith(
-      'https://api.resend.com/emails',
+    const resendCall = fetchCalls.find(
+      ([input]) => input === 'https://api.resend.com/emails',
+    );
+    expect(resendCall?.[1]).toEqual(
       expect.objectContaining({ method: 'POST' }),
     );
   });
 
   it('sends verification requests through the mocked email provider', async () => {
+    fetchCalls = [];
     const userCookies = await signIn(user);
 
     await request(app.getHttpServer())
@@ -327,8 +338,10 @@ describe('HTTP authentication and authorization (e2e)', () => {
       })
       .expect(200);
 
-    expect(emailFetchMock).toHaveBeenCalledWith(
-      'https://api.resend.com/emails',
+    const resendCall = fetchCalls.find(
+      ([input]) => input === 'https://api.resend.com/emails',
+    );
+    expect(resendCall?.[1]).toEqual(
       expect.objectContaining({ method: 'POST' }),
     );
   });
