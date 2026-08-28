@@ -1,41 +1,34 @@
 "use client";
 
 import type { ComponentProps } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type FormSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 
-type SearchFormProps = {
+type RoutineSearchFormProps = {
   search: string;
   searchError: string | null;
   isPending: boolean;
-  ariaLabel?: string;
-  placeholder?: string;
-  submitTitle?: string;
   onSearchChange: (value: string) => void;
   onSubmit: FormSubmitHandler;
 };
 
-export function SearchForm(props: SearchFormProps) {
-  const {
-    search,
-    searchError,
-    isPending,
-    ariaLabel = "Search exercises",
-    placeholder = "Search by name, or related muscles.",
-    submitTitle = "Search exercises",
-    onSearchChange,
-    onSubmit,
-  } = props;
-
+export function RoutineSearchForm({
+  search,
+  searchError,
+  isPending,
+  onSearchChange,
+  onSubmit,
+}: RoutineSearchFormProps) {
   return (
-    <form className="flex gap-2 flex-row w-full md:w-1/2" onSubmit={onSubmit}>
+    <form className="flex w-full flex-row gap-2" onSubmit={onSubmit}>
       <div className="flex w-full flex-col gap-1">
         <Input
-          aria-label={ariaLabel}
+          aria-label="Search routines by name or description"
           type="search"
-          placeholder={placeholder}
+          placeholder="Search routines by name or description."
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -47,7 +40,7 @@ export function SearchForm(props: SearchFormProps) {
         type="submit"
         disabled={isPending}
         className="cursor-pointer !border-primary text-primary hover:!bg-primary hover:!text-black"
-        title={submitTitle}
+        title="Search routines by name or description"
       >
         Search
       </Button>

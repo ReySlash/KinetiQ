@@ -14,7 +14,7 @@ import {
 import { Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FilterSelectField } from "../../exercises/components/filters/filter-select-field";
-import { SearchForm } from "../../exercises/components/filters/search-form";
+import { RoutineSearchForm } from "./routine-search-form";
 
 export const routineSortOptions = [
   { label: "Recently updated", value: "updatedAt:desc" },
@@ -97,44 +97,42 @@ function RoutinesFiltersControls({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-b border-border/70 bg-background/30 p-2">
-      <div className="flex flex-row justify-end gap-2">
-        <SearchForm
-          search={search}
-          searchError={searchError}
-          isPending={isPending}
-          ariaLabel="Search routines"
-          placeholder="Search routines by name or description."
-          onSearchChange={(value) => {
-            setSearch(value);
-            if (searchError && (value.trim().length === 0 || value.trim().length >= 3)) {
-              setSearchError(null);
-            }
-          }}
-          onSubmit={handleSearchSubmit}
-        />
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger
-            type="button"
-            className={cn(buttonVariants({ variant: "outline" }), "gap-2 self-start")}
-          >
-            <Filter className="size-4" />
-            {currentSort !== "updatedAt:desc" ? (
-              <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span>
-            ) : null}
-          </PopoverTrigger>
-          <PopoverContent className="space-y-4">
-            <form className="space-y-4" onSubmit={handleApplyFilters}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1"><h2 className="text-sm font-medium">Filter routines</h2><p className="text-xs text-muted-foreground">Sort your routines without leaving the page.</p></div>
-                <PopoverClose type="button" className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "shrink-0")}><X className="size-4" /><span className="sr-only">Close filters</span></PopoverClose>
-              </div>
-              <FilterSelectField label="Sort by" options={routineSortOptions} value={sort} onValueChange={setSort} />
-              <div className="flex items-center justify-between gap-2"><Button type="button" variant="ghost" size="sm" onClick={handleResetFilters}>Reset filters</Button><Button type="submit" disabled={isPending}>Apply filters</Button></div>
-            </form>
-          </PopoverContent>
-        </Popover>
-      </div>
+    <div className="flex flex-row justify-end gap-2">
+      <RoutineSearchForm
+        search={search}
+        searchError={searchError}
+        isPending={isPending}
+        onSearchChange={(value) => {
+          setSearch(value);
+          if (searchError && (value.trim().length === 0 || value.trim().length >= 3)) {
+            setSearchError(null);
+          }
+        }}
+        onSubmit={handleSearchSubmit}
+      />
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger
+          type="button"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }), "cursor-pointer gap-2 self-start")}
+          title="Filter routines"
+          aria-label="Filter routines"
+        >
+          <Filter className="size-4" />
+          {currentSort !== "updatedAt:desc" ? (
+            <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span>
+          ) : null}
+        </PopoverTrigger>
+        <PopoverContent className="space-y-4">
+          <form className="space-y-4" onSubmit={handleApplyFilters}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1"><h2 className="text-sm font-medium">Filter routines</h2><p className="text-xs text-muted-foreground">Sort your routines without leaving the page.</p></div>
+              <PopoverClose type="button" className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "shrink-0")}><X className="size-4" /><span className="sr-only">Close filters</span></PopoverClose>
+            </div>
+            <FilterSelectField label="Sort by" options={routineSortOptions} value={sort} onValueChange={setSort} />
+            <div className="flex items-center justify-between gap-2"><Button type="button" variant="ghost" size="sm" onClick={handleResetFilters}>Reset filters</Button><Button type="submit" disabled={isPending}>Apply filters</Button></div>
+          </form>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { FilterSelectField } from "../../exercises/components/filters/filter-select-field";
-import { SearchForm } from "../../exercises/components/filters/search-form";
+import { TrainingProgramSearchForm } from "./training-program-search-form";
 import type { TrainingProgramSort } from "@/types/training-program-types";
 
 const sortOptions = [
@@ -79,14 +79,11 @@ export function TrainingProgramsFilters() {
   }
 
   return (
-    <div className="flex flex-col gap-3 border-b border-border/70 bg-background/30 p-2">
-      <div className="flex justify-end gap-2">
-        <SearchForm
+    <div className="flex flex-row justify-end gap-2">
+        <TrainingProgramSearchForm
           search={search}
           searchError={searchError}
           isPending={isPending}
-          ariaLabel="Search training programs"
-          placeholder="Search programs by name or description."
           onSearchChange={(value) => {
             setSearch(value);
             if (searchError && (value.trim().length === 0 || value.trim().length >= 3)) setSearchError(null);
@@ -94,7 +91,7 @@ export function TrainingProgramsFilters() {
           onSubmit={handleSearchSubmit}
         />
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger type="button" className={cn(buttonVariants({ variant: "outline" }), "gap-2 self-start")}>
+          <PopoverTrigger type="button" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "cursor-pointer gap-2 self-start")} title="Filter training programs" aria-label="Filter training programs">
             <Filter className="size-4" />
             {currentSort !== "updatedAt:desc" ? <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span> : null}
           </PopoverTrigger>
@@ -109,7 +106,6 @@ export function TrainingProgramsFilters() {
             </form>
           </PopoverContent>
         </Popover>
-      </div>
     </div>
   );
 }

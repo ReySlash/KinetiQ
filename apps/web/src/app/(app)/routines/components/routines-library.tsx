@@ -33,15 +33,19 @@ export function RoutinesLibrary({
 }) {
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
-      <RoutinesFilters />
-      {scope === "my" && (
-        <div className="flex justify-end p-2">
-          <StyledLink href="/routines/new" size="lg">
-            <Plus />
-            New routine
-          </StyledLink>
+      <div className="flex flex-col gap-1 border-b border-border/70 bg-background/30 p-1 md:flex-row md:items-center md:justify-between md:p-2">
+        <div className="w-full md:order-2 md:ml-auto md:w-[min(100%,38rem)]">
+          <RoutinesFilters />
         </div>
-      )}
+        {scope === "my" ? (
+          <div className="flex justify-center gap-2 md:order-1 md:w-auto md:justify-start">
+            <StyledLink href="/routines/new" size="lg" className="w-full md:w-auto">
+              <Plus data-icon="inline-start" />
+              New routine
+            </StyledLink>
+          </div>
+        ) : null}
+      </div>
       <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
         {routines.length === 0 ? (
           <Card className="border-dashed">

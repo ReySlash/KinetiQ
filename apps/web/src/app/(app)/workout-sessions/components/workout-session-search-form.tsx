@@ -35,10 +35,11 @@ export function WorkoutSessionSearchForm({
         <p className="text-xs text-destructive">{searchError ?? ""}</p>
       </div>
       <Button
+        variant="outline"
         size="lg"
         type="submit"
         disabled={isPending}
-        className="cursor-pointer"
+        className="cursor-pointer !border-primary text-primary hover:!bg-primary hover:!text-black"
         title="Search workouts by routine name"
       >
         Search
