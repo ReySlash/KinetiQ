@@ -359,7 +359,7 @@ model AdoptedTrainingProgram {
 
   owner                 User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   sourceTrainingProgram TrainingProgram?         @relation(fields: [sourceTrainingProgramId], references: [id], onDelete: SetNull)
-  workouts              ProgramWorkoutOccurrence[]
+  occurrences           ProgramWorkoutOccurrence[]
 
   @@index([ownerId, status, updatedAt])
   @@index([sourceTrainingProgramId])
@@ -797,7 +797,7 @@ The planned `adopted-training-programs` feature exposes transport-neutral use
 cases with owner identity supplied by the authenticated principal:
 
 ```text
-ActivateTrainingProgram
+AdoptTrainingProgram
 GetActiveAdoptedTrainingProgram
 GetAdoptedTrainingProgram
 PauseAdoptedTrainingProgram

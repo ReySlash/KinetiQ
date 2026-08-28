@@ -430,7 +430,7 @@ model AdoptedTrainingProgram {
 
   owner                 User                       @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   sourceTrainingProgram TrainingProgram?           @relation(fields: [sourceTrainingProgramId], references: [id], onDelete: SetNull)
-  workouts              ProgramWorkoutOccurrence[]
+  occurrences           ProgramWorkoutOccurrence[]
 
   @@index([ownerId, status, updatedAt])
   @@index([sourceTrainingProgramId])
@@ -454,9 +454,8 @@ model ProgramWorkoutOccurrence {
   sourceRoutine                Routine?                @relation("ProgramWorkoutOccurrenceSourceRoutine", fields: [sourceRoutineId], references: [id], onDelete: SetNull)
   sessionAttempts              WorkoutSession[]
 
-  @@unique([adoptedTrainingProgramId, weekNumber, dayNumber])
-  @@index([adoptedTrainingProgramId, weekNumber, dayNumber])
-  @@index([adoptedTrainingProgramId, status, weekNumber, dayNumber])
+  @@unique([adoptedTrainingProgramId, weekNumber, dayNumber], map: "ProgramWorkoutOccurrence_adopted_slot_key")
+  @@index([adoptedTrainingProgramId, status, weekNumber, dayNumber], map: "ProgramWorkoutOccurrence_status_slot_idx")
   @@index([sourceTrainingProgramRoutineId])
   @@index([sourceRoutineId])
 }
@@ -478,7 +477,7 @@ model WorkoutSession {
 
   owner                    User                      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   sourceRoutine            Routine?                  @relation("WorkoutSessionSourceRoutine", fields: [sourceRoutineId], references: [id], onDelete: SetNull)
-  programWorkoutOccurrence ProgramWorkoutOccurrence? @relation(fields: [programWorkoutOccurrenceId], references: [id], onDelete: SetNull)
+  programWorkoutOccurrence ProgramWorkoutOccurrence? @relation(fields: [programWorkoutOccurrenceId], references: [id], onDelete: Restrict)
   performances             ExercisePerformance[]
 
   @@index([ownerId, startedAt])

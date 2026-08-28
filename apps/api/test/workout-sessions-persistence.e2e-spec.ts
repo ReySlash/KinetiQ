@@ -247,10 +247,13 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
       ),
     ).rejects.toMatchObject({ code: '23505' });
 
-    await pool.query(
-      `DELETE FROM "ProgramWorkoutOccurrence" WHERE "id" = $1::uuid`,
-      [occurrenceId],
-    );
+    await expect(
+      pool.query(
+        `DELETE FROM "ProgramWorkoutOccurrence" WHERE "id" = $1::uuid`,
+        [occurrenceId],
+      ),
+    ).rejects.toMatchObject({ code: '23001' });
+
     const preservedSession = await pool.query<{
       programWorkoutOccurrenceId: string | null;
     }>(
@@ -259,7 +262,91 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
        WHERE "id" = $1::uuid`,
       [inProgressSessionId],
     );
-    expect(preservedSession.rows[0]?.programWorkoutOccurrenceId).toBeNull();
+    expect(preservedSession.rows[0]?.programWorkoutOccurrenceId).toBe(
+      occurrenceId,
+    );
+  });
+
+  it('allows only terminal adopted programs to coexist with a new active program', async () => {
+    const cases = [
+      { first: 'ACTIVE', second: 'PAUSED', allowed: false },
+      { first: 'PAUSED', second: 'ACTIVE', allowed: false },
+      { first: 'COMPLETED', second: 'ACTIVE', allowed: true },
+      { first: 'CANCELLED', second: 'ACTIVE', allowed: true },
+    ] as const;
+
+    for (const [index, testCase] of cases.entries()) {
+      const ownerId = randomUUID();
+      const firstProgramId = randomUUID();
+      const secondProgramId = randomUUID();
+
+      await pool.query(
+        `INSERT INTO "user" ("id", "name", "email", "updatedAt")
+         VALUES ($1::uuid, $2, $3, NOW())`,
+        [ownerId, `Adoption Matrix User ${index}`, `${ownerId}@example.test`],
+      );
+      await pool.query(
+        `INSERT INTO "AdoptedTrainingProgram"
+          ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "status", "startedAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3, 4, $4, NOW(), NOW())`,
+        [firstProgramId, ownerId, `First ${index}`, testCase.first],
+      );
+
+      const secondInsert = pool.query(
+        `INSERT INTO "AdoptedTrainingProgram"
+          ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "status", "startedAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3, 4, $4, NOW(), NOW())`,
+        [secondProgramId, ownerId, `Second ${index}`, testCase.second],
+      );
+
+      if (testCase.allowed) {
+        await expect(secondInsert).resolves.toBeDefined();
+      } else {
+        await expect(secondInsert).rejects.toMatchObject({ code: '23505' });
+      }
+    }
+  });
+
+  it('allows cancelled session attempts alongside cancelled and in-progress attempts', async () => {
+    const ownerId = randomUUID();
+    const adoptedProgramId = randomUUID();
+    const occurrenceId = randomUUID();
+
+    await pool.query(
+      `INSERT INTO "user" ("id", "name", "email", "updatedAt")
+       VALUES ($1::uuid, $2, $3, NOW())`,
+      [ownerId, 'Cancelled Attempt Test User', `${ownerId}@example.test`],
+    );
+    await pool.query(
+      `INSERT INTO "AdoptedTrainingProgram"
+        ("id", "ownerId", "programNameSnapshot", "durationWeeksSnapshot", "startedAt", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, $3, 4, NOW(), NOW())`,
+      [adoptedProgramId, ownerId, 'Retryable Program'],
+    );
+    await pool.query(
+      `INSERT INTO "ProgramWorkoutOccurrence"
+        ("id", "adoptedTrainingProgramId", "weekNumber", "dayNumber", "routineNameSnapshot", "updatedAt")
+       VALUES ($1::uuid, $2::uuid, 1, 1, $3, NOW())`,
+      [occurrenceId, adoptedProgramId, 'Retryable Workout'],
+    );
+
+    for (const sessionId of [randomUUID(), randomUUID()]) {
+      await pool.query(
+        `INSERT INTO "WorkoutSession"
+          ("id", "ownerId", "programWorkoutOccurrenceId", "status", "timezone", "startedAt", "cancelledAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3::uuid, 'CANCELLED', $4, NOW(), NOW(), NOW())`,
+        [sessionId, ownerId, occurrenceId, 'Asia/Qatar'],
+      );
+    }
+
+    await expect(
+      pool.query(
+        `INSERT INTO "WorkoutSession"
+          ("id", "ownerId", "programWorkoutOccurrenceId", "timezone", "startedAt", "updatedAt")
+         VALUES ($1::uuid, $2::uuid, $3::uuid, $4, NOW(), NOW())`,
+        [randomUUID(), ownerId, occurrenceId, 'Asia/Qatar'],
+      ),
+    ).resolves.toBeDefined();
   });
 
   afterAll(async () => {
