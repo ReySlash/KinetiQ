@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { CalendarRange, MoreHorizontal, Plus } from "lucide-react";
 
 import StyledLink from "@/components/styled-link";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ImageWithFallback from "@/components/image-with-fallback";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TrainingProgramListItem } from "@/types/training-program-types";
 import { TrainingProgramsFilters } from "./training-programs-filters";
 
@@ -38,21 +41,73 @@ export function TrainingProgramsLibrary({ programs, scope }: { programs: Trainin
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {programs.map((program) => (
-              <Card key={program.slug} className="transition-colors hover:border-primary/50">
-                <CardHeader>
-                  <CardTitle>{program.name}</CardTitle>
-                  <CardAction><StyledLink href={`/training-programs/${program.slug}`} variant="outline" aria-label={`Open ${program.name}`}><MoreHorizontal /></StyledLink></CardAction>
-                  <CardDescription className="line-clamp-2 min-h-10">{program.description || "No description yet."}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-                  <span>{program.durationWeeks} {program.durationWeeks === 1 ? "week" : "weeks"}</span>
-                  <span>Updated {formatDate(program.updatedAt)}</span>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Program</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Updated</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {programs.map((program) => (
+                    <TableRow key={program.slug}>
+                      <TableCell>
+                        <ImageWithFallback
+                          className="rounded-xl border"
+                          src="/empty-state-exercises.webp"
+                          alt="Training program cover"
+                          width={70}
+                          height={70}
+                          fallbackSrc="/empty-state-exercises.webp"
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{program.name}</TableCell>
+                      <TableCell>{program.durationWeeks} {program.durationWeeks === 1 ? "week" : "weeks"}</TableCell>
+                      <TableCell>{formatDate(program.updatedAt)}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end">
+                          <Link href={`/training-programs/${program.slug}`} className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label={`Open ${program.name}`} title="Open training program details">
+                            <MoreHorizontal className="size-5" />
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex flex-col gap-2 md:hidden">
+              {programs.map((program) => (
+                <Card key={program.slug} className="w-full py-1">
+                  <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
+                    <ImageWithFallback
+                      className="rounded-xl"
+                      src="/empty-state-exercises.webp"
+                      alt="Training program cover"
+                      width={70}
+                      height={70}
+                      fallbackSrc="/empty-state-exercises.webp"
+                    />
+                    <div className="min-w-0 flex-1 text-center">
+                      <CardTitle className="truncate">{program.name}</CardTitle>
+                      <CardDescription>
+                        {program.durationWeeks} {program.durationWeeks === 1 ? "week" : "weeks"}
+                      </CardDescription>
+                    </div>
+                    <Link href={`/training-programs/${program.slug}`} className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label={`Open ${program.name}`} title="Open training program details">
+                      <MoreHorizontal className="size-5" />
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </section>

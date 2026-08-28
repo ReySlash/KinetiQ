@@ -1,4 +1,4 @@
-import StyledLink from "@/components/styled-link";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -75,14 +75,14 @@ export function ExercisesTable(props: ExercisesTableProps) {
                       <Tooltip>
                         <TooltipTrigger
                           render={
-                            <StyledLink
+                            <Link
                               href={`/exercises/${exercise.slug}`}
-                              variant="outline"
-                              size="lg"
+                              className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                               aria-label="Open exercise details"
+                              title="Open exercise details"
                             >
-                              <MoreHorizontal />
-                            </StyledLink>
+                              <MoreHorizontal className="size-5" />
+                            </Link>
                           }
                         />
                         <TooltipContent>Open exercise details</TooltipContent>
@@ -139,14 +139,14 @@ export function ExercisesTable(props: ExercisesTableProps) {
                   <Tooltip>
                     <TooltipTrigger
                       render={
-                        <StyledLink
+                        <Link
                           href={`/exercises/${exercise.slug}`}
-                          variant="outline"
-                          size="lg"
+                          className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                           aria-label="Open exercise details"
+                          title="Open exercise details"
                         >
-                          <MoreHorizontal />
-                        </StyledLink>
+                          <MoreHorizontal className="size-5" />
+                        </Link>
                       }
                     />
                     <TooltipContent>Open exercise details</TooltipContent>

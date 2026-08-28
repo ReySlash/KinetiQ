@@ -1,4 +1,4 @@
-import StyledLink from "@/components/styled-link";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -92,13 +92,14 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                     <Tooltip>
                       <TooltipTrigger
                         render={
-                          <StyledLink
+                          <Link
                             href={`/muscle-groups/${muscleGroup.slug}`}
-                            variant="outline"
+                            className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                             aria-label="Open muscle group details"
+                            title="Open muscle group details"
                           >
-                            <MoreHorizontal />
-                          </StyledLink>
+                            <MoreHorizontal className="size-5" />
+                          </Link>
                         }
                       />
                       <TooltipContent>
@@ -152,13 +153,14 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <StyledLink
+                      <Link
                         href={`/muscle-groups/${muscleGroup.slug}`}
-                        variant="outline"
+                        className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                         aria-label="Open muscle group details"
+                        title="Open muscle group details"
                       >
-                        <MoreHorizontal />
-                      </StyledLink>
+                        <MoreHorizontal className="size-5" />
+                      </Link>
                     }
                   />
                   <TooltipContent>Open muscle group details</TooltipContent>

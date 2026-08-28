@@ -1,14 +1,22 @@
+import Link from "next/link";
 import { Dumbbell, MoreHorizontal, Plus } from "lucide-react";
 
 import StyledLink from "@/components/styled-link";
+import ImageWithFallback from "@/components/image-with-fallback";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { RoutineListItem } from "@/types/routine-types";
 import {
   Tooltip,
@@ -72,44 +80,98 @@ export function RoutinesLibrary({
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {routines.map((routine) => (
-              <Card
-                key={routine.slug}
-                className="transition-colors hover:border-primary/50"
-              >
-                <CardHeader>
-                  <CardTitle>{routine.name}</CardTitle>
-                  <CardAction>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Routine</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Exercises</TableHead>
+                    <TableHead>Updated</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {routines.map((routine) => (
+                    <TableRow key={routine.slug}>
+                      <TableCell>
+                        <ImageWithFallback
+                          className="rounded-xl border"
+                          src="/empty-state-exercises.webp"
+                          alt="Routine cover"
+                          width={70}
+                          height={70}
+                          fallbackSrc="/empty-state-exercises.webp"
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{routine.name}</TableCell>
+                      <TableCell>{routine.exerciseCount}</TableCell>
+                      <TableCell>{formatDate(routine.updatedAt)}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end">
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <Link
+                                  href={`/routines/${routine.slug}`}
+                                  className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                                  aria-label={`Open ${routine.name}`}
+                                  title="Open routine details"
+                                >
+                                  <MoreHorizontal className="size-5" />
+                                </Link>
+                              }
+                            />
+                            <TooltipContent>Open routine details</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex flex-col gap-2 md:hidden">
+              {routines.map((routine) => (
+                <Card key={routine.slug} className="w-full py-1">
+                  <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
+                    <ImageWithFallback
+                      className="rounded-xl"
+                      src="/empty-state-exercises.webp"
+                      alt="Routine cover"
+                      width={70}
+                      height={70}
+                      fallbackSrc="/empty-state-exercises.webp"
+                    />
+                    <div className="min-w-0 flex-1 text-center">
+                      <CardTitle className="truncate">{routine.name}</CardTitle>
+                      <CardDescription>
+                        {routine.exerciseCount}{" "}
+                        {routine.exerciseCount === 1 ? "exercise" : "exercises"}
+                      </CardDescription>
+                    </div>
                     <Tooltip>
                       <TooltipTrigger
                         render={
-                          <StyledLink
+                          <Link
                             href={`/routines/${routine.slug}`}
-                            variant="outline"
-                            aria-label="Open routine details"
+                            className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                            aria-label={`Open ${routine.name}`}
+                            title="Open routine details"
                           >
-                            <MoreHorizontal />
-                          </StyledLink>
+                            <MoreHorizontal className="size-5" />
+                          </Link>
                         }
                       />
                       <TooltipContent>Open routine details</TooltipContent>
                     </Tooltip>
-                  </CardAction>
-                  <CardDescription className="line-clamp-2 min-h-10">
-                    {routine.description || "No description yet."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>
-                    {routine.exerciseCount}{" "}
-                    {routine.exerciseCount === 1 ? "exercise" : "exercises"}
-                  </span>
-                  <span>Updated {formatDate(routine.updatedAt)}</span>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </section>

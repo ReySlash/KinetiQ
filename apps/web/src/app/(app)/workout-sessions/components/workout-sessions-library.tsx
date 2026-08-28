@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { History } from "lucide-react";
+import { History, MoreHorizontal } from "lucide-react";
+import ImageWithFallback from "@/components/image-with-fallback";
 import type { RoutineListItem } from "@/types/routine-types";
 import type { WorkoutSessionListItem } from "@/types/workout-session-types";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +10,16 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { WorkoutSessionFilters } from "./workout-session-filters";
 import { StartWorkoutDialog } from "./start-workout-dialog";
 
@@ -24,6 +32,18 @@ function formatDate(value: string) {
 
 function sessionLabel(status: WorkoutSessionListItem["status"]) {
   return status === "IN_PROGRESS" ? "In progress" : status.toLowerCase();
+}
+
+function sessionBadgeClassName(status: WorkoutSessionListItem["status"]) {
+  if (status === "COMPLETED") {
+    return "border-emerald-500/30 bg-emerald-500/15 text-emerald-400";
+  }
+
+  if (status === "CANCELLED") {
+    return "border-red-500/30 bg-red-500/15 text-red-400";
+  }
+
+  return "border-primary/30 bg-primary/15 text-primary";
 }
 
 export function WorkoutSessionsLibrary({
@@ -57,50 +77,104 @@ export function WorkoutSessionsLibrary({
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-2 md:gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {sessions.map((session) => (
-              <Link
-                key={session.id}
-                href={`/workout-sessions/${session.id}`}
-                className="rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <Card className="h-full transition-colors hover:border-primary/50">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle>
-                          {session.sourceRoutineNameSnapshot ??
-                            "Freestyle workout"}
-                        </CardTitle>
-                        <CardDescription>
-                          {formatDate(session.startedAt)}
-                        </CardDescription>
-                      </div>
-                      <Badge
-                        variant={
-                          session.status === "COMPLETED"
-                            ? "secondary"
-                            : session.status === "IN_PROGRESS"
-                              ? "default"
-                              : "outline"
-                        }
-                      >
-                        {sessionLabel(session.status)}
-                      </Badge>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Workout</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Sets</TableHead>
+                    <TableHead>Started</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sessions.map((session) => (
+                    <TableRow key={session.id}>
+                      <TableCell>
+                        <ImageWithFallback
+                          className="rounded-xl border"
+                          src="/empty-state-exercises.webp"
+                          alt="Workout cover"
+                          width={70}
+                          height={70}
+                          fallbackSrc="/empty-state-exercises.webp"
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {session.sourceRoutineNameSnapshot ?? "Freestyle workout"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={sessionBadgeClassName(session.status)}
+                        >
+                          {sessionLabel(session.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{session.completedSetCount}</TableCell>
+                      <TableCell>{formatDate(session.startedAt)}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end">
+                          <Link
+                            href={`/workout-sessions/${session.id}`}
+                            className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                            aria-label={`Open ${session.sourceRoutineNameSnapshot ?? "freestyle workout"}`}
+                            title="Open workout details"
+                          >
+                            <MoreHorizontal className="size-5" />
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex flex-col gap-2 md:hidden">
+              {sessions.map((session) => (
+                <Card key={session.id} className="w-full py-1 transition-colors hover:border-primary/50">
+                  <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
+                    <ImageWithFallback
+                      className="rounded-xl"
+                      src="/empty-state-exercises.webp"
+                      alt="Workout cover"
+                      width={70}
+                      height={70}
+                      fallbackSrc="/empty-state-exercises.webp"
+                    />
+                    <div className="min-w-0 flex-1 text-center">
+                      <CardTitle className="truncate">
+                        {session.sourceRoutineNameSnapshot ?? "Freestyle workout"}
+                      </CardTitle>
+                      <CardDescription>
+                        {session.completedSetCount} sets · {sessionLabel(session.status)}
+                      </CardDescription>
                     </div>
-                  </CardHeader>
-                  <CardContent className="flex justify-between text-sm text-muted-foreground">
-                    <span>{session.completedSetCount} sets</span>
-                    <span>
-                      {session.completedAt
-                        ? formatDate(session.completedAt)
-                        : "Continue workout"}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Badge
+                        variant="outline"
+                        className={sessionBadgeClassName(session.status)}
+                      >
+                        {session.status === "IN_PROGRESS" ? "Active" : sessionLabel(session.status)}
+                      </Badge>
+                      <Link
+                        href={`/workout-sessions/${session.id}`}
+                        className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                        aria-label={`Open ${session.sourceRoutineNameSnapshot ?? "freestyle workout"}`}
+                        title="Open workout details"
+                      >
+                        <MoreHorizontal className="size-5" />
+                      </Link>
+                    </div>
                   </CardContent>
                 </Card>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </section>
