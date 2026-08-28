@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type FormSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 
@@ -34,16 +35,22 @@ export function TrainingProgramSearchForm({
         />
         <p className="text-xs text-destructive">{searchError ?? ""}</p>
       </div>
-      <Button
-        variant="outline"
-        size="lg"
-        type="submit"
-        disabled={isPending}
-        className="cursor-pointer !border-primary text-primary hover:!bg-primary hover:!text-black"
-        title="Search training programs by name or description"
-      >
-        Search
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="outline"
+              size="lg"
+              type="submit"
+              disabled={isPending}
+              className="cursor-pointer !border-primary text-primary hover:!bg-primary hover:!text-black"
+            />
+          }
+        >
+          Search
+        </TooltipTrigger>
+        <TooltipContent>Search training programs by name or description</TooltipContent>
+      </Tooltip>
     </form>
   );
 }

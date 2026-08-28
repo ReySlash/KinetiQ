@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { Dumbbell, MoreHorizontal, Plus } from "lucide-react";
+import { Dumbbell, Plus } from "lucide-react";
 
 import StyledLink from "@/components/styled-link";
 import ImageWithFallback from "@/components/image-with-fallback";
+import { MoreLink } from "@/components/more-link";
 import {
   Card,
   CardContent,
@@ -18,11 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { RoutineListItem } from "@/types/routine-types";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import { RoutinesFilters } from "./routines-filters";
 
@@ -110,21 +105,11 @@ export function RoutinesLibrary({
                       <TableCell>{formatDate(routine.updatedAt)}</TableCell>
                       <TableCell>
                         <div className="flex justify-end">
-                          <Tooltip>
-                            <TooltipTrigger
-                              render={
-                                <Link
-                                  href={`/routines/${routine.slug}`}
-                                  className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                                  aria-label={`Open ${routine.name}`}
-                                  title="Open routine details"
-                                >
-                                  <MoreHorizontal className="size-5" />
-                                </Link>
-                              }
-                            />
-                            <TooltipContent>Open routine details</TooltipContent>
-                          </Tooltip>
+                          <MoreLink
+                            href={`/routines/${routine.slug}`}
+                            tooltip="Open routine details"
+                            ariaLabel={`Open ${routine.name}`}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -152,21 +137,11 @@ export function RoutinesLibrary({
                         {routine.exerciseCount === 1 ? "exercise" : "exercises"}
                       </CardDescription>
                     </div>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Link
-                            href={`/routines/${routine.slug}`}
-                            className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                            aria-label={`Open ${routine.name}`}
-                            title="Open routine details"
-                          >
-                            <MoreHorizontal className="size-5" />
-                          </Link>
-                        }
-                      />
-                      <TooltipContent>Open routine details</TooltipContent>
-                    </Tooltip>
+                    <MoreLink
+                      href={`/routines/${routine.slug}`}
+                      tooltip="Open routine details"
+                      ariaLabel={`Open ${routine.name}`}
+                    />
                   </CardContent>
                 </Card>
               ))}

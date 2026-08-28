@@ -15,20 +15,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import type { RoutineListItem } from "@/types/routine-types";
 
 type AddToRoutineDialogProps = {
   exerciseSlug: string;
   exerciseName: string;
-  triggerVariant?: "default" | "outline";
   triggerSize?: "sm" | "default" | "lg";
 };
 
 export function AddToRoutineDialog({
   exerciseSlug,
   exerciseName,
-  triggerVariant = "default",
 }: AddToRoutineDialogProps) {
   const routines = useQuery({
     queryKey: ["routines", "picker"],
@@ -44,18 +47,25 @@ export function AddToRoutineDialog({
 
   return (
     <Dialog onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button
-            variant={triggerVariant}
-            size="lg"
-            className="cursor-pointer"
-            title="Add this exercise to a routine"
-          />
-        }
-      >
-        Add to routine
-      </DialogTrigger>
+      <Tooltip>
+        <DialogTrigger
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-10 cursor-pointer !border-primary/50 bg-primary/5 text-primary hover:!border-primary hover:!bg-primary hover:!text-black"
+                />
+              }
+            />
+          }
+        >
+          <Plus data-icon="inline-start" />
+          Add to routine
+        </DialogTrigger>
+        <TooltipContent>Add this exercise to a routine</TooltipContent>
+      </Tooltip>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add {exerciseName} to a routine</DialogTitle>

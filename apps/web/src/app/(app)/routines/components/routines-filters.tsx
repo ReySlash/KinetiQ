@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FilterSelectField } from "../../exercises/components/filters/filter-select-field";
 import { RoutineSearchForm } from "./routine-search-form";
 
@@ -111,17 +112,23 @@ function RoutinesFiltersControls({
         onSubmit={handleSearchSubmit}
       />
       <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger
-          type="button"
-          className={cn(buttonVariants({ variant: "outline", size: "lg" }), "cursor-pointer gap-2 self-start")}
-          title="Filter routines"
-          aria-label="Filter routines"
-        >
-          <Filter className="size-4" />
-          {currentSort !== "updatedAt:desc" ? (
-            <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span>
-          ) : null}
-        </PopoverTrigger>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <PopoverTrigger
+                type="button"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "cursor-pointer gap-2 self-start")}
+                aria-label="Filter routines"
+              />
+            }
+          >
+            <Filter className="size-4" />
+            {currentSort !== "updatedAt:desc" ? (
+              <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span>
+            ) : null}
+          </TooltipTrigger>
+          <TooltipContent>Filter routines</TooltipContent>
+        </Tooltip>
         <PopoverContent className="space-y-4">
           <form className="space-y-4" onSubmit={handleApplyFilters}>
             <div className="flex items-start justify-between gap-3">

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Filter, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   type ForceTypeFilterValue,
   forceTypeOptions,
@@ -55,22 +56,28 @@ export function FilterPopover(props: FilterPopoverProps) {
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger
-        type="button"
-        className={cn(
-          buttonVariants({ variant: "outline", size: "lg" }),
-          "cursor-pointer gap-2 self-start",
-        )}
-        title="Filter exercises"
-        aria-label="Filter exercises"
-      >
-        <Filter className="size-4" />
-        {activeFiltersCount > 0 ? (
-          <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
-            {activeFiltersCount}
-          </span>
-        ) : null}
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <PopoverTrigger
+              type="button"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "cursor-pointer gap-2 self-start",
+              )}
+              aria-label="Filter exercises"
+            />
+          }
+        >
+          <Filter className="size-4" />
+          {activeFiltersCount > 0 ? (
+            <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+              {activeFiltersCount}
+            </span>
+          ) : null}
+        </TooltipTrigger>
+        <TooltipContent>Filter exercises</TooltipContent>
+      </Tooltip>
 
       <PopoverContent className="space-y-4">
         <form className="space-y-4" onSubmit={onSubmit}>

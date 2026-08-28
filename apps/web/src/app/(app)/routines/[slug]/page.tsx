@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import StyledLink from "@/components/styled-link";
+import { MoreLink } from "@/components/more-link";
 import { PageHeader } from "@/components/page-header";
 import {
   Card,
@@ -13,11 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { fetchRoutine } from "@/lib/routines-server";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import { RoutineActions } from "./routine-actions";
 
@@ -124,20 +119,10 @@ export default async function RoutineDetailsPage({
                           {routineExercise.exercise.name}
                         </h3>
                       </div>
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <StyledLink
-                              href={`/exercises/${routineExercise.exercise.slug}`}
-                              variant="outline"
-                              aria-label="Open exercise details"
-                            >
-                              <MoreHorizontal />
-                            </StyledLink>
-                          }
-                        />
-                        <TooltipContent>Open exercise details</TooltipContent>
-                      </Tooltip>
+                      <MoreLink
+                        href={`/exercises/${routineExercise.exercise.slug}`}
+                        tooltip="Open exercise details"
+                      />
                     </div>
                     <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-border/60 py-3 text-sm sm:grid-cols-4">
                       <div>

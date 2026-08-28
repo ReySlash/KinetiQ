@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { History, MoreHorizontal } from "lucide-react";
+import { History } from "lucide-react";
 import ImageWithFallback from "@/components/image-with-fallback";
+import { MoreLink } from "@/components/more-link";
 import type { RoutineListItem } from "@/types/routine-types";
 import type { WorkoutSessionListItem } from "@/types/workout-session-types";
 import { Badge } from "@/components/ui/badge";
@@ -118,14 +118,11 @@ export function WorkoutSessionsLibrary({
                       <TableCell>{formatDate(session.startedAt)}</TableCell>
                       <TableCell>
                         <div className="flex justify-end">
-                          <Link
+                          <MoreLink
                             href={`/workout-sessions/${session.id}`}
-                            className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                            aria-label={`Open ${session.sourceRoutineNameSnapshot ?? "freestyle workout"}`}
-                            title="Open workout details"
-                          >
-                            <MoreHorizontal className="size-5" />
-                          </Link>
+                            tooltip="Open workout details"
+                            ariaLabel={`Open ${session.sourceRoutineNameSnapshot ?? "freestyle workout"}`}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -161,14 +158,11 @@ export function WorkoutSessionsLibrary({
                       >
                         {session.status === "IN_PROGRESS" ? "Active" : sessionLabel(session.status)}
                       </Badge>
-                      <Link
+                      <MoreLink
                         href={`/workout-sessions/${session.id}`}
-                        className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                        aria-label={`Open ${session.sourceRoutineNameSnapshot ?? "freestyle workout"}`}
-                        title="Open workout details"
-                      >
-                        <MoreHorizontal className="size-5" />
-                      </Link>
+                        tooltip="Open workout details"
+                        ariaLabel={`Open ${session.sourceRoutineNameSnapshot ?? "freestyle workout"}`}
+                      />
                     </div>
                   </CardContent>
                 </Card>

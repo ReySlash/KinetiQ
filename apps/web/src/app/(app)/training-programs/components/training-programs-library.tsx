@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { CalendarRange, MoreHorizontal, Plus } from "lucide-react";
+import { CalendarRange, Plus } from "lucide-react";
 
 import StyledLink from "@/components/styled-link";
 import ImageWithFallback from "@/components/image-with-fallback";
+import { MoreLink } from "@/components/more-link";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TrainingProgramListItem } from "@/types/training-program-types";
@@ -71,9 +71,11 @@ export function TrainingProgramsLibrary({ programs, scope }: { programs: Trainin
                       <TableCell>{formatDate(program.updatedAt)}</TableCell>
                       <TableCell>
                         <div className="flex justify-end">
-                          <Link href={`/training-programs/${program.slug}`} className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label={`Open ${program.name}`} title="Open training program details">
-                            <MoreHorizontal className="size-5" />
-                          </Link>
+                          <MoreLink
+                            href={`/training-programs/${program.slug}`}
+                            tooltip="Open training program details"
+                            ariaLabel={`Open ${program.name}`}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -100,9 +102,11 @@ export function TrainingProgramsLibrary({ programs, scope }: { programs: Trainin
                         {program.durationWeeks} {program.durationWeeks === 1 ? "week" : "weeks"}
                       </CardDescription>
                     </div>
-                    <Link href={`/training-programs/${program.slug}`} className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label={`Open ${program.name}`} title="Open training program details">
-                      <MoreHorizontal className="size-5" />
-                    </Link>
+                    <MoreLink
+                      href={`/training-programs/${program.slug}`}
+                      tooltip="Open training program details"
+                      ariaLabel={`Open ${program.name}`}
+                    />
                   </CardContent>
                 </Card>
               ))}

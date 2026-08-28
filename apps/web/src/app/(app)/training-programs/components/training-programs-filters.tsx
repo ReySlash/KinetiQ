@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Filter, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -91,10 +92,17 @@ export function TrainingProgramsFilters() {
           onSubmit={handleSearchSubmit}
         />
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger type="button" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "cursor-pointer gap-2 self-start")} title="Filter training programs" aria-label="Filter training programs">
-            <Filter className="size-4" />
-            {currentSort !== "updatedAt:desc" ? <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span> : null}
-          </PopoverTrigger>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <PopoverTrigger type="button" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "cursor-pointer gap-2 self-start")} aria-label="Filter training programs" />
+              }
+            >
+              <Filter className="size-4" />
+              {currentSort !== "updatedAt:desc" ? <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">1</span> : null}
+            </TooltipTrigger>
+            <TooltipContent>Filter training programs</TooltipContent>
+          </Tooltip>
           <PopoverContent className="space-y-4">
             <form className="space-y-4" onSubmit={handleApplyFilters}>
               <div className="flex items-start justify-between gap-3">

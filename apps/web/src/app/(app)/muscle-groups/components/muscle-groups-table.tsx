@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -15,13 +14,8 @@ import {
 } from "@/components/ui/table";
 import { MuscleGroup } from "@/types/muscle-types";
 import ImageWithFallback from "@/components/image-with-fallback";
-import { MoreHorizontal } from "lucide-react";
+import { MoreLink } from "@/components/more-link";
 import { getLocalImageSrc } from "@/lib/local-image";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 type MuscleGroupsTableProps = {
   muscleGroups: MuscleGroup[];
@@ -89,23 +83,10 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                   <TableCell>{getBodyRegion(muscleGroup)}</TableCell>
                   <TableCell>{muscleGroup.muscles.length}</TableCell>
                   <TableCell className="text-right">
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Link
-                            href={`/muscle-groups/${muscleGroup.slug}`}
-                            className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                            aria-label="Open muscle group details"
-                            title="Open muscle group details"
-                          >
-                            <MoreHorizontal className="size-5" />
-                          </Link>
-                        }
-                      />
-                      <TooltipContent>
-                        Open muscle group details
-                      </TooltipContent>
-                    </Tooltip>
+                    <MoreLink
+                      href={`/muscle-groups/${muscleGroup.slug}`}
+                      tooltip="Open muscle group details"
+                    />
                   </TableCell>
                 </TableRow>
               ))
@@ -150,21 +131,10 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                     {muscleGroup.muscles.length} muscles
                   </CardDescription>
                 </div>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Link
-                        href={`/muscle-groups/${muscleGroup.slug}`}
-                        className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                        aria-label="Open muscle group details"
-                        title="Open muscle group details"
-                      >
-                        <MoreHorizontal className="size-5" />
-                      </Link>
-                    }
-                  />
-                  <TooltipContent>Open muscle group details</TooltipContent>
-                </Tooltip>
+                <MoreLink
+                  href={`/muscle-groups/${muscleGroup.slug}`}
+                  tooltip="Open muscle group details"
+                />
               </CardContent>
             </Card>
           ))

@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FilterSelectField } from "../../exercises/components/filters/filter-select-field";
 import { WorkoutSessionSearchForm } from "./workout-session-search-form";
 
@@ -103,27 +104,33 @@ export function WorkoutSessionFilters() {
         onSubmit={handleSearchSubmit}
       />
       <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger
-          type="button"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "cursor-pointer gap-2 self-start",
-          )}
-          title="Filter workouts"
-          aria-label="Filter workouts"
-        >
-          <Filter className="size-4" />
-          {Number(status !== "all") +
-            Number(Boolean(from)) +
-            Number(Boolean(to)) >
-          0 ? (
-            <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
-              {Number(status !== "all") +
-                Number(Boolean(from)) +
-                Number(Boolean(to))}
-            </span>
-          ) : null}
-        </PopoverTrigger>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <PopoverTrigger
+                type="button"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "cursor-pointer gap-2 self-start",
+                )}
+                aria-label="Filter workouts"
+              />
+            }
+          >
+            <Filter className="size-4" />
+            {Number(status !== "all") +
+              Number(Boolean(from)) +
+              Number(Boolean(to)) >
+            0 ? (
+              <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+                {Number(status !== "all") +
+                  Number(Boolean(from)) +
+                  Number(Boolean(to))}
+              </span>
+            ) : null}
+          </TooltipTrigger>
+          <TooltipContent>Filter workouts</TooltipContent>
+        </Tooltip>
         <PopoverContent className="space-y-4">
           <form className="space-y-4" onSubmit={handleApplyFilters}>
             <div className="flex items-start justify-between gap-3">

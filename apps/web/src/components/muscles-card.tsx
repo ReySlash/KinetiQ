@@ -1,4 +1,4 @@
-import StyledLink from "@/components/styled-link";
+import { MoreLink } from "@/components/more-link";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -10,13 +10,7 @@ import {
 } from "@/components/ui/table";
 import { ExerciseMuscleSummary } from "@/types/exercise-types";
 import ImageWithFallback from "@/components/image-with-fallback";
-import { MoreHorizontal } from "lucide-react";
 import { getLocalImageSrc } from "@/lib/local-image";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 type MuscleSCardProps = {
   muscles: ExerciseMuscleSummary[];
@@ -55,20 +49,10 @@ export default function MuscleSCard(props: MuscleSCardProps) {
                   {m.name}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <StyledLink
-                          href={`/muscles/${m.slug}`}
-                          variant="outline"
-                          aria-label="Open muscle details"
-                        >
-                          <MoreHorizontal />
-                        </StyledLink>
-                      }
-                    />
-                    <TooltipContent>Open muscle details</TooltipContent>
-                  </Tooltip>
+                  <MoreLink
+                    href={`/muscles/${m.slug}`}
+                    tooltip="Open muscle details"
+                  />
                 </TableCell>
               </TableRow>
             ))}

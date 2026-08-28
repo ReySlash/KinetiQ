@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -15,14 +14,9 @@ import {
 } from "@/components/ui/table";
 import { Exercise } from "@/types/exercise-types";
 import ImageWithFallback from "@/components/image-with-fallback";
-import { MoreHorizontal } from "lucide-react";
 import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
+import { MoreLink } from "@/components/more-link";
 import { getLocalImageSrc } from "@/lib/local-image";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 type ExercisesTableProps = {
   exercises: Exercise[];
@@ -70,23 +64,11 @@ export function ExercisesTable(props: ExercisesTableProps) {
                       <AddToRoutineDialog
                         exerciseSlug={exercise.slug}
                         exerciseName={exercise.name}
-                        triggerVariant="outline"
                       />
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Link
-                              href={`/exercises/${exercise.slug}`}
-                              className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                              aria-label="Open exercise details"
-                              title="Open exercise details"
-                            >
-                              <MoreHorizontal className="size-5" />
-                            </Link>
-                          }
-                        />
-                        <TooltipContent>Open exercise details</TooltipContent>
-                      </Tooltip>
+                      <MoreLink
+                        href={`/exercises/${exercise.slug}`}
+                        tooltip="Open exercise details"
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -134,23 +116,11 @@ export function ExercisesTable(props: ExercisesTableProps) {
                   <AddToRoutineDialog
                     exerciseSlug={exercise.slug}
                     exerciseName={exercise.name}
-                    triggerVariant="outline"
                   />
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <Link
-                          href={`/exercises/${exercise.slug}`}
-                          className="inline-flex size-10 items-center justify-center rounded-md border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                          aria-label="Open exercise details"
-                          title="Open exercise details"
-                        >
-                          <MoreHorizontal className="size-5" />
-                        </Link>
-                      }
-                    />
-                    <TooltipContent>Open exercise details</TooltipContent>
-                  </Tooltip>
+                  <MoreLink
+                    href={`/exercises/${exercise.slug}`}
+                    tooltip="Open exercise details"
+                  />
                 </div>
               </CardContent>
             </Card>

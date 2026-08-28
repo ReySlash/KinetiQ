@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { PageHeader } from "@/components/page-header";
-import StyledLink from "@/components/styled-link";
+import { MoreLink } from "@/components/more-link";
 import {
   Card,
   CardContent,
@@ -11,11 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { fetchTrainingProgram } from "@/lib/training-programs-server";
 import type { TrainingProgramDetail } from "@/types/training-program-types";
 import { TrainingProgramActions } from "./training-program-actions";
@@ -114,22 +109,11 @@ export default async function TrainingProgramDetailPage({
                           </p>
                           <div className="mt-1 flex items-center justify-between gap-2">
                             <p className="font-medium">{entry.routine.name}</p>
-                            <Tooltip>
-                              <TooltipTrigger
-                                render={
-                                  <StyledLink
-                                    href={`/routines/${entry.routine.slug}`}
-                                    variant="outline"
-                                    aria-label={`Open ${entry.routine.name}`}
-                                  >
-                                    <MoreHorizontal />
-                                  </StyledLink>
-                                }
-                              />
-                              <TooltipContent>
-                                Open routine details
-                              </TooltipContent>
-                            </Tooltip>
+                            <MoreLink
+                              href={`/routines/${entry.routine.slug}`}
+                              tooltip="Open routine details"
+                              ariaLabel={`Open ${entry.routine.name}`}
+                            />
                           </div>
                           {entry.notes && (
                             <p className="mt-3 text-sm text-muted-foreground">
