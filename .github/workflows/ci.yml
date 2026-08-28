@@ -175,8 +175,26 @@ jobs:
       - run: pnpm --filter web exec playwright install --with-deps chromium
       - run: pnpm --filter web test:a11y
 
+  web-real-api-smoke-config:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.config.outputs.enabled }}
+    steps:
+      - id: config
+        env:
+          WEB_SMOKE_EMAIL: ${{ secrets.WEB_SMOKE_EMAIL }}
+          WEB_SMOKE_PASSWORD: ${{ secrets.WEB_SMOKE_PASSWORD }}
+          WEB_SMOKE_DATABASE_URL: ${{ secrets.WEB_SMOKE_DATABASE_URL }}
+        run: |
+          if [[ -n "$WEB_SMOKE_EMAIL" && -n "$WEB_SMOKE_PASSWORD" && -n "$WEB_SMOKE_DATABASE_URL" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
   web-real-api-smoke:
-    if: ${{ secrets.WEB_SMOKE_EMAIL != '' && secrets.WEB_SMOKE_PASSWORD != '' && secrets.WEB_SMOKE_DATABASE_URL != '' }}
+    needs: web-real-api-smoke-config
+    if: ${{ needs.web-real-api-smoke-config.outputs.enabled == 'true' }}
     runs-on: ubuntu-latest
     services:
       postgres:

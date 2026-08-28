@@ -267,10 +267,11 @@ describe('WorkoutSession persistence constraints (e2e)', () => {
     );
   });
 
-  it('allows only terminal adopted programs to coexist with a new active program', async () => {
+  it('enforces one non-terminal adopted program per owner', async () => {
     const cases = [
       { first: 'ACTIVE', second: 'PAUSED', allowed: false },
       { first: 'PAUSED', second: 'ACTIVE', allowed: false },
+      { first: 'PAUSED', second: 'PAUSED', allowed: false },
       { first: 'COMPLETED', second: 'ACTIVE', allowed: true },
       { first: 'CANCELLED', second: 'ACTIVE', allowed: true },
     ] as const;

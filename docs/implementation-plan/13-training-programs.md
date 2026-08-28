@@ -383,9 +383,14 @@ model ProgramWorkoutOccurrence {
   sourceRoutine                Routine?               @relation(fields: [sourceRoutineId], references: [id], onDelete: SetNull)
   sessionAttempts              WorkoutSession[]
 
-  @@unique([adoptedTrainingProgramId, weekNumber, dayNumber])
-  @@index([adoptedTrainingProgramId, weekNumber, dayNumber])
-  @@index([adoptedTrainingProgramId, status, weekNumber, dayNumber])
+  @@unique(
+    [adoptedTrainingProgramId, weekNumber, dayNumber],
+    map: "ProgramWorkoutOccurrence_adopted_slot_key"
+  )
+  @@index(
+    [adoptedTrainingProgramId, status, weekNumber, dayNumber],
+    map: "ProgramWorkoutOccurrence_status_slot_idx"
+  )
   @@index([sourceTrainingProgramRoutineId])
   @@index([sourceRoutineId])
 }
@@ -393,7 +398,11 @@ model ProgramWorkoutOccurrence {
 model WorkoutSession {
   // Existing fields remain.
   programWorkoutOccurrenceId String?                  @db.Uuid
-  programWorkoutOccurrence   ProgramWorkoutOccurrence? @relation(fields: [programWorkoutOccurrenceId], references: [id], onDelete: SetNull)
+  programWorkoutOccurrence   ProgramWorkoutOccurrence? @relation(
+    fields: [programWorkoutOccurrenceId],
+    references: [id],
+    onDelete: Restrict
+  )
 
   @@index([programWorkoutOccurrenceId])
 }
@@ -422,20 +431,20 @@ CREATE UNIQUE INDEX "AdoptedTrainingProgram_one_non_terminal_per_owner_idx"
 ON "AdoptedTrainingProgram" ("ownerId")
 WHERE "status" IN ('ACTIVE', 'PAUSED');
 
-CREATE UNIQUE INDEX "WorkoutSession_one_in_progress_per_program_workout_idx"
+CREATE UNIQUE INDEX "WorkoutSession_one_in_progress_per_occurrence_idx"
 ON "WorkoutSession" ("programWorkoutOccurrenceId")
 WHERE "programWorkoutOccurrenceId" IS NOT NULL AND "status" = 'IN_PROGRESS';
 
-CREATE UNIQUE INDEX "WorkoutSession_one_completed_per_program_workout_idx"
+CREATE UNIQUE INDEX "WorkoutSession_one_completed_per_occurrence_idx"
 ON "WorkoutSession" ("programWorkoutOccurrenceId")
 WHERE "programWorkoutOccurrenceId" IS NOT NULL AND "status" = 'COMPLETED';
 ```
 
-The exact generated identifiers may be chosen during implementation. Source
-template relations use `SetNull`; deleting a template must never cascade into an
-adopted program, occurrence, session, performance, or completed set. Adopted
-programs and occurrences are completed, skipped, or cancelled rather than
-normally hard-deleted. The owner relation remains restrictive until the
+Source template relations use `SetNull`; deleting a template must never cascade
+into an adopted program, occurrence, session, performance, or completed set.
+Adopted programs and occurrences are completed, skipped, or cancelled rather
+than normally hard-deleted. The occurrence-to-session relation uses `Restrict`
+to preserve historical session references. The owner relation remains restrictive until the
 separate account export/deletion/retention policy defines an explicit purge.
 
 ### Snapshot stages and authority
