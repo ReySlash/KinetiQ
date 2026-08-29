@@ -16,13 +16,43 @@ const session = {
 const sessionCookie = "better-auth.session_token=mock-session";
 
 function hasSessionCookie(request) {
-  return request.headers.cookie?.split(";").some((cookie) =>
-    cookie.trim().startsWith(sessionCookie),
+  return (
+    request.headers.cookie
+      ?.split(";")
+      .some((cookie) => cookie.trim() === sessionCookie) ?? false
   );
 }
 
-const server = createServer((request, response) => {
+function readJsonBody(request) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    request.on("data", (chunk) => {
+      body += chunk;
+    });
+    request.on("end", () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (error) {
+        reject(error);
+      }
+    });
+    request.on("error", reject);
+  });
+}
+
+const server = createServer(async (request, response) => {
+  response.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:3101");
+  response.setHeader("Access-Control-Allow-Credentials", "true");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  response.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   response.setHeader("Content-Type", "application/json");
+
+  if (request.method === "OPTIONS") {
+    response.writeHead(204);
+    response.end();
+    return;
+  }
 
   if (request.url === "/api/health") {
     response.writeHead(200);
@@ -36,14 +66,30 @@ const server = createServer((request, response) => {
     return;
   }
 
+  if (request.method === "POST" && request.url === "/api/auth/sign-in/email") {
+    const body = await readJsonBody(request);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    if (body.email === "wrong@example.com") {
+      response.writeHead(401);
+      response.end(JSON.stringify({ message: "Invalid credentials" }));
+      return;
+    }
+
+    response.setHeader(
+      "Set-Cookie",
+      `${sessionCookie}; Path=/; HttpOnly; SameSite=Lax`,
+    );
+    response.writeHead(200);
+    response.end(JSON.stringify(session));
+    return;
+  }
+
   if (request.url?.startsWith("/api/routines")) {
-    response.writeHead(hasSessionCookie(request) ? 200 : 401);
+    const authenticated = hasSessionCookie(request);
+    response.writeHead(authenticated ? 200 : 401);
     response.end(
-      JSON.stringify(
-        hasSessionCookie(request)
-          ? []
-          : { message: "Authentication required" },
-      ),
+      JSON.stringify(authenticated ? [] : { message: "Authentication required" }),
     );
     return;
   }

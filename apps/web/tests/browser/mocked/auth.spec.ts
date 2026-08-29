@@ -21,18 +21,6 @@ test.describe("mocked browser auth flows", () => {
   });
 
   test("covers loading, success, and API error states", async ({ page }) => {
-    await page.route("**/api/auth/sign-in/email", async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        headers: {
-          "Set-Cookie": "better-auth.session_token=mock-session; Path=/; HttpOnly",
-        },
-        body: JSON.stringify({ session: { id: "session" }, user: { id: "user" } }),
-      });
-    });
-
     await page.goto("/sign-in?callbackURL=%2Froutines");
     await page.waitForTimeout(750);
     await page.getByLabel("Email").fill("reynaldo@example.com");
@@ -49,16 +37,8 @@ test.describe("mocked browser auth flows", () => {
       .toBe("mock-session");
     await expect(page).toHaveURL(/\/routines$/);
 
-    await page.unroute("**/api/auth/sign-in/email");
     await page.goto("/sign-in");
     await page.waitForTimeout(750);
-    await page.route("**/api/auth/sign-in/email", (route) =>
-      route.fulfill({
-        status: 401,
-        contentType: "application/json",
-        body: JSON.stringify({ message: "Invalid credentials" }),
-      }),
-    );
     await page.getByLabel("Email").fill("wrong@example.com");
     await page.locator("#password").fill("wrong-password");
     await page.getByRole("button", { name: "Sign in" }).click();
