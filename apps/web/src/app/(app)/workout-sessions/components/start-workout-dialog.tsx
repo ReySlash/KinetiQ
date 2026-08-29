@@ -16,6 +16,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -67,14 +72,24 @@ export function StartWorkoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button size="lg" className="min-w-0 flex-1 md:flex-none md:px-4" />
-        }
-      >
-        <Plus data-icon="inline-start" />
-        Start new workout
-      </DialogTrigger>
+      <Tooltip>
+        <DialogTrigger
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  size="lg"
+                  className="min-w-0 flex-1 md:flex-none md:px-4"
+                />
+              }
+            />
+          }
+        >
+          <Plus data-icon="inline-start" />
+          Start new workout
+        </DialogTrigger>
+        <TooltipContent>Start a new workout</TooltipContent>
+      </Tooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Start a workout</DialogTitle>

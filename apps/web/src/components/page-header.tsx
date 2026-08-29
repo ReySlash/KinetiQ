@@ -16,9 +16,11 @@ export function PageHeader(props: PageHeaderProps) {
         sticky && "sticky top-0 z-30",
       )}
     >
-      <div className="flex flex-col">
-        <div className="flex flex-row items-center gap-2">{children}</div>
-        <h2 className="text-xs text-muted-foreground/80">{subtitle}</h2>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-row flex-nowrap items-center gap-2 overflow-hidden [&>a]:min-w-0 [&>a]:truncate [&>h1]:min-w-0 [&>h1]:truncate [&>nav]:min-w-0">
+          {children}
+        </div>
+        <h2 className="truncate text-xs text-muted-foreground/80">{subtitle}</h2>
       </div>
     </header>
   );

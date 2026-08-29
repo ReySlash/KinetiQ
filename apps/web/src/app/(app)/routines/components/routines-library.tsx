@@ -4,6 +4,11 @@ import StyledLink from "@/components/styled-link";
 import ImageWithFallback from "@/components/image-with-fallback";
 import { MoreLink } from "@/components/more-link";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -42,10 +47,21 @@ export function RoutinesLibrary({
         </div>
         {scope === "my" ? (
           <div className="flex justify-center gap-2 md:order-1 md:w-auto md:justify-start">
-            <StyledLink href="/routines/new" size="lg" className="w-full md:w-auto">
-              <Plus data-icon="inline-start" />
-              New routine
-            </StyledLink>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <StyledLink
+                    href="/routines/new"
+                    size="lg"
+                    className="w-full md:w-auto"
+                  />
+                }
+              >
+                <Plus data-icon="inline-start" />
+                New routine
+              </TooltipTrigger>
+              <TooltipContent>Create a new routine</TooltipContent>
+            </Tooltip>
           </div>
         ) : null}
       </div>

@@ -3,6 +3,7 @@ import { CalendarRange, Plus } from "lucide-react";
 import StyledLink from "@/components/styled-link";
 import ImageWithFallback from "@/components/image-with-fallback";
 import { MoreLink } from "@/components/more-link";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TrainingProgramListItem } from "@/types/training-program-types";
@@ -21,10 +22,21 @@ export function TrainingProgramsLibrary({ programs, scope }: { programs: Trainin
         </div>
         {scope === "my" ? (
           <div className="flex justify-center gap-2 md:order-1 md:w-auto md:justify-start">
-            <StyledLink href="/training-programs/new" size="lg" className="w-full md:w-auto">
-              <Plus data-icon="inline-start" />
-              New training program
-            </StyledLink>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <StyledLink
+                    href="/training-programs/new"
+                    size="lg"
+                    className="w-full md:w-auto"
+                  />
+                }
+              >
+                <Plus data-icon="inline-start" />
+                New training program
+              </TooltipTrigger>
+              <TooltipContent>Create a new training program</TooltipContent>
+            </Tooltip>
           </div>
         ) : null}
       </div>
