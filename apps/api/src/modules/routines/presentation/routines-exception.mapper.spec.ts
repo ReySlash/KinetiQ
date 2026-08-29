@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
@@ -9,6 +10,7 @@ import {
   RoutineExerciseUnavailableError,
   RoutineListAuthenticationError,
   RoutineNotFoundError,
+  RoutineInUseError,
   RoutinePersistenceError,
   RoutineQueryError,
 } from '../application/errors/routine.errors';
@@ -21,6 +23,7 @@ describe('toRoutinesHttpException', () => {
     [new RoutineValidationError('Invalid routine'), BadRequestException],
     [new RoutineListAuthenticationError(), UnauthorizedException],
     [new RoutineExerciseUnavailableError(), UnprocessableEntityException],
+    [new RoutineInUseError(), ConflictException],
     [new RoutinePersistenceError(), InternalServerErrorException],
     [new RoutineQueryError(), InternalServerErrorException],
     [new Error('unexpected'), InternalServerErrorException],

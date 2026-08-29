@@ -22,6 +22,15 @@ export class RoutineExerciseUnavailableError extends Error {
   }
 }
 
+export class RoutineInUseError extends Error {
+  readonly code = 'ROUTINE_IN_USE';
+
+  constructor() {
+    super('Routine is referenced by a training program and cannot be deleted.');
+    this.name = 'RoutineInUseError';
+  }
+}
+
 export class RoutinePersistenceError extends Error {
   readonly code = 'ROUTINE_PERSISTENCE_FAILED';
   constructor() {

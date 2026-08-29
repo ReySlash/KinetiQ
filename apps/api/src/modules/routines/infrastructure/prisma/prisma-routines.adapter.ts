@@ -4,6 +4,7 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
   RoutineExerciseUnavailableError,
+  RoutineInUseError,
   RoutineNotFoundError,
   RoutinePersistenceError,
   RoutineQueryError,
@@ -158,6 +159,15 @@ export class PrismaRoutinesAdapter
       if (result.count === 0) throw new RoutineNotFoundError();
     } catch (error) {
       if (error instanceof RoutineNotFoundError) throw error;
+      if (
+        hasPrismaErrorCode(error, 'P2003') ||
+        hasPrismaErrorCode(error, 'P2014') ||
+        (hasPrismaErrorCode(error, 'P2039') &&
+          error instanceof Error &&
+          error.message.includes('TrainingProgramRoutine_routineId_fkey'))
+      ) {
+        throw new RoutineInUseError();
+      }
       throw new RoutinePersistenceError();
     }
   }
@@ -218,4 +228,15 @@ export class PrismaRoutinesAdapter
     }
     throw new RoutinePersistenceError();
   }
+}
+
+function hasPrismaErrorCode(error: unknown, code: string): boolean {
+  if (error instanceof PrismaClientKnownRequestError) {
+    return error.code === code;
+  }
+  return isRecord(error) && error.code === code;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }

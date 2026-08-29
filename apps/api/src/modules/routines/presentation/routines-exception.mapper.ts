@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
@@ -7,6 +8,7 @@ import {
 } from '@nestjs/common';
 import {
   RoutineExerciseUnavailableError,
+  RoutineInUseError,
   RoutineListAuthenticationError,
   RoutineNotFoundError,
   RoutinePersistenceError,
@@ -26,6 +28,9 @@ export function toRoutinesHttpException(error: unknown): Error {
   }
   if (error instanceof RoutineExerciseUnavailableError) {
     return new UnprocessableEntityException(error.message);
+  }
+  if (error instanceof RoutineInUseError) {
+    return new ConflictException(error.message);
   }
   if (error instanceof RoutinePersistenceError) {
     return new InternalServerErrorException('Failed to persist routine.');

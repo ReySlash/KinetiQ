@@ -4,10 +4,12 @@ jest.mock(
 );
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
   RoutineQueryError,
   RoutineNotFoundError,
+  RoutineInUseError,
 } from '../../application/errors/routine.errors';
 import { Routine } from '../../domain/entities/routine.entity';
 import { routineFindAllSelect } from './prisma-routines.mapper';
@@ -123,5 +125,20 @@ describe('PrismaRoutinesAdapter', () => {
     await expect(
       adapter.deleteOwnedPrivateBySlug('missing', 'owner-id'),
     ).rejects.toBeInstanceOf(RoutineNotFoundError);
+  });
+
+  it('maps a referenced routine deletion to a routine-in-use error', async () => {
+    const error = Object.create(
+      PrismaClientKnownRequestError.prototype,
+    ) as PrismaClientKnownRequestError;
+    Object.assign(error, {
+      code: 'P2039',
+      message: 'Constraint TrainingProgramRoutine_routineId_fkey was violated.',
+    });
+    deleteMany.mockRejectedValue(error);
+
+    await expect(
+      adapter.deleteOwnedPrivateBySlug('referenced', 'owner-id'),
+    ).rejects.toBeInstanceOf(RoutineInUseError);
   });
 });

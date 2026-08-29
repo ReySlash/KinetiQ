@@ -972,6 +972,42 @@ describe('HTTP authentication and authorization (e2e)', () => {
     ).resolves.not.toBeNull();
   });
 
+  it('returns a conflict when deleting a routine referenced by a training program', async () => {
+    const userCookies = await signIn(user);
+    const routineSlug = `referenced-http-routine-${randomUUID()}`;
+    const programName = `Referenced HTTP program ${randomUUID()}`;
+
+    await prisma.routine.create({
+      data: {
+        id: randomUUID(),
+        ownerId: user.id,
+        slug: routineSlug,
+        name: 'Referenced HTTP routine',
+        visibility: 'PRIVATE',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .post('/training-programs')
+      .set('Cookie', userCookies)
+      .send({
+        name: programName,
+        durationWeeks: 4,
+        schedule: [{ routineSlug, weekNumber: 1, dayNumber: 1 }],
+      })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .delete(`/routines/${routineSlug}`)
+      .set('Cookie', userCookies)
+      .expect(409);
+
+    expect(response.body).toMatchObject({
+      message:
+        'Routine is referenced by a training program and cannot be deleted.',
+    });
+  });
+
   it('does not allow deleting a global training program template', async () => {
     const userCookies = await signIn(user);
     const slug = `global-delete-target-${randomUUID()}`;
