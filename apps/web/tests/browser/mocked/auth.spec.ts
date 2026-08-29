@@ -21,6 +21,25 @@ test.describe("mocked browser auth flows", () => {
   });
 
   test("covers loading, success, and API error states", async ({ page }) => {
+    await page.route("**/api/auth/get-session", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          session: {
+            id: "mock-session",
+            expiresAt: "2099-01-01T00:00:00.000Z",
+          },
+          user: {
+            id: "mock-user",
+            name: "Mock User",
+            email: "reynaldo@example.com",
+            emailVerified: true,
+          },
+        }),
+      }),
+    );
+
     await page.route("**/api/auth/sign-in/email", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 250));
       await route.fulfill({
