@@ -80,7 +80,9 @@ ExercisePerformance
 CompletedSet
 ```
 
-The adopted-program models are not yet part of the current persistence schema.
+The adopted-program persistence models are implemented in the current schema;
+their domain, application, API, and frontend execution behavior remains
+pending.
 Workout sessions already support standalone routines and freestyle workouts;
 the next execution slice will add program-workout provenance without removing
 those source modes. See [workout sessions](14-workout-sessions.md).
@@ -325,12 +327,13 @@ also creates a PostgreSQL unique index with the same leading columns. It can be
 reconsidered later using query plans, but this slice preserves the approved
 model exactly.
 
-## Planned adopted-program persistence model
+## Implemented adopted-program persistence model
 
-The following Prisma-like contract documents the approved design only. It does
-not describe models that already exist in `schema.prisma`. `ownerId` is used
-instead of `userId` to match the existing Routine, TrainingProgram, and
-WorkoutSession ownership convention.
+The following contract reflects the models currently implemented in
+`schema.prisma` and the reviewed PostgreSQL migrations. Domain, application,
+API, and frontend execution behavior remain pending. `ownerId` is used instead
+of `userId` to match the existing Routine, TrainingProgram, and WorkoutSession
+ownership convention.
 
 ```prisma
 enum AdoptedTrainingProgramStatus {
