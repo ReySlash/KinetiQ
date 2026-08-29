@@ -45,6 +45,9 @@ test.describe("mocked browser auth flows", () => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
+        headers: {
+          "Set-Cookie": "better-auth.session_token=mock-session; Path=/; HttpOnly",
+        },
         body: JSON.stringify({ session: { id: "session" }, user: { id: "user" } }),
       });
     });
