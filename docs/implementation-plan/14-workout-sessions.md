@@ -6,7 +6,9 @@ Phase 8 introduced the historical execution domain. The Prisma schema,
 migrations, domain aggregate, application use cases, Prisma infrastructure,
 HTTP presentation, and initial frontend workflow are implemented. This
 document records the current session architecture and the approved boundary for
-the planned adopted-program integration.
+the adopted-program integration. Persistence for the adopted-program aggregate
+and workout occurrences is implemented; domain, application, API, and frontend
+execution behavior remains planned.
 
 Use these concrete domain names consistently:
 
@@ -124,8 +126,9 @@ ProgramWorkoutOccurrence
 WorkoutSession
 ```
 
-`TrainingProgram` is a reusable template. The planned `AdoptedTrainingProgram`
-copies its relative schedule into `ProgramWorkoutOccurrence` records. A
+`TrainingProgram` is a reusable template. The implemented persistence models
+`AdoptedTrainingProgram` and `ProgramWorkoutOccurrence` will copy the relative
+schedule when the pending adoption behavior is implemented. A
 program-origin session references one occurrence rather than only the reusable
 template. A `WorkoutSession` remains independently valid when started from a
 standalone routine or as freestyle training. Calendar dates and weekday mapping
@@ -391,10 +394,12 @@ automatic parent completion; unavailable-source/explicit-skip behavior; owner
 isolation; and program provenance in active-session and history UI. See the
 complete matrix in [testing strategy](16-testing-strategy.md).
 
-## Planned Phase 8.5 integration sequence
+## Phase 8.5 integration sequence
 
-1. Add the planned schema relations, reviewed partial indexes, and forward-only
-   migration with clean/current database verification.
+1. **Complete:** Add the schema relations, reviewed partial indexes, and
+   forward-only migrations with clean/current database verification. The
+   persistence models are implemented in `schema.prisma` and must not be
+   recreated.
 2. Implement `AdoptedTrainingProgram` and `ProgramWorkoutOccurrence` lifecycle rules with
    focused domain tests first.
 3. Add adopted-program application ports, use cases, read models, and narrow

@@ -53,16 +53,18 @@ notes about that scheduled routine occurrence.
 - **Training Program:** a reusable multi-week template containing relative
   routine placements. It is not a user's active execution of a program and has
   no actual calendar dates.
-- **Planned AdoptedTrainingProgram:** a user's adopted instance of a program. This
-  layer will own adoption state and progress through a copied relative schedule.
+- **AdoptedTrainingProgram persistence (implemented):** a user's adopted instance
+  of a program. The schema and migrations exist; domain lifecycle and execution
+  behavior remain pending.
   Calendar mapping and scheduled dates remain deferred.
-- **Planned ProgramWorkoutOccurrence:** one copied workout occurrence from the adopted
-  program schedule, with its own lifecycle and source snapshots.
+- **ProgramWorkoutOccurrence persistence (implemented):** one copied workout
+  occurrence from the adopted program schedule, with its own lifecycle and
+  source snapshots. Domain and application behavior remain pending.
 - **WorkoutSession and ExercisePerformance:** implemented historical performed
   training. These models preserve what the athlete actually did rather than
   treating mutable templates as history.
 
-The planned integrated execution hierarchy is intentionally separate:
+The integrated execution hierarchy is intentionally separate:
 
 ```text
 TrainingProgram
@@ -231,9 +233,10 @@ explicit workflow.
 
 ## Approved adopted-program integration decisions
 
-The next execution slice introduces `AdoptedTrainingProgram` and
-`ProgramWorkoutOccurrence` without merging the template, routine, and workout-session
-modules. The following decisions close the current design gaps before coding:
+The next execution slice implements the domain and application behavior for the
+existing `AdoptedTrainingProgram` and `ProgramWorkoutOccurrence` persistence
+models without merging the template, routine, and workout-session modules. The
+following decisions close the current design gaps before coding:
 
 - Activating a program with no schedule rows is rejected. An empty template may
   remain valid while it is being authored, but it cannot become an active user
@@ -422,9 +425,8 @@ implementation should additionally use reviewed PostgreSQL partial unique
 indexes to reinforce at most one `IN_PROGRESS` attempt and at most one
 `COMPLETED` attempt per non-null occurrence.
 
-Prisma cannot declare the required partial unique indexes directly. The planned
-implementation must create them in a reviewed PostgreSQL migration. Their
-semantic form is:
+Prisma cannot declare the required partial unique indexes directly. They are
+already created by the reviewed PostgreSQL migrations. Their semantic form is:
 
 ```sql
 CREATE UNIQUE INDEX "AdoptedTrainingProgram_one_non_terminal_per_owner_idx"
@@ -488,8 +490,9 @@ TrainingProgram
 
 `ProgramPhase`, `ProgramWeek`, and `ProgramDay` should be introduced only if a
 concrete future workflow requires metadata or behavior at those levels.
-Adopted-program execution is the separate planned aggregate described above,
-not part of the reusable template aggregate. Weekday enums, direct program
+Adopted-program execution is the separate persistence-backed aggregate described
+above, with domain execution behavior still pending. It is not part of the
+reusable template aggregate. Weekday enums, direct program
 exercises, progression rules, percentage-based loading, mesocycles,
 `daysPerWeek`, and frontend-specific fields remain outside the current design.
 
@@ -1019,11 +1022,9 @@ implemented. Their original sequence is historical rather than instructions for
 new work. Do not seed training programs merely to satisfy the adopted-program
 slice.
 
-The routine delete path still does not translate a
-`TrainingProgramRoutine` foreign-key restriction into the intended stable
-template-in-use `409`; it currently maps the persistence failure through the
-exercise-unavailable path. Do not claim that integration fix is implemented
-until repository code and a regression test prove it.
+The routine delete path translates a `TrainingProgramRoutine` foreign-key
+restriction into the stable template-in-use `409` response. This integration
+fix is implemented and covered by repository, mapper, and HTTP E2E tests.
 
 The next implementation sequence is the Phase 8.5 adopted-program integration
 described in [workout sessions](14-workout-sessions.md).
