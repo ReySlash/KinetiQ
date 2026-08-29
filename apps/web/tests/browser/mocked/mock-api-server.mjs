@@ -13,6 +13,13 @@ const session = {
     emailVerified: true,
   },
 };
+const sessionCookie = "better-auth.session_token=mock-session";
+
+function hasSessionCookie(request) {
+  return request.headers.cookie?.split(";").some((cookie) =>
+    cookie.trim().startsWith(sessionCookie),
+  );
+}
 
 const server = createServer((request, response) => {
   response.setHeader("Content-Type", "application/json");
@@ -23,15 +30,21 @@ const server = createServer((request, response) => {
     return;
   }
 
-  if (request.url?.startsWith("/api/routines")) {
+  if (request.url === "/api/auth/get-session") {
     response.writeHead(200);
-    response.end(JSON.stringify([]));
+    response.end(JSON.stringify(hasSessionCookie(request) ? session : null));
     return;
   }
 
-  if (request.url === "/api/auth/get-session") {
-    response.writeHead(200);
-    response.end(JSON.stringify(session));
+  if (request.url?.startsWith("/api/routines")) {
+    response.writeHead(hasSessionCookie(request) ? 200 : 401);
+    response.end(
+      JSON.stringify(
+        hasSessionCookie(request)
+          ? []
+          : { message: "Authentication required" },
+      ),
+    );
     return;
   }
 
