@@ -95,7 +95,7 @@ export default function OverviewCard({
           </TabsContent>
         </Tabs>
         {actions ? (
-          <div className="mt-4 flex justify-center border-t border-border/70 pt-4 sm:justify-end">
+          <div className="mt-2 flex justify-center border-t border-border/70 pt-2">
             {actions}
           </div>
         ) : null}

@@ -55,7 +55,7 @@ export function WorkoutSessionsLibrary({
 }) {
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
-      <div className="flex flex-col gap-1 border-b border-border/70 bg-background/30 p-1 md:flex-row md:items-center md:justify-between md:p-2">
+      <div className="flex flex-col gap-1 border-b border-border/70 bg-background/30 p-1 md:flex-row md:items-start md:justify-between md:p-2">
         <div className="w-full md:order-2 md:w-[min(100%,38rem)]">
           <WorkoutSessionFilters />
         </div>
