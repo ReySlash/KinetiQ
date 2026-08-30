@@ -1,6 +1,5 @@
 import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { ProgramWorkoutOccurrenceValidationError } from '../errors/adopted-training-program.errors';
-
 export type ProgramWorkoutOccurrenceStatusValue =
   'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
 
@@ -10,13 +9,17 @@ export class ProgramWorkoutOccurrenceStatus extends ValueObject<ProgramWorkoutOc
   }
 
   static create(value: string): ProgramWorkoutOccurrenceStatus {
-    if (!['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED'].includes(value)) {
+    if (!isProgramWorkoutOccurrenceStatus(value)) {
       throw new ProgramWorkoutOccurrenceValidationError(
         'Program workout occurrence status is invalid.',
       );
     }
-    return new ProgramWorkoutOccurrenceStatus(
-      value as ProgramWorkoutOccurrenceStatusValue,
-    );
+    return new ProgramWorkoutOccurrenceStatus(value);
   }
+}
+
+function isProgramWorkoutOccurrenceStatus(
+  value: string,
+): value is ProgramWorkoutOccurrenceStatusValue {
+  return ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED'].includes(value);
 }

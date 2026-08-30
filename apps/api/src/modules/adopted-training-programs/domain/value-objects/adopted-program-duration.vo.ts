@@ -14,4 +14,8 @@ export class AdoptedProgramDuration extends ValueObject<number> {
     }
     return new AdoptedProgramDuration(value);
   }
+
+  containsWeek(weekNumber: number): boolean {
+    return weekNumber <= this.value;
+  }
 }

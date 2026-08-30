@@ -1,15 +1,10 @@
-import { ValueObject } from '../../../shared/domain/value-objects/value-object.vo';
 import { ProgramWorkoutOccurrenceValidationError } from '../errors/adopted-training-program.errors';
 
-type ProgramWorkoutSlotValue = {
-  weekNumber: number;
-  dayNumber: number;
-};
-
-export class ProgramWorkoutSlot extends ValueObject<ProgramWorkoutSlotValue> {
-  private constructor(value: ProgramWorkoutSlotValue) {
-    super(value);
-  }
+export class ProgramWorkoutSlot {
+  private constructor(
+    public readonly weekNumber: number,
+    public readonly dayNumber: number,
+  ) {}
 
   static create(weekNumber: number, dayNumber: number): ProgramWorkoutSlot {
     if (!Number.isInteger(weekNumber) || weekNumber < 1) {
@@ -22,15 +17,7 @@ export class ProgramWorkoutSlot extends ValueObject<ProgramWorkoutSlotValue> {
         'Occurrence dayNumber must be a positive integer.',
       );
     }
-    return new ProgramWorkoutSlot({ weekNumber, dayNumber });
-  }
-
-  get weekNumber(): number {
-    return this.value.weekNumber;
-  }
-
-  get dayNumber(): number {
-    return this.value.dayNumber;
+    return new ProgramWorkoutSlot(weekNumber, dayNumber);
   }
 
   get key(): string {

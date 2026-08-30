@@ -5,80 +5,55 @@ import {
   AdoptedTrainingProgramLifecycleError,
   AdoptedTrainingProgramValidationError,
 } from './errors/adopted-training-program.errors';
+import type {
+  CreateAdoptedTrainingProgramAttributes,
+  PrimitiveAdoptedTrainingProgram,
+} from './adopted-training-program.types';
 import { AdoptedProgramNameSnapshot } from './value-objects/adopted-program-snapshot.vo';
 import { AdoptedProgramDuration } from './value-objects/adopted-program-duration.vo';
+import { AdoptedProgramTimestamp } from './value-objects/adopted-program-timestamp.vo';
 import {
   AdoptedTrainingProgramStatus,
   type AdoptedTrainingProgramStatusValue,
 } from './value-objects/adopted-training-program-status.vo';
-import {
-  ProgramWorkoutOccurrence,
-  type CreateProgramWorkoutOccurrenceAttributes,
-  type PrimitiveProgramWorkoutOccurrence,
-} from './program-workout-occurrence.entity';
+import { ProgramWorkoutOccurrence } from './program-workout-occurrence.entity';
 
-export type CreateAdoptedTrainingProgramAttributes = {
-  ownerId: string;
-  sourceTrainingProgramId?: string | null;
-  programNameSnapshot: string;
-  durationWeeksSnapshot: number;
-  startedAt: Date;
-  occurrences: readonly CreateProgramWorkoutOccurrenceAttributes[];
+type AdoptedTrainingProgramAttributes = {
+  id: UniqueId;
+  ownerId: ExistingUuid;
+  sourceTrainingProgramId: ExistingUuid | null;
+  programNameSnapshot: AdoptedProgramNameSnapshot;
+  durationWeeksSnapshot: AdoptedProgramDuration;
+  status: AdoptedTrainingProgramStatus;
+  startedAt: AdoptedProgramTimestamp;
+  completedAt: AdoptedProgramTimestamp | null;
+  cancelledAt: AdoptedProgramTimestamp | null;
+  createdAt: AdoptedProgramTimestamp;
+  updatedAt: AdoptedProgramTimestamp;
+  occurrences: readonly ProgramWorkoutOccurrence[];
 };
 
-export type PrimitiveAdoptedTrainingProgram = {
-  id: string;
-  ownerId: string;
-  sourceTrainingProgramId: string | null;
-  programNameSnapshot: string;
-  durationWeeksSnapshot: number;
-  status: AdoptedTrainingProgramStatusValue;
-  startedAt: Date;
-  completedAt: Date | null;
-  cancelledAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  occurrences: PrimitiveProgramWorkoutOccurrence[];
+type AdoptedTrainingProgramChanges = Partial<
+  Omit<PrimitiveAdoptedTrainingProgram, 'occurrences'>
+> & {
+  occurrences?: readonly ProgramWorkoutOccurrence[];
 };
-
-type AdoptedTrainingProgramState = PrimitiveAdoptedTrainingProgram;
 
 export class AdoptedTrainingProgram extends Entity<UniqueId> {
-  private constructor(state: AdoptedTrainingProgramState) {
-    super(UniqueId.create(state.id));
-    this.ownerId = state.ownerId;
-    this.sourceTrainingProgramId = state.sourceTrainingProgramId;
-    this.programNameSnapshot = AdoptedProgramNameSnapshot.create(
-      state.programNameSnapshot,
-    ).value;
-    this.durationWeeksSnapshot = AdoptedProgramDuration.create(
-      state.durationWeeksSnapshot,
-    ).value;
-    this.status = AdoptedTrainingProgramStatus.create(state.status).value;
-    this.startedAt = new Date(state.startedAt);
-    this.completedAt = state.completedAt ? new Date(state.completedAt) : null;
-    this.cancelledAt = state.cancelledAt ? new Date(state.cancelledAt) : null;
-    this.createdAt = new Date(state.createdAt);
-    this.updatedAt = new Date(state.updatedAt);
-    this.occurrences = Object.freeze(
-      state.occurrences
-        .map((occurrence) => {
-          const entity = ProgramWorkoutOccurrence.reconstitute(occurrence);
-          if (entity.adoptedTrainingProgramId !== this.id.value) {
-            throw new AdoptedTrainingProgramValidationError(
-              'Occurrence belongs to a different adopted training program.',
-            );
-          }
-          entity.assertWithinDuration(this.durationWeeksSnapshot);
-          return entity;
-        })
-        .sort(
-          (left, right) =>
-            left.slot.weekNumber - right.slot.weekNumber ||
-            left.slot.dayNumber - right.slot.dayNumber,
-        ),
-    );
-    this.validateOccurrences(this.occurrences);
+  private constructor(attributes: AdoptedTrainingProgramAttributes) {
+    super(attributes.id);
+    this.ownerId = attributes.ownerId.value;
+    this.sourceTrainingProgramId =
+      attributes.sourceTrainingProgramId?.value ?? null;
+    this.programNameSnapshot = attributes.programNameSnapshot.value;
+    this.durationWeeksSnapshot = attributes.durationWeeksSnapshot.value;
+    this.status = attributes.status.value;
+    this.startedAtValue = attributes.startedAt;
+    this.completedAtValue = attributes.completedAt;
+    this.cancelledAtValue = attributes.cancelledAt;
+    this.createdAtValue = attributes.createdAt;
+    this.updatedAtValue = attributes.updatedAt;
+    this.occurrences = attributes.occurrences;
   }
 
   public readonly ownerId: string;
@@ -86,60 +61,93 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
   public readonly programNameSnapshot: string;
   public readonly durationWeeksSnapshot: number;
   public readonly status: AdoptedTrainingProgramStatusValue;
-  public readonly startedAt: Date;
-  public readonly completedAt: Date | null;
-  public readonly cancelledAt: Date | null;
-  public readonly createdAt: Date;
-  public readonly updatedAt: Date;
+  private readonly startedAtValue: AdoptedProgramTimestamp;
+  private readonly completedAtValue: AdoptedProgramTimestamp | null;
+  private readonly cancelledAtValue: AdoptedProgramTimestamp | null;
+  private readonly createdAtValue: AdoptedProgramTimestamp;
+  private readonly updatedAtValue: AdoptedProgramTimestamp;
   public readonly occurrences: readonly ProgramWorkoutOccurrence[];
+
+  get startedAt(): Date {
+    return this.startedAtValue.toDate();
+  }
+
+  get completedAt(): Date | null {
+    return this.completedAtValue?.toDate() ?? null;
+  }
+
+  get cancelledAt(): Date | null {
+    return this.cancelledAtValue?.toDate() ?? null;
+  }
+
+  get createdAt(): Date {
+    return this.createdAtValue.toDate();
+  }
+
+  get updatedAt(): Date {
+    return this.updatedAtValue.toDate();
+  }
 
   static create(
     attributes: CreateAdoptedTrainingProgramAttributes,
   ): AdoptedTrainingProgram {
     const id = UniqueId.create();
-    const ownerId = ExistingUuid.create(attributes.ownerId).value;
-    const sourceTrainingProgramId = attributes.sourceTrainingProgramId
-      ? ExistingUuid.create(attributes.sourceTrainingProgramId).value
-      : null;
-    const duration = AdoptedProgramDuration.create(
+    const createdAt = AdoptedProgramTimestamp.create(new Date());
+    const durationWeeksSnapshot = AdoptedProgramDuration.create(
       attributes.durationWeeksSnapshot,
-    ).value;
-    const startedAt = validDate(attributes.startedAt, 'Program start');
-    if (attributes.occurrences.length === 0) {
-      throw new AdoptedTrainingProgramValidationError(
-        'An adopted training program must contain at least one occurrence.',
-      );
-    }
-    const now = new Date();
-    const occurrences = attributes.occurrences.map((occurrence) =>
-      ProgramWorkoutOccurrence.create(id.value, occurrence).toValue(),
     );
-    return new AdoptedTrainingProgram({
-      id: id.value,
-      ownerId,
-      sourceTrainingProgramId,
-      programNameSnapshot: attributes.programNameSnapshot,
-      durationWeeksSnapshot: duration,
-      status: 'ACTIVE',
-      startedAt,
+    const occurrences = createOccurrences(id, attributes);
+    const prepared = {
+      id,
+      ownerId: ExistingUuid.create(attributes.ownerId),
+      sourceTrainingProgramId: createOptionalUuid(
+        attributes.sourceTrainingProgramId,
+      ),
+      programNameSnapshot: AdoptedProgramNameSnapshot.create(
+        attributes.programNameSnapshot,
+      ),
+      durationWeeksSnapshot,
+      status: AdoptedTrainingProgramStatus.create('ACTIVE'),
+      startedAt: AdoptedProgramTimestamp.create(attributes.startedAt),
       completedAt: null,
       cancelledAt: null,
-      createdAt: now,
-      updatedAt: now,
+      createdAt,
+      updatedAt: createdAt,
       occurrences,
-    });
+    } satisfies AdoptedTrainingProgramAttributes;
+    validateAggregateState(prepared);
+    return new AdoptedTrainingProgram(prepared);
   }
 
   static reconstitute(
     state: PrimitiveAdoptedTrainingProgram,
   ): AdoptedTrainingProgram {
-    ExistingUuid.create(state.id);
-    ExistingUuid.create(state.ownerId);
-    if (state.sourceTrainingProgramId) {
-      ExistingUuid.create(state.sourceTrainingProgramId);
-    }
-    validateLifecycleTimestamps(state);
-    return new AdoptedTrainingProgram(state);
+    const prepared = {
+      id: UniqueId.create(state.id),
+      ownerId: ExistingUuid.create(state.ownerId),
+      sourceTrainingProgramId: createOptionalUuid(
+        state.sourceTrainingProgramId,
+      ),
+      programNameSnapshot: AdoptedProgramNameSnapshot.create(
+        state.programNameSnapshot,
+      ),
+      durationWeeksSnapshot: AdoptedProgramDuration.create(
+        state.durationWeeksSnapshot,
+      ),
+      status: AdoptedTrainingProgramStatus.create(state.status),
+      startedAt: AdoptedProgramTimestamp.create(state.startedAt),
+      completedAt: state.completedAt
+        ? AdoptedProgramTimestamp.create(state.completedAt)
+        : null,
+      cancelledAt: state.cancelledAt
+        ? AdoptedProgramTimestamp.create(state.cancelledAt)
+        : null,
+      createdAt: AdoptedProgramTimestamp.create(state.createdAt),
+      updatedAt: AdoptedProgramTimestamp.create(state.updatedAt),
+      occurrences: reconstituteOccurrences(state.occurrences),
+    } satisfies AdoptedTrainingProgramAttributes;
+    validateAggregateState(prepared);
+    return new AdoptedTrainingProgram(prepared);
   }
 
   pause(): AdoptedTrainingProgram {
@@ -182,6 +190,36 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
     return this.withState({ status: 'COMPLETED', completedAt: new Date() });
   }
 
+  startOccurrence(occurrenceId: string): AdoptedTrainingProgram {
+    this.assertActiveForOccurrenceCommand();
+    this.assertNextPendingOccurrence(occurrenceId);
+    return this.replaceOccurrence(occurrenceId, (occurrence) =>
+      occurrence.start(),
+    );
+  }
+
+  completeOccurrence(occurrenceId: string): AdoptedTrainingProgram {
+    this.assertCanResolveOccurrence();
+    return this.replaceOccurrence(occurrenceId, (occurrence) =>
+      occurrence.complete(),
+    );
+  }
+
+  cancelOccurrence(occurrenceId: string): AdoptedTrainingProgram {
+    this.assertCanResolveOccurrence();
+    return this.replaceOccurrence(occurrenceId, (occurrence) =>
+      occurrence.cancel(),
+    );
+  }
+
+  skipOccurrence(occurrenceId: string): AdoptedTrainingProgram {
+    this.assertActiveForOccurrenceCommand();
+    this.assertNextPendingOccurrence(occurrenceId);
+    return this.replaceOccurrence(occurrenceId, (occurrence) =>
+      occurrence.skip(),
+    );
+  }
+
   nextPendingOccurrence(): ProgramWorkoutOccurrence | null {
     return (
       this.occurrences.find((occurrence) => occurrence.status === 'PENDING') ??
@@ -189,9 +227,11 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
     );
   }
 
-  resolveOccurrence(
+  private replaceOccurrence(
     occurrenceId: string,
-    transition: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED',
+    operation: (
+      occurrence: ProgramWorkoutOccurrence,
+    ) => ProgramWorkoutOccurrence,
   ): AdoptedTrainingProgram {
     const id = ExistingUuid.create(occurrenceId).value;
     const occurrence = this.occurrences.find((item) => item.id.value === id);
@@ -200,17 +240,10 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
         'Occurrence does not belong to this adopted training program.',
       );
     }
-    const replacement =
-      transition === 'IN_PROGRESS'
-        ? occurrence.start()
-        : transition === 'COMPLETED'
-          ? occurrence.complete()
-          : transition === 'SKIPPED'
-            ? occurrence.skip()
-            : occurrence.cancel();
+    const replacement = operation(occurrence);
     return this.withState({
       occurrences: this.occurrences.map((item) =>
-        item.id.value === id ? replacement.toValue() : item.toValue(),
+        item.id.value === id ? replacement : item,
       ),
     });
   }
@@ -253,64 +286,193 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
     }
   }
 
-  private withState(
-    changes: Partial<AdoptedTrainingProgramState>,
-  ): AdoptedTrainingProgram {
-    return new AdoptedTrainingProgram({
-      ...this.toValue(),
-      ...changes,
-      updatedAt: new Date(),
-    });
+  private assertActiveForOccurrenceCommand(): void {
+    if (this.status !== 'ACTIVE') {
+      throw new AdoptedTrainingProgramLifecycleError(
+        `Occurrence command requires an ACTIVE program, not ${this.status}.`,
+      );
+    }
   }
 
-  private validateOccurrences(
-    occurrences: readonly ProgramWorkoutOccurrence[],
-  ): void {
-    const slots = new Set<string>();
-    for (const occurrence of occurrences) {
-      if (slots.has(occurrence.slot.key)) {
-        throw new AdoptedTrainingProgramValidationError(
-          `Only one occurrence can occupy week ${occurrence.slot.weekNumber}, day ${occurrence.slot.dayNumber}.`,
-        );
-      }
-      slots.add(occurrence.slot.key);
+  private assertCanResolveOccurrence(): void {
+    if (this.status !== 'ACTIVE' && this.status !== 'PAUSED') {
+      throw new AdoptedTrainingProgramLifecycleError(
+        `Occurrence command cannot run for a ${this.status} program.`,
+      );
     }
+  }
+
+  private assertNextPendingOccurrence(occurrenceId: string): void {
+    const requestedId = ExistingUuid.create(occurrenceId).value;
+    const nextPendingOccurrence = this.nextPendingOccurrence();
+    if (
+      !nextPendingOccurrence ||
+      nextPendingOccurrence.id.value !== requestedId
+    ) {
+      throw new AdoptedTrainingProgramLifecycleError(
+        'Only the next pending occurrence can be started or skipped.',
+      );
+    }
+  }
+
+  private withState(
+    changes: AdoptedTrainingProgramChanges,
+  ): AdoptedTrainingProgram {
+    const { occurrences: changedOccurrences, ...scalarChanges } = changes;
+    const attributes = {
+      id: this.id,
+      ownerId: ExistingUuid.create(this.ownerId),
+      sourceTrainingProgramId: createOptionalUuid(
+        scalarChanges.sourceTrainingProgramId ?? this.sourceTrainingProgramId,
+      ),
+      programNameSnapshot: AdoptedProgramNameSnapshot.create(
+        scalarChanges.programNameSnapshot ?? this.programNameSnapshot,
+      ),
+      durationWeeksSnapshot: AdoptedProgramDuration.create(
+        scalarChanges.durationWeeksSnapshot ?? this.durationWeeksSnapshot,
+      ),
+      status: AdoptedTrainingProgramStatus.create(
+        scalarChanges.status ?? this.status,
+      ),
+      startedAt: AdoptedProgramTimestamp.create(
+        scalarChanges.startedAt ?? this.startedAt,
+      ),
+      completedAt:
+        scalarChanges.completedAt === undefined
+          ? this.completedAtValue
+          : scalarChanges.completedAt
+            ? AdoptedProgramTimestamp.create(scalarChanges.completedAt)
+            : null,
+      cancelledAt:
+        scalarChanges.cancelledAt === undefined
+          ? this.cancelledAtValue
+          : scalarChanges.cancelledAt
+            ? AdoptedProgramTimestamp.create(scalarChanges.cancelledAt)
+            : null,
+      createdAt: this.createdAtValue,
+      updatedAt: AdoptedProgramTimestamp.create(new Date()),
+      occurrences: Object.freeze(changedOccurrences ?? this.occurrences),
+    } satisfies AdoptedTrainingProgramAttributes;
+    validateAggregateState(attributes);
+    return new AdoptedTrainingProgram(attributes);
   }
 }
 
-function validDate(value: Date, label: string): Date {
-  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+function createOptionalUuid(
+  value: string | null | undefined,
+): ExistingUuid | null {
+  return value ? ExistingUuid.create(value) : null;
+}
+
+function createOccurrences(
+  id: UniqueId,
+  attributes: CreateAdoptedTrainingProgramAttributes,
+): readonly ProgramWorkoutOccurrence[] {
+  const occurrences = attributes.occurrences
+    .map((occurrence) => ProgramWorkoutOccurrence.create(id.value, occurrence))
+    .sort(compareOccurrences);
+  return Object.freeze(occurrences);
+}
+
+function reconstituteOccurrences(
+  occurrences: PrimitiveAdoptedTrainingProgram['occurrences'],
+): readonly ProgramWorkoutOccurrence[] {
+  return Object.freeze(
+    occurrences
+      .map((occurrence) => ProgramWorkoutOccurrence.reconstitute(occurrence))
+      .sort(compareOccurrences),
+  );
+}
+
+function validateAggregateState(
+  attributes: AdoptedTrainingProgramAttributes,
+): void {
+  if (attributes.updatedAt.isBefore(attributes.createdAt)) {
     throw new AdoptedTrainingProgramValidationError(
-      `${label} timestamp is invalid.`,
+      'Program updatedAt cannot precede createdAt.',
     );
   }
-  return new Date(value);
+  validateOccurrences(
+    attributes.occurrences,
+    attributes.durationWeeksSnapshot,
+    attributes.id.value,
+  );
+  validateLifecycleTimestamps(
+    attributes.status.value,
+    attributes.startedAt,
+    attributes.completedAt,
+    attributes.cancelledAt,
+  );
+}
+
+function validateOccurrences(
+  occurrences: readonly ProgramWorkoutOccurrence[],
+  duration: AdoptedProgramDuration,
+  adoptedTrainingProgramId?: string,
+): void {
+  if (occurrences.length === 0) {
+    throw new AdoptedTrainingProgramValidationError(
+      'An adopted training program must contain at least one occurrence.',
+    );
+  }
+  const slots = new Set<string>();
+  for (const occurrence of occurrences) {
+    if (
+      adoptedTrainingProgramId &&
+      occurrence.adoptedTrainingProgramId !== adoptedTrainingProgramId
+    ) {
+      throw new AdoptedTrainingProgramValidationError(
+        'Occurrence belongs to a different adopted training program.',
+      );
+    }
+    if (!duration.containsWeek(occurrence.slot.weekNumber)) {
+      throw new AdoptedTrainingProgramValidationError(
+        'Occurrence weekNumber cannot exceed durationWeeksSnapshot.',
+      );
+    }
+    if (slots.has(occurrence.slot.key)) {
+      throw new AdoptedTrainingProgramValidationError(
+        `Only one occurrence can occupy week ${occurrence.slot.weekNumber}, day ${occurrence.slot.dayNumber}.`,
+      );
+    }
+    slots.add(occurrence.slot.key);
+  }
+}
+
+function compareOccurrences(
+  left: ProgramWorkoutOccurrence,
+  right: ProgramWorkoutOccurrence,
+): number {
+  return (
+    left.slot.weekNumber - right.slot.weekNumber ||
+    left.slot.dayNumber - right.slot.dayNumber
+  );
 }
 
 function validateLifecycleTimestamps(
-  state: PrimitiveAdoptedTrainingProgram,
+  status: AdoptedTrainingProgramStatusValue,
+  startedAt: AdoptedProgramTimestamp,
+  completedAt: AdoptedProgramTimestamp | null,
+  cancelledAt: AdoptedProgramTimestamp | null,
 ): void {
-  validDate(state.startedAt, 'Program start');
-  if (state.completedAt) validDate(state.completedAt, 'Program completion');
-  if (state.cancelledAt) validDate(state.cancelledAt, 'Program cancellation');
-  const hasCompletedAt = state.completedAt !== null;
-  const hasCancelledAt = state.cancelledAt !== null;
+  const hasCompletedAt = completedAt !== null;
+  const hasCancelledAt = cancelledAt !== null;
   if (
-    (state.status === 'COMPLETED' && (!hasCompletedAt || hasCancelledAt)) ||
-    (state.status === 'CANCELLED' && (!hasCancelledAt || hasCompletedAt)) ||
-    (state.status !== 'COMPLETED' && hasCompletedAt) ||
-    (state.status !== 'CANCELLED' && hasCancelledAt)
+    (status === 'COMPLETED' && (!hasCompletedAt || hasCancelledAt)) ||
+    (status === 'CANCELLED' && (!hasCancelledAt || hasCompletedAt)) ||
+    (status !== 'COMPLETED' && hasCompletedAt) ||
+    (status !== 'CANCELLED' && hasCancelledAt)
   ) {
     throw new AdoptedTrainingProgramValidationError(
-      `Invalid lifecycle timestamps for ${state.status} adopted training program.`,
+      `Invalid lifecycle timestamps for ${status} adopted training program.`,
     );
   }
-  if (state.completedAt && state.completedAt < state.startedAt) {
+  if (completedAt?.isBefore(startedAt)) {
     throw new AdoptedTrainingProgramValidationError(
       'Program completion timestamp cannot precede the start timestamp.',
     );
   }
-  if (state.cancelledAt && state.cancelledAt < state.startedAt) {
+  if (cancelledAt?.isBefore(startedAt)) {
     throw new AdoptedTrainingProgramValidationError(
       'Program cancellation timestamp cannot precede the start timestamp.',
     );

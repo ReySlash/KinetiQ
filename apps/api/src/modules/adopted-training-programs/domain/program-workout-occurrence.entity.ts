@@ -2,43 +2,23 @@ import { Entity } from '../../shared/domain/entity';
 import { ExistingUuid } from '../../shared/domain/value-objects/existing-uuid.vo';
 import { UniqueId } from '../../shared/domain/value-objects/unique-id.vo';
 import {
-  AdoptedTrainingProgramValidationError,
   ProgramWorkoutOccurrenceLifecycleError,
+  ProgramWorkoutOccurrenceValidationError,
 } from './errors/adopted-training-program.errors';
+import type {
+  CreateProgramWorkoutOccurrenceAttributes,
+  PrimitiveProgramWorkoutOccurrence,
+} from './program-workout-occurrence.types';
 import {
   ProgramSlotNotesSnapshot,
   RoutineNameSnapshot,
 } from './value-objects/adopted-program-snapshot.vo';
+import { AdoptedProgramTimestamp } from './value-objects/adopted-program-timestamp.vo';
 import { ProgramWorkoutOccurrenceStatus } from './value-objects/program-workout-occurrence-status.vo';
 import { ProgramWorkoutSlot } from './value-objects/program-workout-slot.vo';
 
-export type CreateProgramWorkoutOccurrenceAttributes = {
-  sourceTrainingProgramRoutineId?: string | null;
-  sourceRoutineId?: string | null;
-  weekNumber: number;
-  dayNumber: number;
-  routineNameSnapshot: string;
-  programSlotNotesSnapshot?: string | null;
-};
-
-export type PrimitiveProgramWorkoutOccurrence = {
-  id: string;
-  adoptedTrainingProgramId: string;
-  sourceTrainingProgramRoutineId: string | null;
-  sourceRoutineId: string | null;
-  weekNumber: number;
-  dayNumber: number;
-  routineNameSnapshot: string;
-  programSlotNotesSnapshot: string | null;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type ProgramWorkoutOccurrenceState = PrimitiveProgramWorkoutOccurrence;
-
 export class ProgramWorkoutOccurrence extends Entity<UniqueId> {
-  private constructor(state: ProgramWorkoutOccurrenceState) {
+  private constructor(state: PrimitiveProgramWorkoutOccurrence) {
     super(UniqueId.create(state.id));
     this.adoptedTrainingProgramId = state.adoptedTrainingProgramId;
     this.sourceTrainingProgramRoutineId = state.sourceTrainingProgramRoutineId;
@@ -51,8 +31,13 @@ export class ProgramWorkoutOccurrence extends Entity<UniqueId> {
       state.programSlotNotesSnapshot,
     ).value;
     this.status = ProgramWorkoutOccurrenceStatus.create(state.status).value;
-    this.createdAt = new Date(state.createdAt);
-    this.updatedAt = new Date(state.updatedAt);
+    this.createdAtValue = AdoptedProgramTimestamp.create(state.createdAt);
+    this.updatedAtValue = AdoptedProgramTimestamp.create(state.updatedAt);
+    if (this.updatedAtValue.isBefore(this.createdAtValue)) {
+      throw new ProgramWorkoutOccurrenceValidationError(
+        'Occurrence updatedAt cannot precede createdAt.',
+      );
+    }
   }
 
   public readonly adoptedTrainingProgramId: string;
@@ -62,8 +47,16 @@ export class ProgramWorkoutOccurrence extends Entity<UniqueId> {
   public readonly routineNameSnapshot: string;
   public readonly programSlotNotesSnapshot: string | null;
   public readonly status: PrimitiveProgramWorkoutOccurrence['status'];
-  public readonly createdAt: Date;
-  public readonly updatedAt: Date;
+  private readonly createdAtValue: AdoptedProgramTimestamp;
+  private readonly updatedAtValue: AdoptedProgramTimestamp;
+
+  get createdAt(): Date {
+    return this.createdAtValue.toDate();
+  }
+
+  get updatedAt(): Date {
+    return this.updatedAtValue.toDate();
+  }
 
   static create(
     adoptedTrainingProgramId: string,
@@ -74,12 +67,14 @@ export class ProgramWorkoutOccurrence extends Entity<UniqueId> {
     return new ProgramWorkoutOccurrence({
       id: UniqueId.create().value,
       adoptedTrainingProgramId: parentId,
-      sourceTrainingProgramRoutineId: attributes.sourceTrainingProgramRoutineId
-        ? ExistingUuid.create(attributes.sourceTrainingProgramRoutineId).value
-        : null,
-      sourceRoutineId: attributes.sourceRoutineId
-        ? ExistingUuid.create(attributes.sourceRoutineId).value
-        : null,
+      sourceTrainingProgramRoutineId: createOptionalSourceId(
+        attributes.sourceTrainingProgramRoutineId,
+        'source training program routine',
+      ),
+      sourceRoutineId: createOptionalSourceId(
+        attributes.sourceRoutineId,
+        'source routine',
+      ),
       weekNumber: attributes.weekNumber,
       dayNumber: attributes.dayNumber,
       routineNameSnapshot: attributes.routineNameSnapshot,
@@ -99,12 +94,14 @@ export class ProgramWorkoutOccurrence extends Entity<UniqueId> {
       adoptedTrainingProgramId: ExistingUuid.create(
         state.adoptedTrainingProgramId,
       ).value,
-      sourceTrainingProgramRoutineId: state.sourceTrainingProgramRoutineId
-        ? ExistingUuid.create(state.sourceTrainingProgramRoutineId).value
-        : null,
-      sourceRoutineId: state.sourceRoutineId
-        ? ExistingUuid.create(state.sourceRoutineId).value
-        : null,
+      sourceTrainingProgramRoutineId: createOptionalSourceId(
+        state.sourceTrainingProgramRoutineId,
+        'source training program routine',
+      ),
+      sourceRoutineId: createOptionalSourceId(
+        state.sourceRoutineId,
+        'source routine',
+      ),
     });
   }
 
@@ -155,12 +152,18 @@ export class ProgramWorkoutOccurrence extends Entity<UniqueId> {
       updatedAt: new Date(this.updatedAt),
     };
   }
+}
 
-  assertWithinDuration(durationWeeks: number): void {
-    if (this.slot.weekNumber > durationWeeks) {
-      throw new AdoptedTrainingProgramValidationError(
-        'Occurrence weekNumber cannot exceed durationWeeksSnapshot.',
-      );
-    }
+function createOptionalSourceId(
+  value: string | null | undefined,
+  label: string,
+): string | null {
+  if (!value) return null;
+  try {
+    return ExistingUuid.create(value).value;
+  } catch {
+    throw new ProgramWorkoutOccurrenceValidationError(
+      `${label} identifier must be a valid UUID.`,
+    );
   }
 }
