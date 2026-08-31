@@ -190,7 +190,7 @@ export function RoutineBuilder({
   }
 
   return (
-    <main className="flex h-dvh w-full flex-col gap-2 overflow-auto px-1 pb-13 md:px-2 md:pb-2 md:pt-0">
+    <main className="flex h-dvh w-full flex-col gap-2 overflow-hidden px-1 pb-13 md:px-2 md:pb-2 md:pt-0">
       <PageHeader subtitle="Reusable workout templates for your training.">
         <Link
           href="/routines"
@@ -209,7 +209,7 @@ export function RoutineBuilder({
       <section className="min-h-0 flex-1 overflow-y-auto space-y-2 rounded-2xl">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex w-full h-full flex-col gap-2"
+          className="flex w-full flex-col gap-2"
         >
           <Card>
             <CardHeader>
