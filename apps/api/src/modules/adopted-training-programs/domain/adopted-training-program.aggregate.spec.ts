@@ -1,5 +1,8 @@
 import { AdoptedTrainingProgram } from './adopted-training-program.aggregate';
-import type { CreateAdoptedTrainingProgramAttributes } from './adopted-training-program.types';
+import type {
+  CreateAdoptedTrainingProgramAttributes,
+  PrimitiveAdoptedTrainingProgram,
+} from './adopted-training-program.types';
 import {
   AdoptedTrainingProgramLifecycleError,
   AdoptedTrainingProgramValidationError,
@@ -26,6 +29,11 @@ function createProgram(
   });
 }
 
+type AggregateTransition = (
+  program: AdoptedTrainingProgram,
+  occurrenceId: string,
+) => AdoptedTrainingProgram;
+
 describe('AdoptedTrainingProgram', () => {
   it('rejects invalid duration, empty schedules, out-of-range weeks, and duplicate slots', () => {
     expect(() => createProgram({ durationWeeksSnapshot: 0 })).toThrow(
@@ -50,6 +58,95 @@ describe('AdoptedTrainingProgram', () => {
       '2:1',
     ]);
     expect(program.nextPendingOccurrence()?.slot.key).toBe('1:1');
+  });
+
+  it('restores canonical order when reconstituting shuffled occurrences', () => {
+    // Mutant: #275
+    // Arrange
+    const persisted = createProgram().toValue();
+    const shuffledOccurrences = [...persisted.occurrences].reverse();
+
+    // Act
+    const reconstituted = AdoptedTrainingProgram.reconstitute({
+      ...persisted,
+      occurrences: shuffledOccurrences,
+    });
+
+    // Assert
+    expect(reconstituted.occurrences.map((item) => item.slot.key)).toEqual([
+      '1:1',
+      '1:2',
+      '2:1',
+    ]);
+    expect(reconstituted.nextPendingOccurrence()?.slot.key).toBe('1:1');
+  });
+
+  it.each([
+    ['pause', (program) => program.pause()],
+    ['resume', (program) => program.pause().resume()],
+    ['cancel', (program) => program.cancel()],
+    [
+      'start occurrence',
+      (program, occurrenceId) => program.startOccurrence(occurrenceId),
+    ],
+    [
+      'cancel occurrence',
+      (program, occurrenceId) =>
+        program.startOccurrence(occurrenceId).cancelOccurrence(occurrenceId),
+    ],
+    [
+      'complete occurrence',
+      (program, occurrenceId) =>
+        program.startOccurrence(occurrenceId).completeOccurrence(occurrenceId),
+    ],
+    [
+      'skip occurrence',
+      (program, occurrenceId) => program.skipOccurrence(occurrenceId),
+    ],
+  ] as [string, AggregateTransition][])(
+    'retains source provenance after %s',
+    (_label, transition) => {
+      // Mutant: #257
+      // Arrange
+      const sourceTrainingProgramId = '33333333-3333-4333-8333-333333333333';
+      const program = createProgram({ sourceTrainingProgramId });
+      const occurrenceId = program.occurrences[0].id.value;
+
+      // Act
+      const transitioned = transition(program, occurrenceId);
+
+      // Assert
+      expect(transitioned.sourceTrainingProgramId).toBe(
+        sourceTrainingProgramId,
+      );
+    },
+  );
+
+  it('rejects a reconstituted occurrence owned by another aggregate', () => {
+    // Mutant: #341
+    // Arrange
+    const aggregateId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const otherAggregateId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const source = createProgram().toValue();
+    const persisted = {
+      ...source,
+      id: aggregateId,
+      occurrences: source.occurrences.map((occurrence, index) => {
+        const ownedOccurrence = {
+          ...occurrence,
+          adoptedTrainingProgramId: aggregateId,
+        };
+        return index === 0
+          ? { ...ownedOccurrence, adoptedTrainingProgramId: otherAggregateId }
+          : ownedOccurrence;
+      }),
+    };
+
+    // Act
+    const reconstitute = () => AdoptedTrainingProgram.reconstitute(persisted);
+
+    // Assert
+    expect(reconstitute).toThrow(AdoptedTrainingProgramValidationError);
   });
 
   it('only starts or skips the next pending occurrence', () => {
@@ -109,9 +206,6 @@ describe('AdoptedTrainingProgram', () => {
     expect(() => withActiveOccurrence.cancel()).toThrow(
       AdoptedTrainingProgramLifecycleError,
     );
-    expect(() => active.pause().complete()).toThrow(
-      AdoptedTrainingProgramLifecycleError,
-    );
   });
 
   it('allows cancellation from paused when no occurrence is active', () => {
@@ -124,18 +218,6 @@ describe('AdoptedTrainingProgram', () => {
     // Assert
     expect(cancelled.status).toBe('CANCELLED');
     expect(cancelled.cancelledAt).toBeInstanceOf(Date);
-  });
-
-  it('does not allow explicit completion while occurrences remain unresolved', () => {
-    const active = createProgram();
-    expect(() => active.complete()).toThrow(
-      AdoptedTrainingProgramLifecycleError,
-    );
-
-    const inProgress = active.startOccurrence(active.occurrences[0].id.value);
-    expect(() => inProgress.complete()).toThrow(
-      AdoptedTrainingProgramLifecycleError,
-    );
   });
 
   it.each([
@@ -341,6 +423,127 @@ describe('AdoptedTrainingProgram', () => {
       AdoptedTrainingProgramValidationError,
     );
   });
+
+  it.each([
+    [
+      'ACTIVE with no terminal timestamps',
+      () => createProgram().toValue(),
+      true,
+    ],
+    [
+      'PAUSED with no terminal timestamps',
+      () => createProgram().pause().toValue(),
+      true,
+    ],
+    [
+      'COMPLETED with only completedAt',
+      () => {
+        const completed = createProgram();
+        return completed
+          .skipOccurrence(completed.occurrences[0].id.value)
+          .skipOccurrence(completed.occurrences[1].id.value)
+          .skipOccurrence(completed.occurrences[2].id.value)
+          .toValue();
+      },
+      true,
+    ],
+    [
+      'CANCELLED with only cancelledAt',
+      () => createProgram().cancel().toValue(),
+      true,
+    ],
+    [
+      'COMPLETED without completedAt',
+      () => ({
+        ...createProgram().toValue(),
+        status: 'COMPLETED' as const,
+        completedAt: null,
+      }),
+      false,
+    ],
+    [
+      'COMPLETED with cancelledAt',
+      () => {
+        const completed = createProgram();
+        const value = completed
+          .skipOccurrence(completed.occurrences[0].id.value)
+          .skipOccurrence(completed.occurrences[1].id.value)
+          .skipOccurrence(completed.occurrences[2].id.value)
+          .toValue();
+        return {
+          ...value,
+          cancelledAt: new Date('2026-01-02T10:00:00.000Z'),
+        };
+      },
+      false,
+    ],
+    [
+      'CANCELLED without cancelledAt',
+      () => ({
+        ...createProgram().toValue(),
+        status: 'CANCELLED' as const,
+        cancelledAt: null,
+      }),
+      false,
+    ],
+    [
+      'CANCELLED with completedAt',
+      () => ({
+        ...createProgram().cancel().toValue(),
+        completedAt: new Date('2026-01-02T10:00:00.000Z'),
+      }),
+      false,
+    ],
+    [
+      'ACTIVE with completedAt',
+      () => ({
+        ...createProgram().toValue(),
+        completedAt: new Date('2026-01-02T10:00:00.000Z'),
+      }),
+      false,
+    ],
+    [
+      'PAUSED with cancelledAt',
+      () => ({
+        ...createProgram().pause().toValue(),
+        cancelledAt: new Date('2026-01-02T10:00:00.000Z'),
+      }),
+      false,
+    ],
+    [
+      'COMPLETED before startedAt',
+      () => {
+        const completed = createProgram();
+        const value = completed
+          .skipOccurrence(completed.occurrences[0].id.value)
+          .skipOccurrence(completed.occurrences[1].id.value)
+          .skipOccurrence(completed.occurrences[2].id.value)
+          .toValue();
+        return {
+          ...value,
+          completedAt: new Date('2025-12-31T10:00:00.000Z'),
+        };
+      },
+      false,
+    ],
+  ] as [string, () => PrimitiveAdoptedTrainingProgram, boolean][])(
+    'enforces the lifecycle timestamp matrix for %s',
+    (_label, createState, shouldReconstitute) => {
+      // Mutants: #380, #386, #401, #410
+      // Arrange
+      const state = createState();
+
+      // Act
+      const reconstitute = () => AdoptedTrainingProgram.reconstitute(state);
+
+      // Assert
+      if (shouldReconstitute) {
+        expect(reconstitute()).toBeInstanceOf(AdoptedTrainingProgram);
+      } else {
+        expect(reconstitute).toThrow(AdoptedTrainingProgramValidationError);
+      }
+    },
+  );
 
   it('keeps occurrence collections immutable across state transitions', () => {
     const program = createProgram();

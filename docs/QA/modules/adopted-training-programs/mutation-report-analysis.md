@@ -25,17 +25,7 @@ domain and application mutation-testing pilot. Classifications use
 | #23 | `AdoptedTrainingProgramConcurrencyError.constructor` | Empties `Error.name`. | Diagnostic error-name preservation. | Non-actionable | Implementation detail. | No |
 | #97 | `AdoptedTrainingProgram.cancel` | Makes the “not PAUSED” operand always true. | Cancellation from a valid paused program becomes rejected. | Resolved | A behavioral test now confirms cancellation from a paused program with no active occurrence; the incremental mutation rerun killed this mutant. | No |
 | #102 | `AdoptedTrainingProgram.cancel` | Empties the invalid-transition message. | Exact cancellation failure wording. | Pending decision | Exact lifecycle-message wording is not confirmed. | Pending decision |
-| #107 | `AdoptedTrainingProgram.complete` | Makes the parent-status guard always true. | Explicit completion always fails. | Pending decision | The catalog confirms automatic completion through occurrence resolution but does not define the continuing contract of explicit `complete()`. | Pending decision |
-| #108 | `AdoptedTrainingProgram.complete` | Disables the parent-status guard. | Explicit completion may proceed from terminal states. | Pending decision | Explicit `complete()` lifecycle behavior is not fully specified by the catalog. | Pending decision |
-| #110 | `AdoptedTrainingProgram.complete` | Makes the ACTIVE-status operand always true. | PAUSED completion is rejected while some terminal states may pass the first operand. | Pending decision | Allowed statuses for explicit completion need a contract decision. | Pending decision |
-| #113 | `AdoptedTrainingProgram.complete` | Makes the PAUSED-status operand always true. | ACTIVE completion is rejected. | Pending decision | Explicit completion behavior is not defined by BV-03. | Pending decision |
-| #114 | `AdoptedTrainingProgram.complete` | Changes `status !== PAUSED` to `status === PAUSED`. | ACTIVE and some terminal statuses can pass while PAUSED fails. | Pending decision | Explicit completion state rules remain unspecified. | Pending decision |
-| #119 | `AdoptedTrainingProgram.complete` | Replaces the unresolved-occurrence search with `true`. | Explicit completion always reports unresolved occurrences. | Pending decision | Whether explicit completion remains a supported operation is unresolved. | Pending decision |
-| #121 | `AdoptedTrainingProgram.complete` | Changes `some(unresolved)` into an `every`-based condition. | Mixed resolved/unresolved schedules may be classified incorrectly. | Pending decision | The catalog defines automatic final resolution, not explicit completion semantics. | Pending decision |
-| #123 | `AdoptedTrainingProgram.complete` | Replaces the entire unresolved predicate with `true`. | Any occurrence makes explicit completion fail. | Pending decision | Explicit completion is outside the confirmed BV-03 behavior. | Pending decision |
-| #126 | `AdoptedTrainingProgram.complete` | Makes the “not completed” operand always true. | Completed occurrences may be treated as unresolved unless skipped. | Pending decision | Requires an explicit-completion contract. | Pending decision |
-| #129 | `AdoptedTrainingProgram.complete` | Makes the “not skipped” operand always true. | Skipped occurrences may be treated as unresolved unless completed. | Pending decision | Requires an explicit-completion contract. | Pending decision |
-| #134 | `AdoptedTrainingProgram.complete` | Empties the unresolved-occurrence message. | Exact completion failure wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
+| #107, #108, #110, #113, #114, #119, #121, #123, #126, #129, #134 | `AdoptedTrainingProgram.complete` | Mutations of the explicit parent-completion operation. | Explicit parent completion behavior. | Resolved | The explicit operation was removed by approved decision. Parent completion occurs only as part of resolving the final occurrence, as confirmed by BV-03. | No |
 | #142 | `completeOccurrence` | Removes `assertCanResolveOccurrence()`. | Invalid parent states may reach child transition validation instead. | Non-actionable | Valid confirmed paths are unchanged; only defensive error provenance changes for invalid states. | No |
 | #145 | `cancelOccurrence` | Removes `assertCanResolveOccurrence()`. | Invalid parent states may reach child transition validation instead. | Non-actionable | Valid aggregate paths remain rejected elsewhere; exact error provenance is not contracted. | No |
 | #168 | `replaceOccurrence` | Empties the foreign-occurrence message. | Exact aggregate-membership failure wording. | Pending decision | Membership rejection exists, but exact wording is not confirmed. | Pending decision |
@@ -46,11 +36,11 @@ domain and application mutation-testing pilot. Classifications use
 | #232 | `assertCanResolveOccurrence` | Removes the complete parent-state guard body. | Terminal-parent requests fail later through child-state validation. | Non-actionable | Valid confirmed execution paths are unchanged; this affects defensive error provenance. | No |
 | #234 | `assertCanResolveOccurrence` | Makes the guard condition always false. | Same guard bypass as #232. | Non-actionable | No confirmed valid behavior changes; downstream child invariants still reject invalid transitions. | No |
 | #254 | `assertNextPendingOccurrence` | Empties the schedule-order failure message. | Exact wrong-occurrence message wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
-| #257 | `withState` | Replaces nullish fallback with logical AND for `sourceTrainingProgramId`. | Ordinary transitions may erase retained source-program provenance. | Pending decision | Provenance validity is confirmed, but lifecycle retention of this field is not explicitly documented. | Pending decision |
+| #257 | `withState` | Replaces nullish fallback with logical AND for `sourceTrainingProgramId`. | Ordinary transitions may erase retained source-program provenance. | Resolved | The parameterized domain test now verifies provenance retention through pause, resume, cancellation, and occurrence transitions; the incremental mutation rerun killed this mutant. | No |
 | #263 | `withState` completed timestamp selection | Forces the outer condition to false. | Unspecified completion timestamps become null instead of retaining the previous value. | Equivalent | On reachable nonterminal transitions the previous value is already null; terminal programs cannot transition through this path. | No |
 | #266 | `withState` cancellation timestamp selection | Forces the outer condition to false. | Unspecified cancellation timestamps become null instead of retaining the previous value. | Equivalent | On reachable nonterminal transitions the prior value is null; terminal transitions are blocked. | No |
 | #269 | `withState` | Removes `validateAggregateState`. | Transition results are no longer revalidated. | Equivalent | With one mutant at a time, existing public transitions already construct valid states from valid aggregates; no confirmed valid path changes observably. | No |
-| #275 | `reconstituteOccurrences` | Removes occurrence sorting after reconstitution. | Persisted children may remain in database-provided order, changing next-occurrence selection. | Pending decision | Schedule ordering during reconstitution is meaningful but not explicitly specified in the catalog. | Pending decision |
+| #275 | `reconstituteOccurrences` | Removes occurrence sorting after reconstitution. | Persisted children may remain in database-provided order, changing next-occurrence selection. | Resolved | The reconstitution test now asserts canonical `weekNumber`/`dayNumber` ordering and the correct next pending occurrence; the incremental mutation rerun killed this mutant. | No |
 | #282 | `validateAggregateState` | Empties the `updatedAt` chronology message. | Exact corrupted-timestamp wording. | Pending decision | Timestamp error wording is not confirmed. | Pending decision |
 | #312 | `validateParentChildLifecycle` | Empties the completed-parent contradiction message. | Exact BV-02 failure wording. | Pending decision | BV-02 confirms rejection, not wording. | Pending decision |
 | #321 | `validateParentChildLifecycle` | Empties the cancelled-parent contradiction message. | Exact BV-02 failure wording. | Pending decision | BV-02 confirms rejection, not wording. | Pending decision |
@@ -58,14 +48,14 @@ domain and application mutation-testing pilot. Classifications use
 | #334 | `validateOccurrences` | Disables the zero-occurrence condition. | The dedicated empty-occurrence guard is bypassed, but another aggregate invariant still rejects the same empty ACTIVE state. | Equivalent | Creation and reconstitution remain observably rejected under NE-01 and NE-05. Distinguishing the guards would require asserting unconfirmed internal error provenance. | No |
 | #336 | `validateOccurrences` | Replaces the empty-schedule throw block with an empty block. | The dedicated throw is removed, but another aggregate invariant still rejects the same empty ACTIVE state. | Equivalent | The confirmed rejection remains observable and covered. Killing this mutant would require coupling a test to internal validation order or unconfirmed wording. | No |
 | #338 | `validateOccurrences` | Empties the zero-occurrence error message. | Exact empty-aggregate wording. | Pending decision | Rejection and stable external code are confirmed, not domain message text. | Pending decision |
-| #341 | `validateOccurrences` | Disables child-parent identifier comparison. | Reconstitution may accept a child belonging to another aggregate. | Pending decision | The catalog confirms ownership concealment and lifecycle consistency, but not this aggregate identifier invariant explicitly. | Pending decision |
+| #341 | `validateOccurrences` | Disables child-parent identifier comparison. | Reconstitution may accept a child belonging to another aggregate. | Resolved | The reconstitution test now proves that every occurrence must reference the containing aggregate ID; the incremental mutation rerun killed this mutant. | No |
 | #353 | `validateOccurrences` | Empties the out-of-duration message. | Exact schedule-boundary wording. | Pending decision | BC-04 confirms rejection and HTTP status, not domain message text. | Pending decision |
 | #358 | `validateOccurrences` | Empties the duplicate-slot message. | Exact duplicate-position wording. | Pending decision | Duplicate-position behavior/message is not defined in the catalog. | Pending decision |
-| #380 | `validateLifecycleTimestamps` | Disables completed-status timestamp validation branch. | COMPLETED state may lack `completedAt` or include `cancelledAt`. | Pending decision | Parent/child consistency is confirmed, but the complete lifecycle-timestamp matrix is not cataloged. | Pending decision |
-| #386 | `validateLifecycleTimestamps` | Changes completed timestamp invalidity from OR to AND. | Several malformed COMPLETED timestamp combinations become valid. | Pending decision | Requires a confirmed lifecycle-timestamp contract. | Pending decision |
-| #401 | `validateLifecycleTimestamps` | Disables rejection of `cancelledAt` on non-cancelled states. | ACTIVE, PAUSED, or COMPLETED states may retain cancellation timestamps. | Pending decision | The catalog does not define this timestamp matrix. | Pending decision |
+| #380 | `validateLifecycleTimestamps` | Disables completed-status timestamp validation branch. | COMPLETED state may lack `completedAt` or include `cancelledAt`. | Resolved | The lifecycle timestamp matrix is confirmed and covered by one parameterized reconstitution test. | No |
+| #386 | `validateLifecycleTimestamps` | Changes completed timestamp invalidity from OR to AND. | Several malformed COMPLETED timestamp combinations become valid. | Resolved | The same lifecycle timestamp matrix rejects missing and conflicting terminal timestamps. | No |
+| #401 | `validateLifecycleTimestamps` | Disables rejection of `cancelledAt` on non-cancelled states. | ACTIVE, PAUSED, or COMPLETED states may retain cancellation timestamps. | Resolved | The same lifecycle timestamp matrix rejects terminal timestamps on non-terminal states. | No |
 | #408 | `validateLifecycleTimestamps` | Empties the lifecycle-timestamp message. | Exact malformed-state wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
-| #410 | `validateLifecycleTimestamps` | Disables rejection when completion precedes start. | Chronologically impossible completed programs may reconstitute. | Pending decision | BC-03 governs workout-session starts, not adopted-program completion chronology. | Pending decision |
+| #410 | `validateLifecycleTimestamps` | Disables rejection when completion precedes start. | Chronologically impossible completed programs may reconstitute. | Resolved | The confirmed lifecycle timestamp matrix includes terminal timestamps that precede `startedAt` and rejects them. | No |
 | #420 | `validateLifecycleTimestamps` | Empties the cancellation-before-start message. | Exact chronology failure wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
 | #421 | `AdoptedTrainingProgramValidationError.code` | Empties the stable domain error code. | Validation responses may lose their machine-readable code. | Resolved | A literal HTTP-body assertion now protects the BV-05 code; the incremental mutation rerun killed this mutant. | No |
 | #422 | `AdoptedTrainingProgramValidationError.constructor` | Empties `Error.name`. | Diagnostic error-name preservation. | Non-actionable | Implementation detail. | No |
@@ -83,15 +73,15 @@ domain and application mutation-testing pilot. Classifications use
 | #465 | `ProgramWorkoutOccurrence.transition` | Empties the lifecycle error message. | Exact occurrence-transition wording. | Pending decision | Lifecycle outcome is observable, but exact wording is not confirmed. | Pending decision |
 | #480 | `createOptionalSourceId` | Empties the invalid-provenance message. | Exact NE-03 validation wording. | Pending decision | NE-03 confirms rejection, not message text. | Pending decision |
 | #497 | `AdoptedProgramDuration.create` | Empties the invalid-duration message. | Exact BC-04 validation wording. | Pending decision | BC-04 confirms range and HTTP status, not domain wording. | Pending decision |
-| #510 | `AdoptedProgramNameSnapshot.create` | Changes minimum rejection from `<2` to `<=2`. | A two-character program name becomes invalid. | Pending decision | Program-name snapshot bounds are not specified in the failure-mode catalog. | Pending decision |
-| #512 | `AdoptedProgramNameSnapshot.create` | Disables all length validation. | Too-short and overlong program names become valid. | Pending decision | Snapshot-name bounds are not confirmed in the catalog. | Pending decision |
-| #513 | `AdoptedProgramNameSnapshot.create` | Changes maximum rejection from `>120` to `>=120`. | Exactly 120 characters becomes invalid. | Pending decision | The catalog’s 120-character rule applies to adoption slugs, not program-name snapshots. | Pending decision |
+| #510 | `AdoptedProgramNameSnapshot.create` | Changes minimum rejection from `<2` to `<=2`. | A two-character program name becomes invalid. | Resolved | The approved 2–120 character contract is covered at its minimum boundary; the targeted mutation rerun killed this mutant. | No |
+| #512 | `AdoptedProgramNameSnapshot.create` | Disables all length validation. | Too-short and overlong program names become valid. | Resolved | The approved contract is covered immediately below and above its valid range; the targeted mutation rerun killed this mutant. | No |
+| #513 | `AdoptedProgramNameSnapshot.create` | Changes maximum rejection from `>120` to `>=120`. | Exactly 120 characters becomes invalid. | Resolved | The approved 2–120 character contract is covered at its maximum boundary; the targeted mutation rerun killed this mutant. | No |
 | #517 | `AdoptedProgramNameSnapshot.create` | Empties the length-validation message. | Exact program-name validation wording. | Pending decision | Neither the exact bound contract nor wording is cataloged. | Pending decision |
-| #525 | `RoutineNameSnapshot.create` | Changes minimum rejection from `<1` to `<=1`. | A one-character routine name becomes invalid. | Pending decision | Routine-name snapshot limits are not cataloged. | Pending decision |
-| #527 | `RoutineNameSnapshot.create` | Disables all length validation. | Blank and overlong routine names become valid. | Pending decision | The catalog does not confirm these snapshot limits. | Pending decision |
-| #528 | `RoutineNameSnapshot.create` | Changes maximum rejection from `>120` to `>=120`. | Exactly 120 characters becomes invalid. | Pending decision | Routine-name limits are not confirmed in the catalog. | Pending decision |
+| #525 | `RoutineNameSnapshot.create` | Changes the minimum routine-name boundary. | A routine-name snapshot outside the approved minimum may be accepted. | Resolved | The snapshot now follows the source routine's approved 2–120 character contract, covered at its minimum boundary; the targeted mutation rerun killed this mutant. | No |
+| #527 | `RoutineNameSnapshot.create` | Disables all length validation. | Too-short and overlong routine names become valid. | Resolved | The approved contract is covered immediately below and above its valid range; the targeted mutation rerun killed this mutant. | No |
+| #528 | `RoutineNameSnapshot.create` | Changes maximum rejection from `>120` to `>=120`. | Exactly 120 characters becomes invalid. | Resolved | The approved 2–120 character contract is covered at its maximum boundary; the targeted mutation rerun killed this mutant. | No |
 | #532 | `RoutineNameSnapshot.create` | Empties the validation message. | Exact routine-name validation wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
-| #544 | `ProgramSlotNotesSnapshot.create` | Changes maximum rejection from `>1000` to `>=1000`. | Exactly 1,000 characters becomes invalid. | Pending decision | Notes-length limits are not documented in the catalog. | Pending decision |
+| #544 | `ProgramSlotNotesSnapshot.create` | Changes maximum rejection from `>1000` to `>=1000`. | Exactly 1,000 characters becomes invalid. | Resolved | The snapshot follows the source schedule's approved 1,000-character maximum, now covered at the exact boundary; the targeted mutation rerun killed this mutant. | No |
 | #548 | `ProgramSlotNotesSnapshot.create` | Empties the validation message. | Exact notes-length failure wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
 | #557 | `AdoptedProgramTimestamp.create` | Empties the invalid-timestamp message. | Exact timestamp validation wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
 | #571 | `AdoptedTrainingProgramStatus.create` | Empties the invalid-status message. | Exact program-status validation wording. | Pending decision | Exact wording is not confirmed. | Pending decision |
@@ -103,9 +93,24 @@ domain and application mutation-testing pilot. Classifications use
 
 ## Verification update
 
-The incremental mutation rerun completed with 585 total mutants. The mutation
-score increased from **71.62%** to **73.78%**. Eight previously actionable
-survivors were killed: **#3, #97, #421, #423, #425, #427, #612, and #613**.
+The latest targeted incremental mutation rerun completed with 556 mutants: 282
+killed, 65 survived, 4 had no coverage, and 205 produced compile errors. The
+mutation score is **80.34%**. The lifecycle matrix test covers the behaviors previously
+represented by **#380, #386, #401, and #410**; Stryker refreshed some numeric
+identifiers after the production lifecycle cleanup, so those historical IDs
+should not be compared directly with the current JSON report.
+
+The approved 2–120 character program-name snapshot test killed the three
+boundary and validation mutants historically identified as **#510, #512, and
+#513**. The explicit `AdoptedTrainingProgram.complete()` operation remains
+removed by approved decision, so its eleven historical survivors are obsolete.
+
+The approved 2–120 character routine-name snapshot test killed the three
+boundary and validation mutants historically identified as **#525, #527, and
+#528**.
+
+The exact 1,000-character program-slot notes boundary test killed the
+off-by-one mutant historically identified as **#544**.
 
 Mutants **#334** and **#336** remain surviving but are now classified as
 equivalent because bypassing the dedicated empty-occurrence guard still reaches
@@ -116,15 +121,15 @@ error wording.
 ## Current summary
 
 - **Baseline surviving mutants:** 94
-- **Resolved by the latest test iteration:** 8
-- **Current surviving mutants:** 86
+- **Resolved by the latest test iterations:** 22
+- **Current surviving mutants:** 65
 - **Actionable survivors:** 0
 - **Equivalent survivors:** 5
 - **Non-actionable survivors:** 16
-- **Pending decision survivors:** 65
+- **Pending decision survivors after approved reclassification:** 40
 
 ### Next test-writing iteration
 
-No mutant should move into another test-writing iteration until the pending
-contracts below are decided. Equivalent and non-actionable mutants should remain
-intentionally surviving.
+No actionable survivor remains from this analysis. Equivalent and
+non-actionable mutants should remain intentionally surviving. The pending
+decision survivors still require contract decisions before they drive tests.

@@ -32,6 +32,53 @@ describe('adopted training program value objects', () => {
     );
   });
 
+  it('accepts program name snapshots from 2 through 120 characters', () => {
+    const minimumLengthName = 'ab';
+    const maximumLengthName = 'a'.repeat(120);
+
+    expect(AdoptedProgramNameSnapshot.create(minimumLengthName).value).toBe(
+      minimumLengthName,
+    );
+    expect(AdoptedProgramNameSnapshot.create(maximumLengthName).value).toBe(
+      maximumLengthName,
+    );
+    expect(() => AdoptedProgramNameSnapshot.create('a')).toThrow(
+      AdoptedTrainingProgramValidationError,
+    );
+    expect(() => AdoptedProgramNameSnapshot.create('a'.repeat(121))).toThrow(
+      AdoptedTrainingProgramValidationError,
+    );
+  });
+
+  it('accepts routine name snapshots from 2 through 120 characters', () => {
+    const minimumLengthName = 'ab';
+    const maximumLengthName = 'a'.repeat(120);
+
+    expect(RoutineNameSnapshot.create(minimumLengthName).value).toBe(
+      minimumLengthName,
+    );
+    expect(RoutineNameSnapshot.create(maximumLengthName).value).toBe(
+      maximumLengthName,
+    );
+    expect(() => RoutineNameSnapshot.create('a')).toThrow(
+      ProgramWorkoutOccurrenceValidationError,
+    );
+    expect(() => RoutineNameSnapshot.create('a'.repeat(121))).toThrow(
+      ProgramWorkoutOccurrenceValidationError,
+    );
+  });
+
+  it('accepts program slot notes up to exactly 1,000 characters', () => {
+    const maximumLengthNotes = 'a'.repeat(1000);
+
+    expect(ProgramSlotNotesSnapshot.create(maximumLengthNotes).value).toBe(
+      maximumLengthNotes,
+    );
+    expect(() => ProgramSlotNotesSnapshot.create('a'.repeat(1001))).toThrow(
+      ProgramWorkoutOccurrenceValidationError,
+    );
+  });
+
   it('validates duration and slot boundaries', () => {
     expect(() => AdoptedProgramDuration.create(0)).toThrow(
       AdoptedTrainingProgramValidationError,

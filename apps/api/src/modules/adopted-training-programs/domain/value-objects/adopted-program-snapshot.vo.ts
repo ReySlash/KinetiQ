@@ -27,9 +27,9 @@ export class RoutineNameSnapshot extends ValueObject<string> {
 
   static create(value: string): RoutineNameSnapshot {
     const normalized = value.trim();
-    if (normalized.length < 1 || normalized.length > 120) {
+    if (normalized.length < 2 || normalized.length > 120) {
       throw new ProgramWorkoutOccurrenceValidationError(
-        'Routine name snapshot must contain between 1 and 120 characters.',
+        'Routine name snapshot must contain between 2 and 120 characters.',
       );
     }
     return new RoutineNameSnapshot(normalized);

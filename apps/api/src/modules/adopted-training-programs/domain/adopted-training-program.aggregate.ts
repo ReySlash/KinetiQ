@@ -171,25 +171,6 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
     return this.withState({ status: 'CANCELLED', cancelledAt: new Date() });
   }
 
-  complete(): AdoptedTrainingProgram {
-    if (this.status !== 'ACTIVE' && this.status !== 'PAUSED') {
-      throw new AdoptedTrainingProgramLifecycleError(
-        `Cannot transition program from ${this.status} to COMPLETED.`,
-      );
-    }
-    if (
-      this.occurrences.some(
-        (occurrence) =>
-          occurrence.status !== 'COMPLETED' && occurrence.status !== 'SKIPPED',
-      )
-    ) {
-      throw new AdoptedTrainingProgramLifecycleError(
-        'A program cannot complete while occurrences remain unresolved.',
-      );
-    }
-    return this.withState({ status: 'COMPLETED', completedAt: new Date() });
-  }
-
   startOccurrence(occurrenceId: string): AdoptedTrainingProgram {
     this.assertActiveForOccurrenceCommand();
     this.assertNextPendingOccurrence(occurrenceId);
