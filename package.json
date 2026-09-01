@@ -17,6 +17,7 @@
     "test": "pnpm --filter api test",
     "test:api": "pnpm --filter api test",
     "test:api:e2e": "pnpm --filter api test:e2e",
+    "test:api:mutation": "pnpm --filter api test:mutation",
     "format": "pnpm -r format"
   }
 }

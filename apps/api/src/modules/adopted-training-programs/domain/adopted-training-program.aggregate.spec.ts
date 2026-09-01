@@ -77,17 +77,23 @@ describe('AdoptedTrainingProgram', () => {
     );
   });
 
-  it('returns no next occurrence after every occurrence is resolved', () => {
+  it('automatically completes after every occurrence is resolved', () => {
+    // Failure mode: BV-03
+    // Arrange
     const program = createProgram();
     const [first, second, third] = program.occurrences;
 
+    // Act
     const resolved = program
       .skipOccurrence(first.id.value)
       .startOccurrence(second.id.value)
       .completeOccurrence(second.id.value)
       .skipOccurrence(third.id.value);
 
+    // Assert
     expect(resolved.nextPendingOccurrence()).toBeNull();
+    expect(resolved.status).toBe('COMPLETED');
+    expect(resolved.completedAt).toBeInstanceOf(Date);
   });
 
   it('enforces program lifecycle transitions and active-occurrence protection', () => {
@@ -108,7 +114,19 @@ describe('AdoptedTrainingProgram', () => {
     );
   });
 
-  it('completes only after all occurrences are completed or skipped', () => {
+  it('allows cancellation from paused when no occurrence is active', () => {
+    // Arrange
+    const paused = createProgram().pause();
+
+    // Act
+    const cancelled = paused.cancel();
+
+    // Assert
+    expect(cancelled.status).toBe('CANCELLED');
+    expect(cancelled.cancelledAt).toBeInstanceOf(Date);
+  });
+
+  it('does not allow explicit completion while occurrences remain unresolved', () => {
     const active = createProgram();
     expect(() => active.complete()).toThrow(
       AdoptedTrainingProgramLifecycleError,
@@ -118,33 +136,54 @@ describe('AdoptedTrainingProgram', () => {
     expect(() => inProgress.complete()).toThrow(
       AdoptedTrainingProgramLifecycleError,
     );
-
-    const resolved = active
-      .skipOccurrence(active.occurrences[0].id.value)
-      .startOccurrence(active.occurrences[1].id.value)
-      .completeOccurrence(active.occurrences[1].id.value)
-      .skipOccurrence(active.occurrences[2].id.value);
-    expect(resolved.complete().status).toBe('COMPLETED');
-    expect(resolved.complete().completedAt).toBeInstanceOf(Date);
   });
 
+  it.each([
+    ['skipped', 'skip'],
+    ['completed', 'complete'],
+  ] as const)(
+    'completes the parent in the same operation when the final occurrence is %s',
+    (_label, resolution) => {
+      // Failure mode: BV-03
+      // Arrange
+      const program = createProgram({ occurrences: [occurrence(1, 1)] });
+      const occurrenceId = program.occurrences[0].id.value;
+
+      // Act
+      const resolved =
+        resolution === 'skip'
+          ? program.skipOccurrence(occurrenceId)
+          : program
+              .startOccurrence(occurrenceId)
+              .completeOccurrence(occurrenceId);
+
+      // Assert
+      expect(resolved.status).toBe('COMPLETED');
+      expect(resolved.completedAt).toBeInstanceOf(Date);
+    },
+  );
+
   it('records mutually exclusive lifecycle timestamps', () => {
-    const cancelled = createProgram().cancel();
+    // Failure mode: BV-03
+    // Arrange
+    const cancellable = createProgram();
+    const completed = createProgram();
+    const [first, second, third] = completed.occurrences;
+
+    // Act
+    const cancelled = cancellable.cancel();
+    const fullyResolved = completed
+      .skipOccurrence(first.id.value)
+      .startOccurrence(second.id.value)
+      .completeOccurrence(second.id.value)
+      .skipOccurrence(third.id.value);
+
+    // Assert
     expect(cancelled.cancelledAt).toBeInstanceOf(Date);
     expect(cancelled.completedAt).toBeNull();
     expect(cancelled.cancelledAt?.getTime()).toBeGreaterThanOrEqual(
       cancelled.startedAt.getTime(),
     );
-
-    const completed = createProgram();
-    const [first, second, third] = completed.occurrences;
-    const fullyResolved = completed
-      .skipOccurrence(first.id.value)
-      .startOccurrence(second.id.value)
-      .completeOccurrence(second.id.value)
-      .skipOccurrence(third.id.value)
-      .complete();
-
     expect(fullyResolved.completedAt).toBeInstanceOf(Date);
     expect(fullyResolved.cancelledAt).toBeNull();
     expect(fullyResolved.completedAt?.getTime()).toBeGreaterThanOrEqual(
@@ -153,13 +192,17 @@ describe('AdoptedTrainingProgram', () => {
   });
 
   it('rejects every transition from terminal program states', () => {
+    // Failure mode: BV-03
+    // Arrange
     const resolved = createProgram();
+
+    // Act
     const terminal = resolved
       .skipOccurrence(resolved.occurrences[0].id.value)
       .skipOccurrence(resolved.occurrences[1].id.value)
-      .skipOccurrence(resolved.occurrences[2].id.value)
-      .complete();
+      .skipOccurrence(resolved.occurrences[2].id.value);
 
+    // Assert
     expect(() => terminal.pause()).toThrow(
       AdoptedTrainingProgramLifecycleError,
     );
@@ -232,6 +275,53 @@ describe('AdoptedTrainingProgram', () => {
         cancelledAt: new Date('2025-12-31T10:00:00.000Z'),
       }),
     ).toThrow(AdoptedTrainingProgramValidationError);
+  });
+
+  it('rejects confirmed parent and child lifecycle contradictions during reconstitution', () => {
+    // Failure mode: BV-02
+    // Arrange
+    const active = createProgram();
+    const activeValue = active.toValue();
+    const terminalTimestamp = new Date('2026-01-02T10:00:00.000Z');
+    const reconstituteCompletedWithPendingOccurrence = () =>
+      AdoptedTrainingProgram.reconstitute({
+        ...activeValue,
+        status: 'COMPLETED',
+        completedAt: terminalTimestamp,
+      });
+
+    const withActiveOccurrence = active.startOccurrence(
+      active.occurrences[0].id.value,
+    );
+    const reconstituteCancelledWithActiveOccurrence = () =>
+      AdoptedTrainingProgram.reconstitute({
+        ...withActiveOccurrence.toValue(),
+        status: 'CANCELLED',
+        cancelledAt: terminalTimestamp,
+      });
+
+    const completed = active
+      .skipOccurrence(active.occurrences[0].id.value)
+      .skipOccurrence(active.occurrences[1].id.value)
+      .skipOccurrence(active.occurrences[2].id.value);
+    const reconstituteActiveWithResolvedOccurrences = () =>
+      AdoptedTrainingProgram.reconstitute({
+        ...completed.toValue(),
+        status: 'ACTIVE',
+        completedAt: null,
+      });
+
+    // Act
+    const actions = [
+      reconstituteCompletedWithPendingOccurrence,
+      reconstituteCancelledWithActiveOccurrence,
+      reconstituteActiveWithResolvedOccurrences,
+    ];
+
+    // Assert
+    for (const action of actions) {
+      expect(action).toThrow(AdoptedTrainingProgramValidationError);
+    }
   });
 
   it('rejects occurrence commands for an occurrence outside the aggregate', () => {

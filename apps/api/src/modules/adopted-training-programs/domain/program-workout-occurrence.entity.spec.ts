@@ -104,4 +104,23 @@ describe('ProgramWorkoutOccurrence', () => {
       '33333333-3333-4333-8333-333333333333',
     );
   });
+
+  it.each([
+    ['sourceRoutineId', ''],
+    ['sourceRoutineId', '   '],
+    ['sourceTrainingProgramRoutineId', ''],
+    ['sourceTrainingProgramRoutineId', '   '],
+  ] as const)('rejects a blank %s when it is present', (field, value) => {
+    // Failure mode: NE-03
+    // Arrange
+    const attributes = { [field]: value };
+
+    // Act
+    const createWithBlankProvenance = () => createOccurrence(attributes);
+
+    // Assert
+    expect(createWithBlankProvenance).toThrow(
+      ProgramWorkoutOccurrenceValidationError,
+    );
+  });
 });

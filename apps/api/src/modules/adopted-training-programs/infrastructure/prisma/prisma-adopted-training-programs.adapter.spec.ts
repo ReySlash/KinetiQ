@@ -8,6 +8,8 @@ import { PrismaService } from '../../../shared/infrastructure/database/prisma/pr
 import {
   AdoptedTrainingProgramAlreadyNonTerminalError,
   AdoptedTrainingProgramConcurrencyError,
+  AdoptedTrainingProgramNotFoundError,
+  AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramSourceUnavailableError,
 } from '../../application/errors/adopted-training-program.errors';
 import { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
@@ -56,6 +58,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       work({
         adoptedTrainingProgram: {
           updateMany: adoptedProgramUpdateMany,
+          findFirst: adoptedProgramFindFirst,
           findUniqueOrThrow: adoptedProgramFindUniqueOrThrow,
           update: adoptedProgramUpdate,
         },
@@ -105,6 +108,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
         work({
           adoptedTrainingProgram: {
             updateMany: adoptedProgramUpdateMany,
+            findFirst: adoptedProgramFindFirst,
             findUniqueOrThrow: adoptedProgramFindUniqueOrThrow,
             update: adoptedProgramUpdate,
           },
@@ -118,6 +122,36 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
         }),
     );
   });
+
+  function arrangeStartableOccurrence(): void {
+    occurrenceFindFirst.mockResolvedValue({
+      id: occurrenceId,
+      sourceRoutineId: routineId,
+      adoptedTrainingProgram: {
+        startedAt: new Date('2026-08-01T10:00:00.000Z'),
+      },
+    });
+    routineFindFirst.mockResolvedValue({
+      id: routineId,
+      name: 'Upper A',
+      ownerId,
+      visibility: 'PRIVATE',
+      exercises: [
+        {
+          id: '77777777-7777-4777-8777-777777777777',
+          order: 0,
+          sets: 3,
+          minReps: 8,
+          maxReps: 10,
+          targetRir: 2,
+          restSeconds: 120,
+          tempo: null,
+          notes: null,
+          exercise: { id: exerciseId, name: 'Bench Press', isActive: true },
+        },
+      ],
+    });
+  }
 
   it('creates the aggregate through Prisma nested writes', async () => {
     adoptedProgramCreate.mockResolvedValue(undefined);
@@ -246,6 +280,71 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     });
   });
 
+  it.each([
+    [
+      'pause',
+      () => adapter.pause({ ownerId, adoptedTrainingProgramId: programId }),
+    ],
+    [
+      'cancel',
+      () => adapter.cancel({ ownerId, adoptedTrainingProgramId: programId }),
+    ],
+  ])(
+    'conceals a missing or unowned %s target as not found',
+    async (_name, execute) => {
+      // Failure mode: EC-01
+      // Arrange
+      adoptedProgramUpdateMany.mockResolvedValue({ count: 0 });
+      adoptedProgramFindFirst.mockResolvedValue(null);
+
+      // Act
+      const result = execute();
+
+      // Assert
+      await expect(result).rejects.toBeInstanceOf(
+        AdoptedTrainingProgramNotFoundError,
+      );
+    },
+  );
+
+  it.each([
+    [
+      'skip',
+      () =>
+        adapter.skipOccurrence({
+          ownerId,
+          adoptedTrainingProgramId: programId,
+          occurrenceId,
+        }),
+    ],
+    [
+      'start',
+      () =>
+        adapter.startProgramWorkout({
+          ownerId,
+          adoptedTrainingProgramId: programId,
+          occurrenceId,
+          timezone: 'UTC',
+        }),
+    ],
+  ])(
+    'conceals an occurrence outside the owned parent during %s',
+    async (_name, execute) => {
+      // Failure mode: EC-01
+      // Arrange
+      occurrenceFindFirst.mockResolvedValue(null);
+      adoptedProgramFindFirst.mockResolvedValue({ id: programId, ownerId });
+
+      // Act
+      const result = execute();
+
+      // Assert
+      await expect(result).rejects.toBeInstanceOf(
+        AdoptedTrainingProgramNotFoundError,
+      );
+    },
+  );
+
   it('skips the final occurrence and completes the parent program', async () => {
     occurrenceFindFirst.mockResolvedValue({ id: occurrenceId });
     occurrenceUpdateMany.mockResolvedValue({ count: 1 });
@@ -281,7 +380,19 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
-      occurrences: [],
+      occurrences: [
+        {
+          id: occurrenceId,
+          weekNumber: 1,
+          dayNumber: 1,
+          routineNameSnapshot: 'Upper A',
+          programSlotNotesSnapshot: null,
+          status: 'PENDING',
+          sourceRoutineId: null,
+          sourceRoutine: null,
+          sessionAttempts: [],
+        },
+      ],
     });
 
     await expect(
@@ -436,17 +547,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
   });
 
   it('propagates workout-session domain validation failures before persistence', async () => {
-    occurrenceFindFirst.mockResolvedValue({
-      id: occurrenceId,
-      sourceRoutineId: routineId,
-    });
-    routineFindFirst.mockResolvedValue({
-      id: routineId,
-      name: 'Upper A',
-      ownerId,
-      visibility: 'PRIVATE',
-      exercises: [],
-    });
+    arrangeStartableOccurrence();
 
     await expect(
       adapter.startProgramWorkout({
@@ -476,6 +577,136 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     ).rejects.toBeInstanceOf(AdoptedTrainingProgramSourceUnavailableError);
     expect(workoutSessionCreate).not.toHaveBeenCalled();
     expect(occurrenceUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it('keeps an occurrence pending when its source routine has no exercises', async () => {
+    // Failure mode: NE-04
+    // Arrange
+    occurrenceFindFirst.mockResolvedValue({
+      id: occurrenceId,
+      sourceRoutineId: routineId,
+    });
+    routineFindFirst.mockResolvedValue({
+      id: routineId,
+      name: 'Upper A',
+      ownerId,
+      visibility: 'PRIVATE',
+      exercises: [],
+    });
+
+    // Act
+    const result = adapter.startProgramWorkout({
+      ownerId,
+      adoptedTrainingProgramId: programId,
+      occurrenceId,
+      timezone: 'UTC',
+    });
+
+    // Assert
+    await expect(result).rejects.toBeInstanceOf(
+      AdoptedTrainingProgramSourceUnavailableError,
+    );
+    expect(workoutSessionCreate).not.toHaveBeenCalled();
+    expect(occurrenceUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      'more than five minutes in the future',
+      new Date('2026-08-31T10:05:00.001Z'),
+    ],
+    ['more than thirty days in the past', new Date('2026-08-01T09:59:59.999Z')],
+  ])(
+    'rejects a workout start timestamp %s without writing',
+    async (_label, startedAt) => {
+      // Failure mode: BC-03
+      // Arrange
+      jest.useFakeTimers().setSystemTime(new Date('2026-08-31T10:00:00.000Z'));
+      arrangeStartableOccurrence();
+      workoutSessionCreate.mockResolvedValue(undefined);
+      occurrenceUpdateMany.mockResolvedValue({ count: 1 });
+
+      try {
+        // Act
+        const result = adapter.startProgramWorkout({
+          ownerId,
+          adoptedTrainingProgramId: programId,
+          occurrenceId,
+          timezone: 'UTC',
+          startedAt,
+        });
+
+        // Assert
+        await expect(result).rejects.toThrow();
+        expect(workoutSessionCreate).not.toHaveBeenCalled();
+        expect(occurrenceUpdateMany).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    },
+  );
+
+  it.each([
+    ['the five-minute future tolerance', new Date('2026-08-31T10:05:00.000Z')],
+    ['the thirty-day backdating limit', new Date('2026-08-01T10:00:00.000Z')],
+  ])('accepts a workout start timestamp at %s', async (_label, startedAt) => {
+    // Failure mode: BC-03
+    // Arrange
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-31T10:00:00.000Z'));
+    arrangeStartableOccurrence();
+    workoutSessionCreate.mockResolvedValue(undefined);
+    occurrenceUpdateMany.mockResolvedValue({ count: 1 });
+
+    try {
+      // Act
+      const result = adapter.startProgramWorkout({
+        ownerId,
+        adoptedTrainingProgramId: programId,
+        occurrenceId,
+        timezone: 'UTC',
+        startedAt,
+      });
+
+      // Assert
+      await expect(result).resolves.toMatchObject({ occurrenceId });
+      expect(workoutSessionCreate).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('rejects a backdated workout start before the adopted program began', async () => {
+    // Failure mode: BC-03
+    // Arrange
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-31T10:00:00.000Z'));
+    arrangeStartableOccurrence();
+    workoutSessionCreate.mockResolvedValue(undefined);
+    occurrenceUpdateMany.mockResolvedValue({ count: 1 });
+    occurrenceFindFirst.mockResolvedValue({
+      id: occurrenceId,
+      sourceRoutineId: routineId,
+      adoptedTrainingProgram: {
+        startedAt: new Date('2026-08-30T10:00:00.000Z'),
+      },
+    });
+
+    try {
+      // Act
+      const result = adapter.startProgramWorkout({
+        ownerId,
+        adoptedTrainingProgramId: programId,
+        occurrenceId,
+        timezone: 'UTC',
+        startedAt: new Date('2026-08-30T09:59:59.999Z'),
+      });
+
+      // Assert
+      await expect(result).rejects.toThrow();
+      expect(workoutSessionCreate).not.toHaveBeenCalled();
+      expect(occurrenceUpdateMany).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('rejects a source routine that exists but is not visible to the owner', async () => {
@@ -590,6 +821,80 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     ).rejects.toBeInstanceOf(AdoptedTrainingProgramConcurrencyError);
   });
 
+  it.each([
+    'WorkoutSession_one_in_progress_per_owner_idx',
+    'WorkoutSession_one_in_progress_per_occurrence_idx',
+  ])(
+    'maps the approved %s uniqueness race to concurrency',
+    async (constraint) => {
+      // Failure mode: EC-03
+      // Arrange
+      arrangeStartableOccurrence();
+      workoutSessionCreate.mockRejectedValue(
+        prismaError('P2002', {
+          modelName: 'WorkoutSession',
+          target: constraint,
+        }),
+      );
+
+      // Act
+      const result = adapter.startProgramWorkout({
+        ownerId,
+        adoptedTrainingProgramId: programId,
+        occurrenceId,
+        timezone: 'UTC',
+      });
+
+      // Assert
+      await expect(result).rejects.toBeInstanceOf(
+        AdoptedTrainingProgramConcurrencyError,
+      );
+    },
+  );
+
+  it.each([
+    [
+      'an unrelated WorkoutSession constraint',
+      prismaError('P2002', {
+        modelName: 'WorkoutSession',
+        target: 'WorkoutSession_external_reference_key',
+      }),
+    ],
+    ['missing constraint metadata', prismaError('P2002')],
+    [
+      'a uniqueness failure from another model',
+      prismaError('P2002', {
+        modelName: 'Exercise',
+        target: 'Exercise_slug_key',
+      }),
+    ],
+    [
+      'a non-uniqueness Prisma failure',
+      prismaError('P2024', {
+        modelName: 'WorkoutSession',
+        target: 'WorkoutSession_one_in_progress_per_owner_idx',
+      }),
+    ],
+  ])('does not reclassify %s as concurrency', async (_label, error) => {
+    // Failure mode: EC-03
+    // Arrange
+    arrangeStartableOccurrence();
+    workoutSessionCreate.mockRejectedValue(error);
+
+    // Act
+    const result = adapter.startProgramWorkout({
+      ownerId,
+      adoptedTrainingProgramId: programId,
+      occurrenceId,
+      timezone: 'UTC',
+    });
+
+    // Assert
+    await expect(result).rejects.toBeInstanceOf(
+      AdoptedTrainingProgramPersistenceError,
+    );
+  });
+
   it('keeps source and persistence errors distinct', async () => {
     workoutSessionCreate.mockRejectedValue(
       prismaError('P2003', { target: ['exerciseId'] }),
@@ -643,17 +948,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
         },
       }),
     );
-    occurrenceFindFirst.mockResolvedValue({
-      id: occurrenceId,
-      sourceRoutineId: routineId,
-    });
-    routineFindFirst.mockResolvedValue({
-      id: routineId,
-      name: 'Upper A',
-      ownerId,
-      visibility: 'PRIVATE',
-      exercises: [],
-    });
+    arrangeStartableOccurrence();
 
     await expect(
       adapter.startProgramWorkout({
@@ -682,17 +977,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     });
 
     adoptedProgramUpdateMany.mockReset();
-    occurrenceFindFirst.mockResolvedValue({
-      id: occurrenceId,
-      sourceRoutineId: routineId,
-    });
-    routineFindFirst.mockResolvedValue({
-      id: routineId,
-      name: 'Upper A',
-      ownerId,
-      visibility: 'PRIVATE',
-      exercises: [],
-    });
+    arrangeStartableOccurrence();
     workoutSessionCreate.mockRejectedValue(new Error('execution failed'));
     await expect(
       adapter.startProgramWorkout({

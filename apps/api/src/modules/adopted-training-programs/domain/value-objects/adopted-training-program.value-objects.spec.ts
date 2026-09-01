@@ -50,6 +50,38 @@ describe('adopted training program value objects', () => {
     );
   });
 
+  it('accepts 52 weeks and rejects durations above the confirmed maximum', () => {
+    // Failure mode: BC-04
+    // Arrange
+    const maximumDurationWeeks = 52;
+    const aboveMaximumDurationWeeks = 53;
+
+    // Act
+    const maximumDuration = AdoptedProgramDuration.create(maximumDurationWeeks);
+    const createAboveMaximum = () =>
+      AdoptedProgramDuration.create(aboveMaximumDurationWeeks);
+
+    // Assert
+    expect(maximumDuration.value).toBe(maximumDurationWeeks);
+    expect(createAboveMaximum).toThrow(AdoptedTrainingProgramValidationError);
+  });
+
+  it('accepts program day 364 and rejects days above that maximum', () => {
+    // Failure mode: BC-04
+    // Arrange
+    const maximumProgramDay = 364;
+    const aboveMaximumProgramDay = 365;
+
+    // Act
+    const maximumSlot = ProgramWorkoutSlot.create(52, maximumProgramDay);
+    const createAboveMaximum = () =>
+      ProgramWorkoutSlot.create(52, aboveMaximumProgramDay);
+
+    // Assert
+    expect(maximumSlot.dayNumber).toBe(maximumProgramDay);
+    expect(createAboveMaximum).toThrow(ProgramWorkoutOccurrenceValidationError);
+  });
+
   it('validates both status value objects', () => {
     expect(AdoptedTrainingProgramStatus.create('ACTIVE').value).toBe('ACTIVE');
     expect(ProgramWorkoutOccurrenceStatus.create('PENDING').value).toBe(

@@ -18,5 +18,9 @@ export function isRoutineStartableForOwner(
   ownerId: string,
   hasInactiveExercises: boolean,
 ): boolean {
-  return isRoutineVisibleForOwner(routine, ownerId) && !hasInactiveExercises;
+  return (
+    isRoutineVisibleForOwner(routine, ownerId) &&
+    !hasInactiveExercises &&
+    routine !== null
+  );
 }

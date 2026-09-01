@@ -10,6 +10,7 @@ import type {
   AdoptedTrainingProgramCommandResult,
   StartProgramWorkoutOccurrenceResult,
 } from '../../application/models/adopted-training-program-command.input';
+import { AdoptedTrainingProgramPersistenceStateError } from './prisma-adopted-training-program.errors';
 import {
   isRoutineStartableForOwner,
   isRoutineVisibleForOwner,
@@ -160,6 +161,9 @@ export function toDetail(
   row: AdoptedTrainingProgramDetailRow,
   ownerId: string,
 ): AdoptedTrainingProgramDetail {
+  if (row.occurrences.length === 0) {
+    throw new AdoptedTrainingProgramPersistenceStateError();
+  }
   const occurrences = row.occurrences.map((occurrence) =>
     toOccurrenceDetail(occurrence, ownerId),
   );
@@ -189,7 +193,7 @@ export function toDetail(
     skippedCount,
     resolvedCount,
     progressPercent:
-      occurrences.length === 0 ? 0 : (resolvedCount / occurrences.length) * 100,
+      Math.round((resolvedCount / occurrences.length) * 10000) / 100,
     occurrences,
     nextPendingOccurrence,
     actions: {

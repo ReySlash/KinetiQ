@@ -158,7 +158,7 @@ function createOptionalSourceId(
   value: string | null | undefined,
   label: string,
 ): string | null {
-  if (!value) return null;
+  if (value === undefined || value === null) return null;
   try {
     return ExistingUuid.create(value).value;
   } catch {

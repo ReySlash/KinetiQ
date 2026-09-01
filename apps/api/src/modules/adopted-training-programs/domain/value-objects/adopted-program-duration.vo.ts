@@ -7,9 +7,9 @@ export class AdoptedProgramDuration extends ValueObject<number> {
   }
 
   static create(value: number): AdoptedProgramDuration {
-    if (!Number.isInteger(value) || value < 1) {
+    if (!Number.isInteger(value) || value < 1 || value > 52) {
       throw new AdoptedTrainingProgramValidationError(
-        'Duration weeks snapshot must be a positive integer.',
+        'Duration weeks snapshot must be an integer between 1 and 52.',
       );
     }
     return new AdoptedProgramDuration(value);

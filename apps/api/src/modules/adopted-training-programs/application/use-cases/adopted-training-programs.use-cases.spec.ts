@@ -175,6 +175,32 @@ describe('adopted-training-program application use cases', () => {
   });
 
   it.each([
+    [' trims surrounding whitespace', ' strength-base '],
+    [' normalizes uppercase characters', 'STRENGTH-BASE'],
+  ])(
+    'normalizes the source slug at the application boundary when it%s',
+    async (_label, sourceProgramSlug) => {
+      // Failure mode: EC-02
+      // Arrange
+      const findAccessibleBySlug = jest.fn().mockResolvedValue(source());
+      const create = jest.fn().mockResolvedValue(undefined);
+      const useCase = new AdoptTrainingProgramUseCase(
+        createCommandPort({ create }),
+        createSourcesPort({ findAccessibleBySlug }),
+      );
+
+      // Act
+      await useCase.execute({ ownerId, sourceProgramSlug });
+
+      // Assert
+      expect(findAccessibleBySlug).toHaveBeenCalledWith(
+        'strength-base',
+        ownerId,
+      );
+    },
+  );
+
+  it.each([
     ['missing source', null, AdoptedTrainingProgramSourceNotFoundError],
     [
       'empty schedule',

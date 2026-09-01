@@ -24,7 +24,7 @@ export class AdoptTrainingProgramUseCase {
   ): Promise<AdoptTrainingProgramResult> {
     const ownerId = ExistingUuid.create(input.ownerId).value;
     const source = await this.sources.findAccessibleBySlug(
-      input.sourceProgramSlug,
+      input.sourceProgramSlug.trim().toLowerCase(),
       ownerId,
     );
     if (!source) {

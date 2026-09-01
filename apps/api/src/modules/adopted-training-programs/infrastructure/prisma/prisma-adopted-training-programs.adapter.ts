@@ -4,6 +4,7 @@ import { PrismaService } from '../../../shared/infrastructure/database/prisma/pr
 import {
   AdoptedTrainingProgramAlreadyNonTerminalError,
   AdoptedTrainingProgramConcurrencyError,
+  AdoptedTrainingProgramNotFoundError,
   AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramQueryError,
   AdoptedTrainingProgramSourceUnavailableError,
@@ -165,8 +166,18 @@ export class PrismaAdoptedTrainingProgramsAdapter
             },
             data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
           });
-          if (result.count !== 1)
-            throw new AdoptedTrainingProgramConcurrencyError();
+          if (result.count !== 1) {
+            const program = await transaction.adoptedTrainingProgram.findFirst({
+              where: {
+                id: input.adoptedTrainingProgramId,
+                ownerId: input.ownerId,
+              },
+              select: { id: true },
+            });
+            if (program === undefined)
+              throw new AdoptedTrainingProgramConcurrencyError();
+            throw new AdoptedTrainingProgramNotFoundError();
+          }
           const row =
             await transaction.adoptedTrainingProgram.findUniqueOrThrow({
               where: { id: input.adoptedTrainingProgramId },
@@ -199,7 +210,19 @@ export class PrismaAdoptedTrainingProgramsAdapter
             orderBy: [{ weekNumber: 'asc' }, { dayNumber: 'asc' }],
             select: { id: true },
           });
-          if (!next || next.id !== input.occurrenceId) {
+          if (!next) {
+            const program = await transaction.adoptedTrainingProgram.findFirst({
+              where: {
+                id: input.adoptedTrainingProgramId,
+                ownerId: input.ownerId,
+              },
+              select: { id: true },
+            });
+            if (program === undefined)
+              throw new AdoptedTrainingProgramConcurrencyError();
+            throw new AdoptedTrainingProgramNotFoundError();
+          }
+          if (next.id !== input.occurrenceId) {
             throw new AdoptedTrainingProgramConcurrencyError();
           }
 
@@ -248,13 +271,45 @@ export class PrismaAdoptedTrainingProgramsAdapter
               },
             },
             orderBy: [{ weekNumber: 'asc' }, { dayNumber: 'asc' }],
-            select: { id: true, sourceRoutineId: true },
+            select: {
+              id: true,
+              sourceRoutineId: true,
+              adoptedTrainingProgram: { select: { startedAt: true } },
+            },
           });
-          if (!next || next.id !== input.occurrenceId) {
+          if (!next) {
+            const program = await transaction.adoptedTrainingProgram.findFirst({
+              where: {
+                id: input.adoptedTrainingProgramId,
+                ownerId: input.ownerId,
+              },
+              select: { id: true },
+            });
+            if (program === undefined)
+              throw new AdoptedTrainingProgramConcurrencyError();
+            throw new AdoptedTrainingProgramNotFoundError();
+          }
+          if (next.id !== input.occurrenceId) {
             throw new AdoptedTrainingProgramConcurrencyError();
           }
           if (!next.sourceRoutineId)
             throw new AdoptedTrainingProgramSourceUnavailableError();
+          if (input.startedAt) {
+            const now = new Date();
+            const futureLimit = new Date(now.getTime() + 5 * 60 * 1000);
+            const backdateLimit = new Date(
+              now.getTime() - 30 * 24 * 60 * 60 * 1000,
+            );
+            if (
+              input.startedAt > futureLimit ||
+              input.startedAt < backdateLimit ||
+              input.startedAt < next.adoptedTrainingProgram.startedAt
+            ) {
+              throw new WorkoutSessionValidationError(
+                'Workout start timestamp is outside the permitted range.',
+              );
+            }
+          }
 
           const routine = await transaction.routine.findFirst({
             where: {
@@ -271,7 +326,8 @@ export class PrismaAdoptedTrainingProgramsAdapter
             !isRoutineStartableForOwner(
               routine,
               input.ownerId,
-              routine.exercises.some((entry) => !entry.exercise.isActive),
+              routine.exercises.length === 0 ||
+                routine.exercises.some((entry) => !entry.exercise.isActive),
             )
           ) {
             throw new AdoptedTrainingProgramSourceUnavailableError();
@@ -340,8 +396,18 @@ export class PrismaAdoptedTrainingProgramsAdapter
             },
             data: { status: to, updatedAt: now },
           });
-          if (result.count !== 1)
+          if (result.count !== 1) {
+            const program = await transaction.adoptedTrainingProgram.findFirst({
+              where: {
+                id: input.adoptedTrainingProgramId,
+                ownerId: input.ownerId,
+              },
+              select: { id: true },
+            });
+            if (program === null)
+              throw new AdoptedTrainingProgramNotFoundError();
             throw new AdoptedTrainingProgramConcurrencyError();
+          }
           const row =
             await transaction.adoptedTrainingProgram.findUniqueOrThrow({
               where: { id: input.adoptedTrainingProgramId },
@@ -420,7 +486,10 @@ export class PrismaAdoptedTrainingProgramsAdapter
   }
 
   private throwCommandError(error: unknown): never {
-    if (error instanceof AdoptedTrainingProgramConcurrencyError) {
+    if (
+      error instanceof AdoptedTrainingProgramConcurrencyError ||
+      error instanceof AdoptedTrainingProgramNotFoundError
+    ) {
       throw error;
     }
     if (isPrismaError(error, 'P2034')) {
@@ -435,6 +504,7 @@ export class PrismaAdoptedTrainingProgramsAdapter
   private throwExecutionError(error: unknown): never {
     if (
       error instanceof AdoptedTrainingProgramConcurrencyError ||
+      error instanceof AdoptedTrainingProgramNotFoundError ||
       error instanceof AdoptedTrainingProgramSourceUnavailableError ||
       error instanceof AdoptedTrainingProgramExerciseReferenceError ||
       error instanceof WorkoutSessionValidationError
@@ -445,12 +515,11 @@ export class PrismaAdoptedTrainingProgramsAdapter
       throw new AdoptedTrainingProgramConcurrencyError();
     }
     if (isPrismaError(error, 'P2002')) {
-      const modelName = isRecord(error.meta) ? error.meta.modelName : undefined;
-      if (modelName === 'WorkoutSession') {
-        throw new AdoptedTrainingProgramConcurrencyError();
-      }
       const details = getConstraintDetails(error);
-      if (hasConstraint(details, 'one_in_progress_per')) {
+      if (
+        hasConstraint(details, 'one_in_progress_per_owner') ||
+        hasConstraint(details, 'one_in_progress_per_occurrence')
+      ) {
         throw new AdoptedTrainingProgramConcurrencyError();
       }
     }

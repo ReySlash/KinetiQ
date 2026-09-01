@@ -147,6 +147,27 @@ IN_PROGRESS
 
 ## Relative program scheduling
 
+### Approved future duration and ordinal-day contract
+
+The future schedule-boundary implementation limits a training program to a
+maximum of 52 weeks, equivalent to 364 ordinal program days. The planned
+canonical schedule position is a 1-based `programDayNumber` in the range
+`1..durationWeeks * 7`. It represents a day relative to the beginning of the
+program, not a calendar weekday or date.
+
+The existing persistence model still stores `weekNumber` and `dayNumber`.
+Future implementation must reconcile that representation through a separately
+reviewed schema and API change; this documentation does not claim that the
+change is already implemented. The target contract avoids maintaining ordinal
+day and week/day as independent sources of truth: week/day projections are
+derived from `programDayNumber` when needed.
+
+Future backend validation must accept the 52-week/364-day boundary and reject
+values above it with `422 Unprocessable Entity`. Future frontend validation and
+server-error presentation must state both equivalent maximums—52 weeks and 364
+days—so users can understand the limit without inferring it from a generic
+validation message.
+
 `TrainingProgramRoutine` schedules one routine at a relative `weekNumber` and
 `dayNumber`. Day numbers describe training sequence within the week, not named
 weekdays:
@@ -180,6 +201,10 @@ weekNumber <= durationWeeks
 dayNumber >= 1
 durationWeeks >= 1
 ```
+
+These rules describe the currently implemented representation. The approved
+future boundary additionally requires `durationWeeks <= 52` and
+`programDayNumber <= durationWeeks * 7`, with an absolute maximum of 364.
 
 The existing schema has no general convention for positive-integer SQL checks,
 so this slice does not introduce one-off raw check constraints. These rules must

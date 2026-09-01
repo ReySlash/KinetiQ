@@ -69,6 +69,13 @@ Use the API origin server-side and same-origin `/api` browser-side. Never expose
 
 Use one form schema/default-value mapper per aggregate. For the exercise form, section navigation shows error counts but does not unmount fields. Muscle assignments use `useFieldArray` with stable IDs. Normalize empty strings to null only for optional fields, preserve zeros, and never use truthiness for score/RIR values.
 
+When the future training-program duration and ordinal-day limits are
+implemented, the training-program form must provide proactive, accessible
+feedback that states the equivalent maximums of 52 weeks and 364 days. The
+client schema may mirror these limits for immediate feedback, while backend
+validation remains authoritative. Server-side boundary errors must map back to
+the duration or schedule field instead of appearing only as a generic alert.
+
 Submit buttons disable duplicate submission while preserving keyboard focus. On a 422 problem, map field errors; on a non-field error, show an alert. On success, update/invalidate precise cache keys and navigate with a status announcement. Confirm destructive archive/delete actions with resource name.
 
 ## Responsive and accessible behavior

@@ -200,7 +200,7 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
 
   completeOccurrence(occurrenceId: string): AdoptedTrainingProgram {
     this.assertCanResolveOccurrence();
-    return this.replaceOccurrence(occurrenceId, (occurrence) =>
+    return this.resolveOccurrence(occurrenceId, (occurrence) =>
       occurrence.complete(),
     );
   }
@@ -215,7 +215,7 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
   skipOccurrence(occurrenceId: string): AdoptedTrainingProgram {
     this.assertActiveForOccurrenceCommand();
     this.assertNextPendingOccurrence(occurrenceId);
-    return this.replaceOccurrence(occurrenceId, (occurrence) =>
+    return this.resolveOccurrence(occurrenceId, (occurrence) =>
       occurrence.skip(),
     );
   }
@@ -245,6 +245,34 @@ export class AdoptedTrainingProgram extends Entity<UniqueId> {
       occurrences: this.occurrences.map((item) =>
         item.id.value === id ? replacement : item,
       ),
+    });
+  }
+
+  private resolveOccurrence(
+    occurrenceId: string,
+    operation: (
+      occurrence: ProgramWorkoutOccurrence,
+    ) => ProgramWorkoutOccurrence,
+  ): AdoptedTrainingProgram {
+    const id = ExistingUuid.create(occurrenceId).value;
+    const occurrence = this.occurrences.find((item) => item.id.value === id);
+    if (!occurrence) {
+      throw new AdoptedTrainingProgramValidationError(
+        'Occurrence does not belong to this adopted training program.',
+      );
+    }
+    const occurrences = this.occurrences.map((item) =>
+      item.id.value === id ? operation(item) : item,
+    );
+    const isComplete = occurrences.every(
+      (occurrence) =>
+        occurrence.status === 'COMPLETED' || occurrence.status === 'SKIPPED',
+    );
+    return this.withState({
+      occurrences,
+      ...(isComplete
+        ? { status: 'COMPLETED' as const, completedAt: new Date() }
+        : {}),
     });
   }
 
@@ -403,6 +431,35 @@ function validateAggregateState(
     attributes.completedAt,
     attributes.cancelledAt,
   );
+  validateParentChildLifecycle(attributes.status.value, attributes.occurrences);
+}
+
+function validateParentChildLifecycle(
+  status: AdoptedTrainingProgramStatusValue,
+  occurrences: readonly ProgramWorkoutOccurrence[],
+): void {
+  const hasUnresolvedOccurrence = occurrences.some(
+    (occurrence) =>
+      occurrence.status !== 'COMPLETED' && occurrence.status !== 'SKIPPED',
+  );
+  const hasActiveOccurrence = occurrences.some(
+    (occurrence) => occurrence.status === 'IN_PROGRESS',
+  );
+  if (status === 'COMPLETED' && hasUnresolvedOccurrence) {
+    throw new AdoptedTrainingProgramValidationError(
+      'A completed program cannot contain unresolved occurrences.',
+    );
+  }
+  if (status === 'CANCELLED' && hasActiveOccurrence) {
+    throw new AdoptedTrainingProgramValidationError(
+      'A cancelled program cannot contain an active occurrence.',
+    );
+  }
+  if (status === 'ACTIVE' && !hasUnresolvedOccurrence) {
+    throw new AdoptedTrainingProgramValidationError(
+      'An active program cannot contain only resolved occurrences.',
+    );
+  }
 }
 
 function validateOccurrences(

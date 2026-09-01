@@ -12,9 +12,9 @@ export class ProgramWorkoutSlot {
         'Occurrence weekNumber must be a positive integer.',
       );
     }
-    if (!Number.isInteger(dayNumber) || dayNumber < 1) {
+    if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > 364) {
       throw new ProgramWorkoutOccurrenceValidationError(
-        'Occurrence dayNumber must be a positive integer.',
+        'Occurrence dayNumber must be an integer between 1 and 364.',
       );
     }
     return new ProgramWorkoutSlot(weekNumber, dayNumber);

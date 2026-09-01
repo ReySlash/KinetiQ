@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { RoutinesModule } from './modules/routines/routines.module';
 import { TrainingProgramsModule } from './modules/training-programs/training-programs.module';
 import { WorkoutSessionsModule } from './modules/workout-sessions/workout-sessions.module';
+import { AdoptedTrainingProgramsModule } from './modules/adopted-training-programs/adopted-training-programs.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { WorkoutSessionsModule } from './modules/workout-sessions/workout-sessio
     RoutinesModule,
     TrainingProgramsModule,
     WorkoutSessionsModule,
+    AdoptedTrainingProgramsModule,
   ],
 })
 export class AppModule {}

@@ -304,11 +304,11 @@ export function RoutineBuilder({
                       <div className="grid gap-3 sm:grid-cols-4">
                         <PrescriptionField
                           label="Sets"
-                          id={`sets-${field.id}`}
+                          id={`sets-${index}`}
                           error={form.formState.errors.exercises?.[index]?.sets}
                         >
                           <Input
-                            id={`sets-${field.id}`}
+                            id={`sets-${index}`}
                             type="number"
                             min="1"
                             max="20"
@@ -317,13 +317,13 @@ export function RoutineBuilder({
                         </PrescriptionField>
                         <PrescriptionField
                           label="Min reps"
-                          id={`min-reps-${field.id}`}
+                          id={`min-reps-${index}`}
                           error={
                             form.formState.errors.exercises?.[index]?.minReps
                           }
                         >
                           <Input
-                            id={`min-reps-${field.id}`}
+                            id={`min-reps-${index}`}
                             type="number"
                             min="1"
                             max="1000"
@@ -332,13 +332,13 @@ export function RoutineBuilder({
                         </PrescriptionField>
                         <PrescriptionField
                           label="Max reps"
-                          id={`max-reps-${field.id}`}
+                          id={`max-reps-${index}`}
                           error={
                             form.formState.errors.exercises?.[index]?.maxReps
                           }
                         >
                           <Input
-                            id={`max-reps-${field.id}`}
+                            id={`max-reps-${index}`}
                             type="number"
                             min="1"
                             max="1000"
@@ -347,13 +347,13 @@ export function RoutineBuilder({
                         </PrescriptionField>
                         <PrescriptionField
                           label="Target RIR"
-                          id={`rir-${field.id}`}
+                          id={`rir-${index}`}
                           error={
                             form.formState.errors.exercises?.[index]?.targetRir
                           }
                         >
                           <Input
-                            id={`rir-${field.id}`}
+                            id={`rir-${index}`}
                             type="number"
                             min="0"
                             max="10"
@@ -364,14 +364,14 @@ export function RoutineBuilder({
                       <div className="mt-3 grid gap-3 sm:grid-cols-3">
                         <PrescriptionField
                           label="Rest seconds"
-                          id={`rest-${field.id}`}
+                          id={`rest-${index}`}
                           error={
                             form.formState.errors.exercises?.[index]
                               ?.restSeconds
                           }
                         >
                           <Input
-                            id={`rest-${field.id}`}
+                            id={`rest-${index}`}
                             type="number"
                             min="0"
                             max="3600"
@@ -380,26 +380,26 @@ export function RoutineBuilder({
                         </PrescriptionField>
                         <PrescriptionField
                           label="Tempo"
-                          id={`tempo-${field.id}`}
+                          id={`tempo-${index}`}
                           error={
                             form.formState.errors.exercises?.[index]?.tempo
                           }
                         >
                           <Input
-                            id={`tempo-${field.id}`}
+                            id={`tempo-${index}`}
                             placeholder="3-1-X-0"
                             {...form.register(`exercises.${index}.tempo`)}
                           />
                         </PrescriptionField>
                         <PrescriptionField
                           label="Notes"
-                          id={`notes-${field.id}`}
+                          id={`notes-${index}`}
                           error={
                             form.formState.errors.exercises?.[index]?.notes
                           }
                         >
                           <Input
-                            id={`notes-${field.id}`}
+                            id={`notes-${index}`}
                             placeholder="Controlled reps"
                             {...form.register(`exercises.${index}.notes`)}
                           />

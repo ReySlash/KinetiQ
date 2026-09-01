@@ -6,6 +6,7 @@ import {
   toDetail,
   toSource,
 } from './prisma-adopted-training-program.mapper';
+import { AdoptedTrainingProgramPersistenceStateError } from './prisma-adopted-training-program.errors';
 
 const ownerId = '11111111-1111-4111-8111-111111111111';
 const sourceProgramId = '22222222-2222-4222-8222-222222222222';
@@ -247,4 +248,86 @@ describe('prisma adopted training program mapper', () => {
     expect(detail.actions.canStartNext).toBe(false);
     expect(detail.actions.canSkipNext).toBe(true);
   });
+
+  it('rounds progress to exactly two decimal places', () => {
+    // Failure mode: BC-05
+    // Arrange
+    const row = {
+      id: sourceProgramId,
+      programNameSnapshot: 'Strength Base',
+      status: 'ACTIVE' as const,
+      durationWeeksSnapshot: 1,
+      startedAt: new Date('2026-08-31T10:00:00.000Z'),
+      completedAt: null,
+      cancelledAt: null,
+      occurrences: [
+        occurrenceDetailRow({
+          id: '55555555-5555-4555-8555-555555555555',
+          dayNumber: 1,
+          status: 'COMPLETED',
+        }),
+        occurrenceDetailRow({
+          id: '66666666-6666-4666-8666-666666666666',
+          dayNumber: 2,
+        }),
+        occurrenceDetailRow({
+          id: '77777777-7777-4777-8777-777777777777',
+          dayNumber: 3,
+        }),
+      ],
+    } satisfies AdoptedTrainingProgramDetailRow;
+
+    // Act
+    const detail = toDetail(row, ownerId);
+
+    // Assert
+    expect(detail.progressPercent).toBe(33.33);
+  });
+
+  it('rejects a persisted adopted program with no occurrences as invalid state', () => {
+    // Failure mode: NE-05
+    // Arrange
+    const row = {
+      id: sourceProgramId,
+      programNameSnapshot: 'Strength Base',
+      status: 'ACTIVE' as const,
+      durationWeeksSnapshot: 1,
+      startedAt: new Date('2026-08-31T10:00:00.000Z'),
+      completedAt: null,
+      cancelledAt: null,
+      occurrences: [],
+    } satisfies AdoptedTrainingProgramDetailRow;
+
+    // Act
+    const mapCorruptedProgram = () => toDetail(row, ownerId);
+
+    // Assert
+    expect(mapCorruptedProgram).toThrow(
+      AdoptedTrainingProgramPersistenceStateError,
+    );
+  });
 });
+
+function occurrenceDetailRow(
+  overrides: Partial<
+    AdoptedTrainingProgramDetailRow['occurrences'][number]
+  > = {},
+): AdoptedTrainingProgramDetailRow['occurrences'][number] {
+  return {
+    id: sourceProgramRoutineId,
+    weekNumber: 1,
+    dayNumber: 1,
+    routineNameSnapshot: 'Upper A',
+    programSlotNotesSnapshot: null,
+    status: 'PENDING',
+    sourceRoutineId,
+    sourceRoutine: {
+      id: sourceRoutineId,
+      ownerId,
+      visibility: 'PRIVATE',
+      exercises: [],
+    },
+    sessionAttempts: [],
+    ...overrides,
+  };
+}

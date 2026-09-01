@@ -82,6 +82,9 @@ Create test utilities that obtain real Better Auth sessions for `USER_A`, `USER_
 - Adopted-program activation succeeds from a GLOBAL template and an owned
   PRIVATE template, conceals another user's private template, and rejects an
   empty schedule.
+- When the approved future duration boundary is implemented, backend and
+  frontend tests accept 52 weeks/364 days, reject values above either limit,
+  and verify that user-facing feedback states both maximums.
 - Concurrent activation attempts produce one non-terminal program and one stable
   conflict; the database partial unique index is exercised directly.
 - Adoption copies the relative schedule, and later template edits do not rewrite
