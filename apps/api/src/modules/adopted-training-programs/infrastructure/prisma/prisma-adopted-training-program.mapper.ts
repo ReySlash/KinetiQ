@@ -14,7 +14,7 @@ import { AdoptedTrainingProgramPersistenceStateError } from './prisma-adopted-tr
 import {
   isRoutineStartableForOwner,
   isRoutineVisibleForOwner,
-} from './prisma-routine-startability';
+} from '../../../shared/domain/routine-startability';
 
 export const adoptedTrainingProgramDetailSelect = {
   id: true,
@@ -49,9 +49,17 @@ export const adoptedTrainingProgramDetailSelect = {
           ownerId: true,
           visibility: true,
           exercises: {
-            where: { exercise: { isActive: false } },
-            take: 1,
-            select: { id: true },
+            select: {
+              id: true,
+              sets: true,
+              minReps: true,
+              maxReps: true,
+              targetRir: true,
+              restSeconds: true,
+              tempo: true,
+              notes: true,
+              exercise: { select: { isActive: true } },
+            },
           },
         },
       },
@@ -241,9 +249,16 @@ function toOccurrenceDetail(
       isRoutineStartableForOwner(
         occurrence.sourceRoutine,
         ownerId,
-        // The select only returns inactive exercises, so any result means the
-        // source routine cannot be started with the current catalog.
-        (occurrence.sourceRoutine?.exercises.length ?? 0) > 0,
+        occurrence.sourceRoutine?.exercises.map((exercise) => ({
+          isActive: exercise.exercise.isActive,
+          targetSetCount: exercise.sets,
+          targetMinReps: exercise.minReps,
+          targetMaxReps: exercise.maxReps,
+          targetRir: exercise.targetRir,
+          targetRestSeconds: exercise.restSeconds,
+          targetTempo: exercise.tempo,
+          prescriptionNotes: exercise.notes,
+        })) ?? [],
       ),
     sessionAttemptIds: occurrence.sessionAttempts.map((session) => session.id),
     activeSessionId: activeSession?.id ?? null,

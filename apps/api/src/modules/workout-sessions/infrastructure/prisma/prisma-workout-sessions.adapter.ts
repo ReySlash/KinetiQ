@@ -13,6 +13,7 @@ import {
 import type { WorkoutSession } from '../../domain/entities/workout-session.entity';
 import type { PrimitiveWorkoutSession } from '../../domain/entities/workout-session.types';
 import type { AdoptedTrainingProgram } from '../../../adopted-training-programs/domain/adopted-training-program.aggregate';
+import { hasExecutableRoutineExercises } from '../../../shared/domain/routine-startability';
 import {
   adoptedTrainingProgramAggregateSelect,
   toDomain as toAdoptedTrainingProgramDomain,
@@ -258,7 +259,17 @@ export class PrismaWorkoutSessionsAdapter
           select: routineSnapshotSelect,
         }));
       if (!row) return null;
-      if (row.exercises.some((exercise) => !exercise.exercise.isActive)) {
+      const exercises = row.exercises.map((exercise) => ({
+        isActive: exercise.exercise.isActive,
+        targetSetCount: exercise.sets,
+        targetMinReps: exercise.minReps,
+        targetMaxReps: exercise.maxReps,
+        targetRir: exercise.targetRir,
+        targetRestSeconds: exercise.restSeconds,
+        targetTempo: exercise.tempo,
+        prescriptionNotes: exercise.notes,
+      }));
+      if (!hasExecutableRoutineExercises(exercises)) {
         return null;
       }
       return {

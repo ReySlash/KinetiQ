@@ -46,7 +46,7 @@ import {
   AdoptedTrainingProgramSourceProgramReferenceError,
   AdoptedTrainingProgramSourceRoutineReferenceError,
 } from './prisma-adopted-training-program.errors';
-import { isRoutineStartableForOwner } from './prisma-routine-startability';
+import { isRoutineStartableForOwner } from '../../../shared/domain/routine-startability';
 
 const routineForStartSelect = {
   id: true,
@@ -326,8 +326,16 @@ export class PrismaAdoptedTrainingProgramsAdapter
             !isRoutineStartableForOwner(
               routine,
               input.ownerId,
-              routine.exercises.length === 0 ||
-                routine.exercises.some((entry) => !entry.exercise.isActive),
+              routine.exercises.map((entry) => ({
+                isActive: entry.exercise.isActive,
+                targetSetCount: entry.sets,
+                targetMinReps: entry.minReps,
+                targetMaxReps: entry.maxReps,
+                targetRir: entry.targetRir,
+                targetRestSeconds: entry.restSeconds,
+                targetTempo: entry.tempo,
+                prescriptionNotes: entry.notes,
+              })),
             )
           ) {
             throw new AdoptedTrainingProgramSourceUnavailableError();

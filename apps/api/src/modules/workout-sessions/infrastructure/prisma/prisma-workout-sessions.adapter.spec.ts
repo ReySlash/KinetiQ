@@ -424,7 +424,9 @@ describe('PrismaWorkoutSessionsAdapter', () => {
       exercises: [],
     });
 
-    await adapter.findRoutineSnapshot('upper-a', ownerId);
+    await expect(
+      adapter.findRoutineSnapshot('upper-a', ownerId),
+    ).resolves.toBeNull();
 
     expect(routineFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({

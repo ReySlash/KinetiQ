@@ -123,7 +123,7 @@ describe('prisma adopted training program mapper', () => {
             id: sourceRoutineId,
             ownerId,
             visibility: 'PRIVATE' as const,
-            exercises: [],
+            exercises: [routineExerciseRow()],
           },
           sessionAttempts: [],
         },
@@ -260,7 +260,11 @@ describe('prisma adopted training program mapper', () => {
             id: sourceRoutineId,
             ownerId,
             visibility: 'PRIVATE' as const,
-            exercises: [{ id: '55555555-5555-4555-8555-555555555555' }],
+            exercises: [
+              routineExerciseRow({
+                exercise: { isActive: false },
+              }),
+            ],
           },
           sessionAttempts: [],
         },
@@ -272,6 +276,34 @@ describe('prisma adopted training program mapper', () => {
     expect(detail.occurrences[0].sourceRoutineAvailable).toBe(false);
     expect(detail.actions.canStartNext).toBe(false);
     expect(detail.actions.canSkipNext).toBe(true);
+  });
+
+  it('does not advertise start when the next routine has invalid prescription data', () => {
+    const row = {
+      id: sourceProgramId,
+      programNameSnapshot: 'Strength Base',
+      status: 'ACTIVE' as const,
+      durationWeeksSnapshot: 1,
+      startedAt: new Date('2026-08-31T10:00:00.000Z'),
+      completedAt: null,
+      cancelledAt: null,
+      owner: { workoutSessions: [] },
+      occurrences: [
+        occurrenceDetailRow({
+          sourceRoutine: {
+            id: sourceRoutineId,
+            ownerId,
+            visibility: 'PRIVATE',
+            exercises: [routineExerciseRow({ sets: 0 })],
+          },
+        }),
+      ],
+    } satisfies AdoptedTrainingProgramDetailRow;
+
+    const detail = toDetail(row, ownerId);
+
+    expect(detail.occurrences[0].sourceRoutineAvailable).toBe(false);
+    expect(detail.actions.canStartNext).toBe(false);
   });
 
   it('rounds progress to exactly two decimal places', () => {
@@ -352,9 +384,32 @@ function occurrenceDetailRow(
       id: sourceRoutineId,
       ownerId,
       visibility: 'PRIVATE',
-      exercises: [],
+      exercises: [routineExerciseRow()],
     },
     sessionAttempts: [],
+    ...overrides,
+  };
+}
+
+function routineExerciseRow(
+  overrides: Partial<
+    NonNullable<
+      AdoptedTrainingProgramDetailRow['occurrences'][number]['sourceRoutine']
+    >['exercises'][number]
+  > = {},
+): NonNullable<
+  AdoptedTrainingProgramDetailRow['occurrences'][number]['sourceRoutine']
+>['exercises'][number] {
+  return {
+    id: '55555555-5555-4555-8555-555555555555',
+    sets: 3,
+    minReps: 8,
+    maxReps: 10,
+    targetRir: null,
+    restSeconds: null,
+    tempo: null,
+    notes: null,
+    exercise: { isActive: true },
     ...overrides,
   };
 }
