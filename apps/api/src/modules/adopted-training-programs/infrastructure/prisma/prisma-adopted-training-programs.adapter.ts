@@ -219,9 +219,9 @@ export class PrismaAdoptedTrainingProgramsAdapter
               },
               select: { id: true },
             });
-            if (program === undefined)
-              throw new AdoptedTrainingProgramConcurrencyError();
-            throw new AdoptedTrainingProgramNotFoundError();
+            if (program === null)
+              throw new AdoptedTrainingProgramNotFoundError();
+            throw new AdoptedTrainingProgramConcurrencyError();
           }
           const row =
             await transaction.adoptedTrainingProgram.findUniqueOrThrow({
@@ -263,9 +263,9 @@ export class PrismaAdoptedTrainingProgramsAdapter
               },
               select: { id: true },
             });
-            if (program === undefined)
-              throw new AdoptedTrainingProgramConcurrencyError();
-            throw new AdoptedTrainingProgramNotFoundError();
+            if (program === null)
+              throw new AdoptedTrainingProgramNotFoundError();
+            throw new AdoptedTrainingProgramConcurrencyError();
           }
           if (next.id !== input.occurrenceId) {
             throw new AdoptedTrainingProgramConcurrencyError();
@@ -330,9 +330,9 @@ export class PrismaAdoptedTrainingProgramsAdapter
               },
               select: { id: true },
             });
-            if (program === undefined)
-              throw new AdoptedTrainingProgramConcurrencyError();
-            throw new AdoptedTrainingProgramNotFoundError();
+            if (program === null)
+              throw new AdoptedTrainingProgramNotFoundError();
+            throw new AdoptedTrainingProgramConcurrencyError();
           }
           if (next.id !== input.occurrenceId) {
             throw new AdoptedTrainingProgramConcurrencyError();

@@ -278,6 +278,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
 
   it('rejects cancellation while an occurrence is in progress', async () => {
     adoptedProgramUpdateMany.mockResolvedValue({ count: 0 });
+    adoptedProgramFindFirst.mockResolvedValue({ id: programId });
 
     await expect(
       adapter.cancel({ ownerId, adoptedTrainingProgramId: programId }),
@@ -342,7 +343,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       // Failure mode: EC-01
       // Arrange
       occurrenceFindFirst.mockResolvedValue(null);
-      adoptedProgramFindFirst.mockResolvedValue({ id: programId, ownerId });
+      adoptedProgramFindFirst.mockResolvedValue(null);
 
       // Act
       const result = execute();
@@ -350,6 +351,38 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       // Assert
       await expect(result).rejects.toBeInstanceOf(
         AdoptedTrainingProgramNotFoundError,
+      );
+    },
+  );
+
+  it.each([
+    [
+      'skip',
+      () =>
+        adapter.skipOccurrence({
+          ownerId,
+          adoptedTrainingProgramId: programId,
+          occurrenceId,
+        }),
+    ],
+    [
+      'start',
+      () =>
+        adapter.startProgramWorkout({
+          ownerId,
+          adoptedTrainingProgramId: programId,
+          occurrenceId,
+          timezone: 'UTC',
+        }),
+    ],
+  ])(
+    'returns a concurrency error for an owned stale %s target',
+    async (_name, execute) => {
+      occurrenceFindFirst.mockResolvedValue(null);
+      adoptedProgramFindFirst.mockResolvedValue({ id: programId });
+
+      await expect(execute()).rejects.toBeInstanceOf(
+        AdoptedTrainingProgramConcurrencyError,
       );
     },
   );
