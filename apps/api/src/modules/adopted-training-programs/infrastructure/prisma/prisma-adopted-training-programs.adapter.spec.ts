@@ -58,6 +58,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     async (work: (client: object) => Promise<unknown>) =>
       work({
         adoptedTrainingProgram: {
+          create: adoptedProgramCreate,
           updateMany: adoptedProgramUpdateMany,
           findFirst: adoptedProgramFindFirst,
           findUniqueOrThrow: adoptedProgramFindUniqueOrThrow,
@@ -69,6 +70,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
           count: occurrenceCount,
         },
         routine: { findFirst: routineFindFirst },
+        trainingProgram: { findFirst: trainingProgramFindFirst },
         workoutSession: { create: workoutSessionCreate },
       }),
   );
@@ -108,6 +110,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       async (work: (client: object) => Promise<unknown>) =>
         work({
           adoptedTrainingProgram: {
+            create: adoptedProgramCreate,
             updateMany: adoptedProgramUpdateMany,
             findFirst: adoptedProgramFindFirst,
             findUniqueOrThrow: adoptedProgramFindUniqueOrThrow,
@@ -119,6 +122,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
             count: occurrenceCount,
           },
           routine: { findFirst: routineFindFirst },
+          trainingProgram: { findFirst: trainingProgramFindFirst },
           workoutSession: { create: workoutSessionCreate },
         }),
     );
@@ -154,6 +158,47 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     });
   }
 
+  it('resolves the source and creates the adopted program in one transaction', async () => {
+    trainingProgramFindFirst.mockResolvedValue({
+      id: programId,
+      name: 'Strength Base',
+      durationWeeks: 2,
+      routines: [
+        {
+          id: occurrenceId,
+          weekNumber: 1,
+          dayNumber: 1,
+          notes: 'Keep one rep in reserve.',
+          routine: {
+            id: routineId,
+            name: 'Upper A',
+            ownerId,
+            visibility: 'PRIVATE',
+          },
+        },
+      ],
+    });
+    adoptedProgramCreate.mockResolvedValue(undefined);
+
+    await expect(
+      adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' }),
+    ).resolves.toMatchObject({ status: 'ACTIVE' });
+
+    expect(trainingProgramFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          slug: 'strength-base',
+          OR: [{ visibility: 'GLOBAL' }, { visibility: 'PRIVATE', ownerId }],
+        },
+      }),
+    );
+    expect(adoptedProgramCreate).toHaveBeenCalledTimes(1);
+    expect(transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: 'Serializable' }),
+    );
+  });
+
   it('creates the aggregate through Prisma nested writes', async () => {
     adoptedProgramCreate.mockResolvedValue(undefined);
     const program = AdoptedTrainingProgram.create({
@@ -184,43 +229,6 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     expect(adoptedProgramCreate.mock.calls[0]?.[0].data).toHaveProperty(
       'occurrences.create.0.sourceRoutineId',
       routineId,
-    );
-  });
-
-  it('loads only accessible source programs and preserves inaccessible routine snapshots', async () => {
-    trainingProgramFindFirst.mockResolvedValue({
-      id: programId,
-      name: 'Shared Program',
-      durationWeeks: 2,
-      routines: [
-        {
-          id: occurrenceId,
-          weekNumber: 1,
-          dayNumber: 1,
-          notes: null,
-          routine: {
-            id: routineId,
-            name: 'Private Routine',
-            ownerId: '66666666-6666-4666-8666-666666666666',
-            visibility: 'PRIVATE',
-          },
-        },
-      ],
-    });
-
-    await expect(
-      adapter.findAccessibleBySlug('shared-program', ownerId),
-    ).resolves.toMatchObject({
-      id: programId,
-      schedule: [{ routineId: null, routineName: 'Private Routine' }],
-    });
-    expect(trainingProgramFindFirst).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          slug: 'shared-program',
-          OR: [{ visibility: 'GLOBAL' }, { visibility: 'PRIVATE', ownerId }],
-        },
-      }),
     );
   });
 

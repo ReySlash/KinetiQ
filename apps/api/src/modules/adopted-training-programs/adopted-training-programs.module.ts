@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SharedDatabaseModule } from '../shared/infrastructure/database/shared-database.module';
 import { AdoptedTrainingProgramExecutionPort } from './application/ports/adopted-training-program-execution.port';
-import { AdoptedTrainingProgramSourcesPort } from './application/ports/adopted-training-program-sources.port';
 import { AdoptedTrainingProgramsCommandPort } from './application/ports/adopted-training-programs-command.port';
 import { AdoptedTrainingProgramsQueryPort } from './application/ports/adopted-training-programs-query.port';
 import { AdoptTrainingProgramUseCase } from './application/use-cases/adopt-training-program.use-case';
@@ -29,23 +28,14 @@ import { AdoptedTrainingProgramsController } from './presentation/adopted-traini
       useExisting: PrismaAdoptedTrainingProgramsAdapter,
     },
     {
-      provide: AdoptedTrainingProgramSourcesPort,
-      useExisting: PrismaAdoptedTrainingProgramsAdapter,
-    },
-    {
       provide: AdoptedTrainingProgramExecutionPort,
       useExisting: PrismaAdoptedTrainingProgramsAdapter,
     },
     {
       provide: AdoptTrainingProgramUseCase,
-      inject: [
-        AdoptedTrainingProgramsCommandPort,
-        AdoptedTrainingProgramSourcesPort,
-      ],
-      useFactory: (
-        commands: AdoptedTrainingProgramsCommandPort,
-        sources: AdoptedTrainingProgramSourcesPort,
-      ) => new AdoptTrainingProgramUseCase(commands, sources),
+      inject: [AdoptedTrainingProgramsCommandPort],
+      useFactory: (commands: AdoptedTrainingProgramsCommandPort) =>
+        new AdoptTrainingProgramUseCase(commands),
     },
     {
       provide: GetNonTerminalAdoptedTrainingProgramUseCase,

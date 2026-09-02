@@ -1,11 +1,17 @@
 import type { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
 import type {
+  AdoptTrainingProgramInput,
+  AdoptTrainingProgramResult,
   AdoptedTrainingProgramCommandResult,
   AdoptedTrainingProgramLifecycleInput,
   SkipProgramWorkoutOccurrenceInput,
 } from '../models/adopted-training-program-command.input';
 
 export abstract class AdoptedTrainingProgramsCommandPort {
+  /** Resolves the source and persists the adopted program atomically. */
+  abstract adopt(
+    input: AdoptTrainingProgramInput,
+  ): Promise<AdoptTrainingProgramResult>;
   /** Implementations must enforce one non-terminal program per owner atomically. */
   abstract create(program: AdoptedTrainingProgram): Promise<void>;
   /** Atomically pauses an owned ACTIVE program when its state is unchanged. */

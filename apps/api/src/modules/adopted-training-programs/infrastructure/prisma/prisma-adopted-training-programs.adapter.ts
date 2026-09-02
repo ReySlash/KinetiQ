@@ -4,13 +4,17 @@ import { PrismaService } from '../../../shared/infrastructure/database/prisma/pr
 import {
   AdoptedTrainingProgramAlreadyNonTerminalError,
   AdoptedTrainingProgramConcurrencyError,
+  AdoptedTrainingProgramEmptyScheduleError,
   AdoptedTrainingProgramNotFoundError,
   AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramQueryError,
   AdoptedTrainingProgramSourceIntegrityError,
+  AdoptedTrainingProgramSourceNotFoundError,
   AdoptedTrainingProgramSourceUnavailableError,
 } from '../../application/errors/adopted-training-program.errors';
 import type {
+  AdoptTrainingProgramInput,
+  AdoptTrainingProgramResult,
   AdoptedTrainingProgramCommandResult,
   AdoptedTrainingProgramLifecycleInput,
   SkipProgramWorkoutOccurrenceInput,
@@ -18,11 +22,12 @@ import type {
   StartProgramWorkoutOccurrenceResult,
 } from '../../application/models/adopted-training-program-command.input';
 import type { AdoptedTrainingProgramDetail } from '../../application/models/adopted-training-program-detail.model';
+import type { AdoptedTrainingProgramSource } from '../../application/models/adopted-training-program-source.model';
 import { AdoptedTrainingProgramsCommandPort } from '../../application/ports/adopted-training-programs-command.port';
 import { AdoptedTrainingProgramExecutionPort } from '../../application/ports/adopted-training-program-execution.port';
-import { AdoptedTrainingProgramSourcesPort } from '../../application/ports/adopted-training-program-sources.port';
 import { AdoptedTrainingProgramsQueryPort } from '../../application/ports/adopted-training-programs-query.port';
-import type { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
+import { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
+import { AdoptedTrainingProgramValidationError } from '../../domain/errors/adopted-training-program.errors';
 import { WorkoutSession } from '../../../workout-sessions/domain/entities/workout-session.entity';
 import { WorkoutSessionValidationError } from '../../../workout-sessions/domain/errors/workout-session.errors';
 import type { SourceRoutineSnapshotAttributes } from '../../../workout-sessions/domain/entities/workout-session.types';
@@ -83,7 +88,6 @@ export class PrismaAdoptedTrainingProgramsAdapter
   implements
     AdoptedTrainingProgramsCommandPort,
     AdoptedTrainingProgramsQueryPort,
-    AdoptedTrainingProgramSourcesPort,
     AdoptedTrainingProgramExecutionPort
 {
   private readonly logger = new Logger(
@@ -91,6 +95,54 @@ export class PrismaAdoptedTrainingProgramsAdapter
   );
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async adopt(
+    input: AdoptTrainingProgramInput,
+  ): Promise<AdoptTrainingProgramResult> {
+    try {
+      return await this.prisma.$transaction(
+        async (transaction) => {
+          const sourceRow = await transaction.trainingProgram.findFirst({
+            where: {
+              slug: input.sourceProgramSlug,
+              OR: [
+                { visibility: 'GLOBAL' },
+                { visibility: 'PRIVATE', ownerId: input.ownerId },
+              ],
+            },
+            select: adoptedTrainingProgramSourceSelect,
+          });
+          if (!sourceRow) {
+            throw new AdoptedTrainingProgramSourceNotFoundError();
+          }
+          const source = toSource(sourceRow, input.ownerId);
+          if (source.schedule.length === 0) {
+            throw new AdoptedTrainingProgramEmptyScheduleError();
+          }
+
+          const program = AdoptedTrainingProgram.create({
+            ownerId: input.ownerId,
+            sourceTrainingProgramId: source.id,
+            programNameSnapshot: source.name,
+            durationWeeksSnapshot: source.durationWeeks,
+            startedAt: new Date(),
+            occurrences: toAdoptedProgramOccurrences(source),
+          });
+          await transaction.adoptedTrainingProgram.create({
+            data: toCreateData(program),
+          });
+          return {
+            id: program.id.value,
+            status: 'ACTIVE',
+            startedAt: program.startedAt,
+          };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      this.throwAdoptionError(error);
+    }
+  }
 
   async create(program: AdoptedTrainingProgram): Promise<void> {
     try {
@@ -126,21 +178,6 @@ export class PrismaAdoptedTrainingProgramsAdapter
         select: adoptedTrainingProgramDetailSelect,
       });
       return row ? toDetail(row, ownerId) : null;
-    } catch {
-      throw new AdoptedTrainingProgramQueryError();
-    }
-  }
-
-  async findAccessibleBySlug(slug: string, ownerId: string) {
-    try {
-      const row = await this.prisma.trainingProgram.findFirst({
-        where: {
-          slug,
-          OR: [{ visibility: 'GLOBAL' }, { visibility: 'PRIVATE', ownerId }],
-        },
-        select: adoptedTrainingProgramSourceSelect,
-      });
-      return row ? toSource(row, ownerId) : null;
     } catch {
       throw new AdoptedTrainingProgramQueryError();
     }
@@ -513,6 +550,27 @@ export class PrismaAdoptedTrainingProgramsAdapter
     throw new AdoptedTrainingProgramPersistenceError();
   }
 
+  private throwAdoptionError(error: unknown): never {
+    if (
+      error instanceof AdoptedTrainingProgramSourceNotFoundError ||
+      error instanceof AdoptedTrainingProgramEmptyScheduleError ||
+      error instanceof AdoptedTrainingProgramAlreadyNonTerminalError ||
+      error instanceof AdoptedTrainingProgramValidationError
+    ) {
+      throw error;
+    }
+    if (isPrismaError(error, 'P2034')) {
+      throw new AdoptedTrainingProgramConcurrencyError();
+    }
+    if (isPrismaError(error, 'P2002') || isPrismaError(error, 'P2003')) {
+      this.throwCreateError(error);
+    }
+    if (error instanceof AdoptedTrainingProgramQueryError) {
+      throw error;
+    }
+    throw new AdoptedTrainingProgramPersistenceError();
+  }
+
   private throwCommandError(error: unknown): never {
     if (
       error instanceof AdoptedTrainingProgramConcurrencyError ||
@@ -658,6 +716,17 @@ function hasConstraint(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function toAdoptedProgramOccurrences(source: AdoptedTrainingProgramSource) {
+  return source.schedule.map((scheduleItem) => ({
+    sourceTrainingProgramRoutineId: scheduleItem.id,
+    sourceRoutineId: scheduleItem.routineId,
+    weekNumber: scheduleItem.weekNumber,
+    dayNumber: scheduleItem.dayNumber,
+    routineNameSnapshot: scheduleItem.routineName,
+    programSlotNotesSnapshot: scheduleItem.notes,
+  }));
 }
 
 function toSourceRoutineSnapshot(

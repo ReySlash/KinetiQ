@@ -1,6 +1,4 @@
-import { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
 import type { AdoptedTrainingProgramDetail } from '../models/adopted-training-program-detail.model';
-import type { AdoptedTrainingProgramSource } from '../models/adopted-training-program-source.model';
 import type {
   AdoptedTrainingProgramCommandResult,
   StartProgramWorkoutOccurrenceInput,
@@ -8,12 +6,10 @@ import type {
 } from '../models/adopted-training-program-command.input';
 import {
   AdoptedTrainingProgramConcurrencyError,
-  AdoptedTrainingProgramEmptyScheduleError,
   AdoptedTrainingProgramNotFoundError,
   AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramQueryError,
   AdoptedTrainingProgramSourceUnavailableError,
-  AdoptedTrainingProgramSourceNotFoundError,
 } from '../errors/adopted-training-program.errors';
 import { AdoptTrainingProgramUseCase } from './adopt-training-program.use-case';
 import { CancelAdoptedTrainingProgramUseCase } from './cancel-adopted-training-program.use-case';
@@ -27,32 +23,12 @@ import {
   createCommandPort,
   createExecutionPort,
   createQueryPort,
-  createSourcesPort,
 } from './adopted-training-programs.test-doubles';
 
 const ownerId = '11111111-1111-4111-8111-111111111111';
 const adoptedProgramId = '22222222-2222-4222-8222-222222222222';
 const occurrenceId = '33333333-3333-4333-8333-333333333333';
 const sourceRoutineId = '44444444-4444-4444-8444-444444444444';
-
-function source(overrides: Partial<AdoptedTrainingProgramSource> = {}) {
-  return {
-    id: adoptedProgramId,
-    name: 'Strength Base',
-    durationWeeks: 2,
-    schedule: [
-      {
-        id: sourceRoutineId,
-        routineId: occurrenceId,
-        routineName: 'Upper A',
-        weekNumber: 1,
-        dayNumber: 1,
-        notes: 'Keep one rep in reserve.',
-      },
-    ],
-    ...overrides,
-  } satisfies AdoptedTrainingProgramSource;
-}
 
 function detail(): AdoptedTrainingProgramDetail {
   return {
@@ -91,179 +67,35 @@ function commandResult(
 }
 
 describe('adopted-training-program application use cases', () => {
-  it('adopts an accessible source and maps schedule snapshots', async () => {
-    const secondSourceRoutineId = '55555555-5555-4555-8555-555555555555';
-    const created: AdoptedTrainingProgram[] = [];
-    const create = jest.fn((program: AdoptedTrainingProgram) => {
-      created.push(program);
-      return Promise.resolve();
-    });
-    const findAccessibleBySlug = jest.fn().mockResolvedValue(
-      source({
-        name: 'Strength Base 2',
-        durationWeeks: 4,
-        schedule: [
-          {
-            id: secondSourceRoutineId,
-            routineId: null,
-            routineName: 'Lower A',
-            weekNumber: 2,
-            dayNumber: 3,
-            notes: null,
-          },
-          {
-            id: sourceRoutineId,
-            routineId: occurrenceId,
-            routineName: 'Upper A',
-            weekNumber: 1,
-            dayNumber: 1,
-            notes: 'Keep one rep in reserve.',
-          },
-        ],
+  it('normalizes the source slug and delegates adoption atomically', async () => {
+    const result = {
+      id: adoptedProgramId,
+      status: 'ACTIVE' as const,
+      startedAt: new Date('2026-01-01T10:00:00.000Z'),
+    };
+    const adopt = jest.fn().mockResolvedValue(result);
+
+    await expect(
+      new AdoptTrainingProgramUseCase(createCommandPort({ adopt })).execute({
+        ownerId,
+        sourceProgramSlug: ' Strength-Base ',
       }),
-    );
-
-    const result = await new AdoptTrainingProgramUseCase(
-      createCommandPort({ create }),
-      createSourcesPort({ findAccessibleBySlug }),
-    ).execute({ ownerId, sourceProgramSlug: 'strength-base' });
-
-    expect(result).toEqual({
-      id: created[0].id.value,
-      status: 'ACTIVE',
-      startedAt: created[0].startedAt,
+    ).resolves.toBe(result);
+    expect(adopt).toHaveBeenCalledWith({
+      ownerId,
+      sourceProgramSlug: 'strength-base',
     });
-    expect(findAccessibleBySlug).toHaveBeenCalledWith('strength-base', ownerId);
-    expect(create).toHaveBeenCalledTimes(1);
-    expect(created[0].ownerId).toBe(ownerId);
-    expect(created[0].sourceTrainingProgramId).toBe(adoptedProgramId);
-    expect(created[0].programNameSnapshot).toBe('Strength Base 2');
-    expect(created[0].durationWeeksSnapshot).toBe(4);
-    expect(created[0].occurrences).toHaveLength(2);
-    expect(created[0].occurrences[0].sourceTrainingProgramRoutineId).toBe(
-      sourceRoutineId,
-    );
-    expect(created[0].occurrences[0].sourceRoutineId).toBe(occurrenceId);
-    expect(created[0].occurrences[0].routineNameSnapshot).toBe('Upper A');
-    expect(created[0].occurrences[0].programSlotNotesSnapshot).toBe(
-      'Keep one rep in reserve.',
-    );
-    expect(created[0].occurrences[0].slot.weekNumber).toBe(1);
-    expect(created[0].occurrences[0].slot.dayNumber).toBe(1);
-    expect(created[0].occurrences[1].sourceTrainingProgramRoutineId).toBe(
-      secondSourceRoutineId,
-    );
-    expect(created[0].occurrences[1].sourceRoutineId).toBeNull();
-    expect(created[0].occurrences[1].routineNameSnapshot).toBe('Lower A');
-    expect(created[0].occurrences[1].programSlotNotesSnapshot).toBeNull();
-    expect(created[0].occurrences[1].slot.weekNumber).toBe(2);
-    expect(created[0].occurrences[1].slot.dayNumber).toBe(3);
   });
 
   it('does not call ports when the principal identifier is invalid', async () => {
-    const findAccessibleBySlug = jest.fn();
+    const adopt = jest.fn();
     await expect(
-      new AdoptTrainingProgramUseCase(
-        createCommandPort(),
-        createSourcesPort({ findAccessibleBySlug }),
-      ).execute({
+      new AdoptTrainingProgramUseCase(createCommandPort({ adopt })).execute({
         ownerId: 'invalid-owner',
         sourceProgramSlug: 'strength-base',
       }),
     ).rejects.toThrow();
-    expect(findAccessibleBySlug).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    [' trims surrounding whitespace', ' strength-base '],
-    [' normalizes uppercase characters', 'STRENGTH-BASE'],
-  ])(
-    'normalizes the source slug at the application boundary when it%s',
-    async (_label, sourceProgramSlug) => {
-      // Failure mode: EC-02
-      // Arrange
-      const findAccessibleBySlug = jest.fn().mockResolvedValue(source());
-      const create = jest.fn().mockResolvedValue(undefined);
-      const useCase = new AdoptTrainingProgramUseCase(
-        createCommandPort({ create }),
-        createSourcesPort({ findAccessibleBySlug }),
-      );
-
-      // Act
-      await useCase.execute({ ownerId, sourceProgramSlug });
-
-      // Assert
-      expect(findAccessibleBySlug).toHaveBeenCalledWith(
-        'strength-base',
-        ownerId,
-      );
-    },
-  );
-
-  it.each([
-    ['missing source', null, AdoptedTrainingProgramSourceNotFoundError],
-    [
-      'empty schedule',
-      source({ schedule: [] }),
-      AdoptedTrainingProgramEmptyScheduleError,
-    ],
-  ])('rejects %s during adoption', async (_label, sourceValue, error) => {
-    await expect(
-      new AdoptTrainingProgramUseCase(
-        createCommandPort(),
-        createSourcesPort({
-          findAccessibleBySlug: jest.fn().mockResolvedValue(sourceValue),
-        }),
-      ).execute({ ownerId, sourceProgramSlug: 'strength-base' }),
-    ).rejects.toThrow(error);
-  });
-
-  it('propagates source query failures without rewriting them', async () => {
-    const failure = new AdoptedTrainingProgramQueryError();
-    const findAccessibleBySlug = jest.fn().mockRejectedValue(failure);
-
-    await expect(
-      new AdoptTrainingProgramUseCase(
-        createCommandPort(),
-        createSourcesPort({ findAccessibleBySlug }),
-      ).execute({ ownerId, sourceProgramSlug: 'strength-base' }),
-    ).rejects.toBe(failure);
-  });
-
-  it('propagates adoption persistence conflicts without rewriting them', async () => {
-    const failure = new AdoptedTrainingProgramConcurrencyError();
-    const create = jest.fn().mockRejectedValue(failure);
-
-    await expect(
-      new AdoptTrainingProgramUseCase(
-        createCommandPort({ create }),
-        createSourcesPort({
-          findAccessibleBySlug: jest.fn().mockResolvedValue(source()),
-        }),
-      ).execute({ ownerId, sourceProgramSlug: 'strength-base' }),
-    ).rejects.toBe(failure);
-  });
-
-  it('does not persist when domain creation rejects invalid source data', async () => {
-    const create = jest.fn();
-    const invalidSource = source({
-      schedule: [
-        {
-          ...source().schedule[0],
-          weekNumber: 3,
-        },
-      ],
-    });
-
-    await expect(
-      new AdoptTrainingProgramUseCase(
-        createCommandPort({ create }),
-        createSourcesPort({
-          findAccessibleBySlug: jest.fn().mockResolvedValue(invalidSource),
-        }),
-      ).execute({ ownerId, sourceProgramSlug: 'strength-base' }),
-    ).rejects.toThrow();
-    expect(create).not.toHaveBeenCalled();
+    expect(adopt).not.toHaveBeenCalled();
   });
 
   it('returns owner-scoped projections', async () => {

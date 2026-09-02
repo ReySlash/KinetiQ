@@ -1,5 +1,7 @@
 import type { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
 import type {
+  AdoptTrainingProgramInput,
+  AdoptTrainingProgramResult,
   AdoptedTrainingProgramCommandResult,
   AdoptedTrainingProgramLifecycleInput,
   SkipProgramWorkoutOccurrenceInput,
@@ -7,11 +9,9 @@ import type {
   StartProgramWorkoutOccurrenceResult,
 } from '../models/adopted-training-program-command.input';
 import type { AdoptedTrainingProgramDetail } from '../models/adopted-training-program-detail.model';
-import type { AdoptedTrainingProgramSource } from '../models/adopted-training-program-source.model';
 import type { AdoptedTrainingProgramExecutionPort } from '../ports/adopted-training-program-execution.port';
 import type { AdoptedTrainingProgramsCommandPort } from '../ports/adopted-training-programs-command.port';
 import type { AdoptedTrainingProgramsQueryPort } from '../ports/adopted-training-programs-query.port';
-import type { AdoptedTrainingProgramSourcesPort } from '../ports/adopted-training-program-sources.port';
 
 const defaultStartResult: StartProgramWorkoutOccurrenceResult = {
   workoutSessionId: '00000000-0000-4000-8000-000000000000',
@@ -29,6 +29,9 @@ function unexpectedCommand<TResult, TArgs extends unknown[]>(
 }
 
 type CommandPortDouble = {
+  adopt: jest.MockedFunction<
+    (input: AdoptTrainingProgramInput) => Promise<AdoptTrainingProgramResult>
+  >;
   create: jest.MockedFunction<
     (program: AdoptedTrainingProgram) => Promise<void>
   >;
@@ -58,6 +61,10 @@ export function createCommandPort(
   overrides: Partial<CommandPortDouble> = {},
 ): AdoptedTrainingProgramsCommandPort & CommandPortDouble {
   return {
+    adopt: unexpectedCommand<
+      AdoptTrainingProgramResult,
+      [AdoptTrainingProgramInput]
+    >('adopt'),
     create: unexpectedCommand<void, [AdoptedTrainingProgram]>('create'),
     pause: unexpectedCommand<
       AdoptedTrainingProgramCommandResult,
@@ -97,24 +104,6 @@ export function createQueryPort(
   return {
     findNonTerminalByOwner: jest.fn().mockResolvedValue(null),
     findOwnedDetailById: jest.fn().mockResolvedValue(null),
-    ...overrides,
-  };
-}
-
-type SourcesPortDouble = {
-  findAccessibleBySlug: jest.MockedFunction<
-    (
-      slug: string,
-      ownerId: string,
-    ) => Promise<AdoptedTrainingProgramSource | null>
-  >;
-};
-
-export function createSourcesPort(
-  overrides: Partial<SourcesPortDouble> = {},
-): AdoptedTrainingProgramSourcesPort & SourcesPortDouble {
-  return {
-    findAccessibleBySlug: jest.fn().mockResolvedValue(null),
     ...overrides,
   };
 }
