@@ -5,6 +5,8 @@ import type { WorkoutSessionsQueryPort } from '../ports/workout-sessions-query.p
 import type { WorkoutSessionSourcesPort } from '../ports/workout-session-sources.port';
 import { WorkoutSession } from '../../domain/entities/workout-session.entity';
 import { AddWorkoutExerciseUseCase } from './commands/add-workout-exercise.use-case';
+import { CancelWorkoutUseCase } from './commands/cancel-workout.use-case';
+import { CompleteWorkoutUseCase } from './commands/complete-workout.use-case';
 import { StartWorkoutUseCase } from './commands/start-workout.use-case';
 import { GetWorkoutUseCase } from './queries/get-workout.use-case';
 
@@ -32,6 +34,8 @@ function commandPort(
   return {
     create: jest.fn(),
     update: jest.fn(),
+    complete: jest.fn(),
+    cancel: jest.fn(),
     ...overrides,
   };
 }
@@ -109,6 +113,87 @@ describe('Workout session application use cases', () => {
     expect(expectedVersion).toBe(0);
     expect(addedExerciseId).toBe(exerciseId);
     expect(addedExerciseName).toBe('Bench Press');
+  });
+
+  it('delegates workout completion to the explicit atomic command', async () => {
+    const workout = WorkoutSession.start({
+      ownerId,
+      timezone: 'Asia/Qatar',
+    }).addExercise({
+      exerciseId,
+      exerciseName: 'Bench Press',
+      isExerciseActive: true,
+    });
+    const performanceId = workout.exercisePerformances[0].id.value;
+    const withSet = workout.recordSet(performanceId, {
+      repetitions: 8,
+      load: '100',
+      loadUnit: 'KG',
+    });
+    const complete = jest.fn().mockResolvedValue(undefined);
+    const update = jest.fn();
+    const cancel = jest.fn();
+    const useCase = new CompleteWorkoutUseCase(
+      commandPort({ complete, update, cancel }),
+      queryPort({
+        findOwnedById: jest.fn().mockResolvedValue(withSet.toValue()),
+      }),
+    );
+
+    const result = await useCase.execute({
+      ownerId,
+      workoutSessionId: withSet.id.value,
+      completedAt: new Date(withSet.startedAt.getTime() + 1_000),
+    });
+
+    expect(complete).toHaveBeenCalledTimes(1);
+    expect(complete).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'COMPLETED' }),
+      withSet.version,
+    );
+    expect(update).not.toHaveBeenCalled();
+    expect(cancel).not.toHaveBeenCalled();
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: withSet.id.value,
+        status: 'COMPLETED',
+        version: withSet.version + 1,
+      }),
+    );
+  });
+
+  it('delegates workout cancellation to the explicit atomic command', async () => {
+    const workout = WorkoutSession.start({ ownerId, timezone: 'Asia/Qatar' });
+    const cancel = jest.fn().mockResolvedValue(undefined);
+    const update = jest.fn();
+    const complete = jest.fn();
+    const useCase = new CancelWorkoutUseCase(
+      commandPort({ cancel, update, complete }),
+      queryPort({
+        findOwnedById: jest.fn().mockResolvedValue(workout.toValue()),
+      }),
+    );
+
+    const result = await useCase.execute({
+      ownerId,
+      workoutSessionId: workout.id.value,
+      cancelledAt: new Date(workout.startedAt.getTime() + 1_000),
+    });
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(cancel).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'CANCELLED' }),
+      workout.version,
+    );
+    expect(update).not.toHaveBeenCalled();
+    expect(complete).not.toHaveBeenCalled();
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: workout.id.value,
+        status: 'CANCELLED',
+        version: workout.version + 1,
+      }),
+    );
   });
 
   it('returns a not-found error for inaccessible workout details', async () => {

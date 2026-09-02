@@ -12,6 +12,11 @@ import {
 } from '../../application/errors/workout-session.application.errors';
 import type { WorkoutSession } from '../../domain/entities/workout-session.entity';
 import type { PrimitiveWorkoutSession } from '../../domain/entities/workout-session.types';
+import type { AdoptedTrainingProgram } from '../../../adopted-training-programs/domain/adopted-training-program.aggregate';
+import {
+  adoptedTrainingProgramAggregateSelect,
+  toDomain as toAdoptedTrainingProgramDomain,
+} from '../../../adopted-training-programs/infrastructure/prisma/prisma-adopted-training-program.mapper';
 import { WorkoutSessionsCommandPort } from '../../application/ports/workout-sessions-command.port';
 import { WorkoutSessionSourcesPort } from '../../application/ports/workout-session-sources.port';
 import { WorkoutSessionsQueryPort } from '../../application/ports/workout-sessions-query.port';
@@ -112,6 +117,20 @@ export class PrismaWorkoutSessionsAdapter
     } catch (error) {
       this.throwPersistenceError(error);
     }
+  }
+
+  async complete(
+    workoutSession: WorkoutSession,
+    expectedVersion: number,
+  ): Promise<void> {
+    return this.persistLifecycle(workoutSession, expectedVersion, 'complete');
+  }
+
+  async cancel(
+    workoutSession: WorkoutSession,
+    expectedVersion: number,
+  ): Promise<void> {
+    return this.persistLifecycle(workoutSession, expectedVersion, 'cancel');
   }
 
   async findOwnedById(
@@ -276,14 +295,144 @@ export class PrismaWorkoutSessionsAdapter
     }
   }
 
+  private async persistLifecycle(
+    workoutSession: WorkoutSession,
+    expectedVersion: number,
+    operation: 'complete' | 'cancel',
+  ): Promise<void> {
+    try {
+      await this.prisma.$transaction(
+        async (transaction) => {
+          const persisted = await transaction.workoutSession.findFirst({
+            where: {
+              id: workoutSession.id.value,
+              ownerId: workoutSession.ownerId,
+              status: 'IN_PROGRESS',
+              version: expectedVersion,
+            },
+            select: {
+              programWorkoutOccurrenceId: true,
+              programWorkoutOccurrence: {
+                select: {
+                  adoptedTrainingProgram: {
+                    select: adoptedTrainingProgramAggregateSelect,
+                  },
+                },
+              },
+            },
+          });
+          if (!persisted) throw new WorkoutSessionConcurrencyError();
+
+          const linkedTransition = this.transitionLinkedProgram(
+            persisted.programWorkoutOccurrenceId,
+            persisted.programWorkoutOccurrence?.adoptedTrainingProgram,
+            workoutSession.ownerId,
+            operation,
+          );
+          const session = await transaction.workoutSession.updateMany({
+            where: {
+              id: workoutSession.id.value,
+              ownerId: workoutSession.ownerId,
+              status: 'IN_PROGRESS',
+              version: expectedVersion,
+              programWorkoutOccurrenceId: persisted.programWorkoutOccurrenceId,
+            },
+            data: toUpdateData(workoutSession),
+          });
+          if (session.count !== 1) throw new WorkoutSessionConcurrencyError();
+
+          if (!linkedTransition) return;
+          const { before, after, occurrenceId } = linkedTransition;
+          const occurrence = after.occurrences.find(
+            (item) => item.id.value === occurrenceId,
+          );
+          if (!occurrence) throw new WorkoutSessionPersistenceError();
+
+          const occurrenceUpdate =
+            await transaction.programWorkoutOccurrence.updateMany({
+              where: {
+                id: occurrenceId,
+                adoptedTrainingProgramId: before.id.value,
+                status: 'IN_PROGRESS',
+                adoptedTrainingProgram: {
+                  ownerId: workoutSession.ownerId,
+                  status: before.status,
+                },
+              },
+              data: {
+                status: occurrence.status,
+                updatedAt: occurrence.updatedAt,
+              },
+            });
+          if (occurrenceUpdate.count !== 1)
+            throw new WorkoutSessionConcurrencyError();
+
+          const programUpdate =
+            await transaction.adoptedTrainingProgram.updateMany({
+              where: {
+                id: before.id.value,
+                ownerId: workoutSession.ownerId,
+                status: before.status,
+                occurrences: {
+                  some: { id: occurrenceId, status: occurrence.status },
+                },
+              },
+              data: {
+                status: after.status,
+                completedAt: after.completedAt,
+                cancelledAt: after.cancelledAt,
+                updatedAt: after.updatedAt,
+              },
+            });
+          if (programUpdate.count !== 1)
+            throw new WorkoutSessionConcurrencyError();
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      this.throwPersistenceError(error);
+    }
+  }
+
+  private transitionLinkedProgram(
+    occurrenceId: string | null,
+    persistedProgram:
+      | Prisma.AdoptedTrainingProgramGetPayload<{
+          select: typeof adoptedTrainingProgramAggregateSelect;
+        }>
+      | null
+      | undefined,
+    ownerId: string,
+    operation: 'complete' | 'cancel',
+  ): {
+    before: AdoptedTrainingProgram;
+    after: AdoptedTrainingProgram;
+    occurrenceId: string;
+  } | null {
+    if (!occurrenceId) return null;
+    if (!persistedProgram || persistedProgram.ownerId !== ownerId) {
+      throw new WorkoutSessionPersistenceError();
+    }
+    const before = toAdoptedTrainingProgramDomain(persistedProgram);
+    const after =
+      operation === 'complete'
+        ? before.completeOccurrence(occurrenceId)
+        : before.cancelOccurrence(occurrenceId);
+    return { before, after, occurrenceId };
+  }
+
   private throwPersistenceError(error: unknown): never {
     if (
       error instanceof WorkoutSessionConcurrencyError ||
+      error instanceof WorkoutSessionPersistenceError ||
       error instanceof WorkoutSessionRoutineUnavailableError ||
       error instanceof WorkoutSessionExerciseUnavailableError ||
       error instanceof WorkoutSessionAlreadyActiveError
     ) {
       throw error;
+    }
+    if (isPrismaError(error, 'P2034')) {
+      throw new WorkoutSessionConcurrencyError();
     }
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
@@ -301,6 +450,12 @@ export class PrismaWorkoutSessionsAdapter
     }
     throw new WorkoutSessionPersistenceError();
   }
+}
+
+type PrismaError = { code: string };
+
+function isPrismaError(error: unknown, code: string): error is PrismaError {
+  return isRecord(error) && error.code === code;
 }
 
 function getPrismaConstraintFields(

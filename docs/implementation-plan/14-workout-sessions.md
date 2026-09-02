@@ -5,10 +5,10 @@
 Phase 8 introduced the historical execution domain. The Prisma schema,
 migrations, domain aggregate, application use cases, Prisma infrastructure,
 HTTP presentation, and initial frontend workflow are implemented. This
-document records the current session architecture and the approved boundary for
-the adopted-program integration. Persistence for the adopted-program aggregate
-and workout occurrences is implemented; domain, application, API, and frontend
-execution behavior remains planned.
+document records the current session architecture and the adopted-program
+integration boundary. The adopted-program persistence, domain, application,
+Prisma infrastructure, and HTTP API are implemented. Frontend execution
+behavior remains pending.
 
 Use these concrete domain names consistently:
 
@@ -106,13 +106,11 @@ fields; any supplementary versioned snapshot payload must have a concrete need.
 
 ## Sources and active training programs
 
-A workout session currently may originate from:
+A workout session may originate from:
 
 - a standalone routine;
-- a freestyle workout.
-
-The next execution slice adds a third source: a particular
-`ProgramWorkoutOccurrence` from an adopted training program.
+- a freestyle workout;
+- a particular `ProgramWorkoutOccurrence` from an adopted training program.
 
 The long-term relationship remains:
 
@@ -126,24 +124,23 @@ ProgramWorkoutOccurrence
 WorkoutSession
 ```
 
-`TrainingProgram` is a reusable template. The implemented persistence models
-`AdoptedTrainingProgram` and `ProgramWorkoutOccurrence` will copy the relative
-schedule when the pending adoption behavior is implemented. A
-program-origin session references one occurrence rather than only the reusable
-template. A `WorkoutSession` remains independently valid when started from a
-standalone routine or as freestyle training. Calendar dates and weekday mapping
-are not part of the initial adopted-program slice.
+`TrainingProgram` is a reusable template. `AdoptedTrainingProgram` and
+`ProgramWorkoutOccurrence` copy its relative schedule when the program is
+adopted. A program-origin session references one occurrence rather than only
+the reusable template. A `WorkoutSession` remains independently valid when
+started from a standalone routine or as freestyle training. Calendar dates and
+weekday mapping are not part of the initial adopted-program slice.
 
 Each cross-aggregate command must be persisted through exactly one atomic
-application-port operation. Program-workout launch belongs to a source-aware
-execution port in the planned `adopted-training-programs` application layer. The
-existing workout-session command-side contract owns explicit completion and
-cancellation operations that propagate linked occurrence/program transitions;
+application-port operation. Program-workout launch belongs to the source-aware
+execution port in the `adopted-training-programs` application layer. The
+workout-session command-side contract owns explicit completion and cancellation
+operations that propagate linked occurrence/program transitions;
 these must not be hidden inside its generic `update()` method. Calling separate
 repositories sequentially, importing Prisma into application/domain code, or
 using HTTP between local modules is not an acceptable substitute. This one-way
-ownership must avoid circular imports between `WorkoutSessionsModule` and the
-planned `AdoptedTrainingProgramsModule`. The exact atomic steps are specified in
+ownership avoids circular imports between `WorkoutSessionsModule` and
+`AdoptedTrainingProgramsModule`. The exact atomic steps are specified in
 [training programs](13-training-programs.md#atomic-application-port-operations).
 
 ## Aggregate and lifecycle

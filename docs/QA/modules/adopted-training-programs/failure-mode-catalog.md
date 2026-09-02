@@ -162,15 +162,16 @@ completion/cancellation propagation, concealed-resource commands returning
 
 ## Business contract violations
 
-### BV-01 — Program-origin session completion and cancellation do not propagate
+### BV-01 — Program-origin session completion and cancellation propagation
 
 - **ID:** BV-01
 - **Category:** Business contract violations
 - **Risk:** High
 - **Input that exposes it:** Start a program occurrence, then complete or cancel the resulting workout through the current workout-session commands.
-- **Current behavior observed in the code:** Start associates the session with the occurrence and marks the occurrence `IN_PROGRESS`. No workout-session implementation references `programWorkoutOccurrenceId` to complete the occurrence, return it to `PENDING`, or complete the parent.
+- **Current behavior observed in the code:** Explicit workout-session completion and cancellation command-port operations resolve `programWorkoutOccurrenceId` and persist the session, occurrence, and parent transitions in one Serializable Prisma transaction. Standalone sessions remain session-only.
 - **Recommended expected contract:** Completion and cancellation must atomically propagate the approved occurrence and parent transitions while preserving session history.
 - **Contract status:** Confirmed
+- **Implementation status:** Implemented and covered by unit and PostgreSQL E2E tests.
 - **Why it matters:** A started program workout can leave the occurrence permanently `IN_PROGRESS`, preventing pause, cancellation, retry, and further progression.
 
 ### BV-02 — Reconstitution accepts parent/child lifecycle contradictions

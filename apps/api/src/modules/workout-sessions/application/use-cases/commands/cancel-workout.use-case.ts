@@ -23,7 +23,7 @@ export class CancelWorkoutUseCase {
       this.queries,
     );
     const cancelled = workout.cancel(input.cancelledAt);
-    await this.commands.update(cancelled, workout.version);
+    await this.commands.cancel(cancelled, workout.version);
     return {
       id: cancelled.id.value,
       status: cancelled.status,

@@ -7,4 +7,12 @@ export abstract class WorkoutSessionsCommandPort {
     workoutSession: WorkoutSession,
     expectedVersion: number,
   ): Promise<void>;
+  abstract complete(
+    workoutSession: WorkoutSession,
+    expectedVersion: number,
+  ): Promise<void>;
+  abstract cancel(
+    workoutSession: WorkoutSession,
+    expectedVersion: number,
+  ): Promise<void>;
 }

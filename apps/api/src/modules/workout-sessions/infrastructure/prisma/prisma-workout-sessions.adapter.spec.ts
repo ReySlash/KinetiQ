@@ -4,13 +4,24 @@ jest.mock(
 );
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { WorkoutSessionConcurrencyError } from '../../application/errors/workout-session.application.errors';
+import {
+  WorkoutSessionConcurrencyError,
+  WorkoutSessionPersistenceError,
+} from '../../application/errors/workout-session.application.errors';
 import { WorkoutSession } from '../../domain/entities/workout-session.entity';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import { PrismaWorkoutSessionsAdapter } from './prisma-workout-sessions.adapter';
 
 const ownerId = '223e4567-e89b-12d3-a456-426614174000';
 const exerciseId = '423e4567-e89b-12d3-a456-426614174000';
+const programId = '623e4567-e89b-12d3-a456-426614174000';
+const occurrenceId = '723e4567-e89b-12d3-a456-426614174000';
+const nextOccurrenceId = '823e4567-e89b-12d3-a456-426614174000';
+
+type UpdateManyArguments = {
+  where: Record<string, unknown>;
+  data: Record<string, unknown>;
+};
 
 function createWorkout(): WorkoutSession {
   return WorkoutSession.start({ ownerId, timezone: 'Asia/Qatar' }).addExercise({
@@ -20,13 +31,91 @@ function createWorkout(): WorkoutSession {
   });
 }
 
+function createCompletableWorkout(): WorkoutSession {
+  const workout = createWorkout();
+  return workout.recordSet(workout.exercisePerformances[0].id.value, {
+    repetitions: 8,
+    load: '100',
+    loadUnit: 'KG',
+    completedAt: new Date(workout.startedAt.getTime() + 1_000),
+  });
+}
+
+function linkedProgramRow(
+  workout: WorkoutSession,
+  options: { includePendingOccurrence?: boolean } = {},
+) {
+  return {
+    programWorkoutOccurrenceId: occurrenceId,
+    programWorkoutOccurrence: {
+      adoptedTrainingProgram: {
+        id: programId,
+        ownerId,
+        sourceTrainingProgramId: null,
+        programNameSnapshot: 'Strength',
+        durationWeeksSnapshot: 1,
+        status: 'ACTIVE' as const,
+        startedAt: workout.startedAt,
+        completedAt: null,
+        cancelledAt: null,
+        createdAt: workout.createdAt,
+        updatedAt: workout.updatedAt,
+        occurrences: [
+          {
+            id: occurrenceId,
+            adoptedTrainingProgramId: programId,
+            sourceTrainingProgramRoutineId: null,
+            sourceRoutineId: null,
+            weekNumber: 1,
+            dayNumber: 1,
+            routineNameSnapshot: 'Upper A',
+            programSlotNotesSnapshot: null,
+            status: 'IN_PROGRESS' as const,
+            createdAt: workout.createdAt,
+            updatedAt: workout.updatedAt,
+          },
+          ...(options.includePendingOccurrence
+            ? [
+                {
+                  id: nextOccurrenceId,
+                  adoptedTrainingProgramId: programId,
+                  sourceTrainingProgramRoutineId: null,
+                  sourceRoutineId: null,
+                  weekNumber: 1,
+                  dayNumber: 2,
+                  routineNameSnapshot: 'Lower A',
+                  programSlotNotesSnapshot: null,
+                  status: 'PENDING' as const,
+                  createdAt: workout.createdAt,
+                  updatedAt: workout.updatedAt,
+                },
+              ]
+            : []),
+        ],
+      },
+    },
+  };
+}
+
 describe('PrismaWorkoutSessionsAdapter', () => {
   const workoutSessionCreate = jest.fn<Promise<unknown>, [unknown]>();
   const workoutSessionUpdate = jest.fn();
-  const workoutSessionUpdateMany = jest.fn();
+  const workoutSessionUpdateMany = jest.fn<
+    Promise<{ count: number }>,
+    [UpdateManyArguments]
+  >();
   const workoutSessionFindFirst = jest.fn();
   const workoutSessionFindUnique = jest.fn();
   const workoutSessionFindMany = jest.fn();
+  const transactionWorkoutSessionFindFirst = jest.fn();
+  const occurrenceUpdateMany = jest.fn<
+    Promise<{ count: number }>,
+    [UpdateManyArguments]
+  >();
+  const adoptedProgramUpdateMany = jest.fn<
+    Promise<{ count: number }>,
+    [UpdateManyArguments]
+  >();
   const exercisePerformanceFindMany = jest.fn<Promise<unknown>, [unknown]>();
   const exercisePerformanceDeleteMany = jest.fn();
   const exercisePerformanceCreateMany = jest.fn();
@@ -34,30 +123,39 @@ describe('PrismaWorkoutSessionsAdapter', () => {
   const completedSetCreateMany = jest.fn();
   const exerciseFindFirst = jest.fn();
   const routineFindFirst = jest.fn<Promise<unknown>, [unknown]>();
-  const transaction = jest.fn(
-    async (work: (client: object) => Promise<unknown>) =>
-      work({
-        workoutSession: {
-          create: workoutSessionCreate,
-          update: workoutSessionUpdate,
-          updateMany: workoutSessionUpdateMany,
-        },
-        exercisePerformance: {
-          findMany: exercisePerformanceFindMany,
-          deleteMany: exercisePerformanceDeleteMany,
-          createMany: exercisePerformanceCreateMany,
-        },
-        completedSet: {
-          deleteMany: completedSetDeleteMany,
-          createMany: completedSetCreateMany,
-        },
-        exercise: { findFirst: exerciseFindFirst },
-        routine: { findFirst: routineFindFirst },
-      }),
-  );
+  const transactionClient = {
+    workoutSession: {
+      create: workoutSessionCreate,
+      findFirst: transactionWorkoutSessionFindFirst,
+      update: workoutSessionUpdate,
+      updateMany: workoutSessionUpdateMany,
+    },
+    programWorkoutOccurrence: { updateMany: occurrenceUpdateMany },
+    adoptedTrainingProgram: { updateMany: adoptedProgramUpdateMany },
+    exercisePerformance: {
+      findMany: exercisePerformanceFindMany,
+      deleteMany: exercisePerformanceDeleteMany,
+      createMany: exercisePerformanceCreateMany,
+    },
+    completedSet: {
+      deleteMany: completedSetDeleteMany,
+      createMany: completedSetCreateMany,
+    },
+    exercise: { findFirst: exerciseFindFirst },
+    routine: { findFirst: routineFindFirst },
+  };
+  const transaction = jest.fn<
+    Promise<unknown>,
+    [
+      work: (client: typeof transactionClient) => Promise<unknown>,
+      options?: unknown,
+    ]
+  >(async (work) => work(transactionClient));
   let adapter: PrismaWorkoutSessionsAdapter;
 
   beforeEach(async () => {
+    jest.resetAllMocks();
+    transaction.mockImplementation(async (work) => work(transactionClient));
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PrismaWorkoutSessionsAdapter,
@@ -79,7 +177,6 @@ describe('PrismaWorkoutSessionsAdapter', () => {
     }).compile();
 
     adapter = module.get(PrismaWorkoutSessionsAdapter);
-    jest.clearAllMocks();
   });
 
   it('creates the complete aggregate inside one transaction', async () => {
@@ -124,6 +221,200 @@ describe('PrismaWorkoutSessionsAdapter', () => {
     await expect(adapter.update(workout, 0)).rejects.toBeInstanceOf(
       WorkoutSessionConcurrencyError,
     );
+  });
+
+  it('atomically completes a linked occurrence and its resolved parent', async () => {
+    const workout = createCompletableWorkout();
+    const completed = workout.complete(
+      new Date(workout.startedAt.getTime() + 2_000),
+    );
+    transactionWorkoutSessionFindFirst.mockResolvedValue(
+      linkedProgramRow(workout),
+    );
+    workoutSessionUpdateMany.mockResolvedValue({ count: 1 });
+    occurrenceUpdateMany.mockResolvedValue({ count: 1 });
+    adoptedProgramUpdateMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      adapter.complete(completed, workout.version),
+    ).resolves.toBeUndefined();
+
+    expect(transaction).toHaveBeenCalledTimes(1);
+    expect(transaction.mock.calls[0]?.[1]).toEqual({
+      isolationLevel: 'Serializable',
+    });
+    expect(workoutSessionUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'where',
+      {
+        id: workout.id.value,
+        ownerId,
+        status: 'IN_PROGRESS',
+        version: workout.version,
+        programWorkoutOccurrenceId: occurrenceId,
+      },
+    );
+    expect(workoutSessionUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'COMPLETED',
+    );
+    expect(occurrenceUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'where.id',
+      occurrenceId,
+    );
+    expect(occurrenceUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'where.adoptedTrainingProgramId',
+      programId,
+    );
+    expect(occurrenceUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'where.status',
+      'IN_PROGRESS',
+    );
+    expect(occurrenceUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'COMPLETED',
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'where.id',
+      programId,
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'where.ownerId',
+      ownerId,
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'COMPLETED',
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.completedAt',
+      expect.any(Date),
+    );
+    expect(exercisePerformanceDeleteMany).not.toHaveBeenCalled();
+    expect(completedSetDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it('atomically cancels a linked attempt and returns its occurrence to pending', async () => {
+    const workout = createWorkout();
+    const cancelled = workout.cancel(
+      new Date(workout.startedAt.getTime() + 1_000),
+    );
+    transactionWorkoutSessionFindFirst.mockResolvedValue(
+      linkedProgramRow(workout),
+    );
+    workoutSessionUpdateMany.mockResolvedValue({ count: 1 });
+    occurrenceUpdateMany.mockResolvedValue({ count: 1 });
+    adoptedProgramUpdateMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      adapter.cancel(cancelled, workout.version),
+    ).resolves.toBeUndefined();
+
+    expect(workoutSessionUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'CANCELLED',
+    );
+    expect(occurrenceUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'PENDING',
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'ACTIVE',
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.completedAt',
+      null,
+    );
+    expect(workoutSessionUpdateMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the parent active when completing a non-final occurrence', async () => {
+    const workout = createCompletableWorkout();
+    const completed = workout.complete(
+      new Date(workout.startedAt.getTime() + 2_000),
+    );
+    transactionWorkoutSessionFindFirst.mockResolvedValue(
+      linkedProgramRow(workout, { includePendingOccurrence: true }),
+    );
+    workoutSessionUpdateMany.mockResolvedValue({ count: 1 });
+    occurrenceUpdateMany.mockResolvedValue({ count: 1 });
+    adoptedProgramUpdateMany.mockResolvedValue({ count: 1 });
+
+    await adapter.complete(completed, workout.version);
+
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.status',
+      'ACTIVE',
+    );
+    expect(adoptedProgramUpdateMany.mock.calls[0]?.[0]).toHaveProperty(
+      'data.completedAt',
+      null,
+    );
+  });
+
+  it('completes a standalone workout without adopted-program writes', async () => {
+    const workout = createCompletableWorkout();
+    const completed = workout.complete(
+      new Date(workout.startedAt.getTime() + 2_000),
+    );
+    transactionWorkoutSessionFindFirst.mockResolvedValue({
+      programWorkoutOccurrenceId: null,
+      programWorkoutOccurrence: null,
+    });
+    workoutSessionUpdateMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      adapter.complete(completed, workout.version),
+    ).resolves.toBeUndefined();
+
+    expect(workoutSessionUpdateMany).toHaveBeenCalledTimes(1);
+    expect(occurrenceUpdateMany).not.toHaveBeenCalled();
+    expect(adoptedProgramUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it('rolls back linked completion when an occurrence conditional update loses', async () => {
+    const workout = createCompletableWorkout();
+    const completed = workout.complete(
+      new Date(workout.startedAt.getTime() + 2_000),
+    );
+    transactionWorkoutSessionFindFirst.mockResolvedValue(
+      linkedProgramRow(workout),
+    );
+    workoutSessionUpdateMany.mockResolvedValue({ count: 1 });
+    occurrenceUpdateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      adapter.complete(completed, workout.version),
+    ).rejects.toBeInstanceOf(WorkoutSessionConcurrencyError);
+
+    expect(adoptedProgramUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects contradictory linked state through domain validation before writing', async () => {
+    const workout = createCompletableWorkout();
+    const completed = workout.complete(
+      new Date(workout.startedAt.getTime() + 2_000),
+    );
+    const linked = linkedProgramRow(workout);
+    transactionWorkoutSessionFindFirst.mockResolvedValue({
+      ...linked,
+      programWorkoutOccurrence: {
+        adoptedTrainingProgram: {
+          ...linked.programWorkoutOccurrence.adoptedTrainingProgram,
+          occurrences:
+            linked.programWorkoutOccurrence.adoptedTrainingProgram.occurrences.map(
+              (occurrence) => ({ ...occurrence, status: 'PENDING' as const }),
+            ),
+        },
+      },
+    });
+
+    await expect(
+      adapter.complete(completed, workout.version),
+    ).rejects.toBeInstanceOf(WorkoutSessionPersistenceError);
+
+    expect(workoutSessionUpdateMany).not.toHaveBeenCalled();
+    expect(occurrenceUpdateMany).not.toHaveBeenCalled();
   });
 
   it('resolves routine snapshots using the authenticated owner scope', async () => {
