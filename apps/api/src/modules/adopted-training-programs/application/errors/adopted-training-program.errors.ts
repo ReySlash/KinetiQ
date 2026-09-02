@@ -25,6 +25,15 @@ export class AdoptedTrainingProgramSourceUnavailableError extends Error {
   }
 }
 
+export class AdoptedTrainingProgramSourceIntegrityError extends Error {
+  readonly code = 'ADOPTED_TRAINING_PROGRAM_SOURCE_INTEGRITY_FAILED';
+
+  constructor() {
+    super('The source routine contains invalid persisted data.');
+    this.name = 'AdoptedTrainingProgramSourceIntegrityError';
+  }
+}
+
 export class AdoptedTrainingProgramEmptyScheduleError extends Error {
   readonly code = 'ADOPTED_TRAINING_PROGRAM_EMPTY_SCHEDULE';
 

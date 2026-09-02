@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '../../../../../generated/prisma/client';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
@@ -7,6 +7,7 @@ import {
   AdoptedTrainingProgramNotFoundError,
   AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramQueryError,
+  AdoptedTrainingProgramSourceIntegrityError,
   AdoptedTrainingProgramSourceUnavailableError,
 } from '../../application/errors/adopted-training-program.errors';
 import type {
@@ -46,7 +47,10 @@ import {
   AdoptedTrainingProgramSourceProgramReferenceError,
   AdoptedTrainingProgramSourceRoutineReferenceError,
 } from './prisma-adopted-training-program.errors';
-import { isRoutineStartableForOwner } from '../../../shared/domain/routine-startability';
+import {
+  hasInvalidRoutinePrescription,
+  isRoutineStartableForOwner,
+} from '../../../shared/domain/routine-startability';
 
 const routineForStartSelect = {
   id: true,
@@ -82,6 +86,10 @@ export class PrismaAdoptedTrainingProgramsAdapter
     AdoptedTrainingProgramSourcesPort,
     AdoptedTrainingProgramExecutionPort
 {
+  private readonly logger = new Logger(
+    PrismaAdoptedTrainingProgramsAdapter.name,
+  );
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(program: AdoptedTrainingProgram): Promise<void> {
@@ -321,21 +329,33 @@ export class PrismaAdoptedTrainingProgramsAdapter
             },
             select: routineForStartSelect,
           });
+          if (!routine) {
+            throw new AdoptedTrainingProgramSourceUnavailableError();
+          }
+          const routineExercises = routine.exercises.map((entry) => ({
+            isActive: entry.exercise.isActive,
+            targetSetCount: entry.sets,
+            targetMinReps: entry.minReps,
+            targetMaxReps: entry.maxReps,
+            targetRir: entry.targetRir,
+            targetRestSeconds: entry.restSeconds,
+            targetTempo: entry.tempo,
+            prescriptionNotes: entry.notes,
+          }));
+          if (hasInvalidRoutinePrescription(routineExercises)) {
+            this.logger.error('Invalid persisted routine prescription.', {
+              ownerId: input.ownerId,
+              adoptedTrainingProgramId: input.adoptedTrainingProgramId,
+              occurrenceId: input.occurrenceId,
+              routineId: routine.id,
+            });
+            throw new AdoptedTrainingProgramSourceIntegrityError();
+          }
           if (
-            !routine ||
             !isRoutineStartableForOwner(
               routine,
               input.ownerId,
-              routine.exercises.map((entry) => ({
-                isActive: entry.exercise.isActive,
-                targetSetCount: entry.sets,
-                targetMinReps: entry.minReps,
-                targetMaxReps: entry.maxReps,
-                targetRir: entry.targetRir,
-                targetRestSeconds: entry.restSeconds,
-                targetTempo: entry.tempo,
-                prescriptionNotes: entry.notes,
-              })),
+              routineExercises,
             )
           ) {
             throw new AdoptedTrainingProgramSourceUnavailableError();
@@ -513,6 +533,7 @@ export class PrismaAdoptedTrainingProgramsAdapter
     if (
       error instanceof AdoptedTrainingProgramConcurrencyError ||
       error instanceof AdoptedTrainingProgramNotFoundError ||
+      error instanceof AdoptedTrainingProgramSourceIntegrityError ||
       error instanceof AdoptedTrainingProgramSourceUnavailableError ||
       error instanceof AdoptedTrainingProgramExerciseReferenceError ||
       error instanceof WorkoutSessionValidationError

@@ -30,6 +30,12 @@ export function hasExecutableRoutineExercises(
   return exercises.length > 0 && exercises.every(isExecutableRoutineExercise);
 }
 
+export function hasInvalidRoutinePrescription(
+  exercises: RoutineExerciseStartabilityProjection[],
+): boolean {
+  return exercises.some((exercise) => !hasValidPrescription(exercise));
+}
+
 export function isRoutineStartableForOwner(
   routine: RoutineAccessProjection | null,
   ownerId: string,
@@ -44,8 +50,13 @@ export function isRoutineStartableForOwner(
 function isExecutableRoutineExercise(
   exercise: RoutineExerciseStartabilityProjection,
 ): boolean {
+  return exercise.isActive && hasValidPrescription(exercise);
+}
+
+function hasValidPrescription(
+  exercise: RoutineExerciseStartabilityProjection,
+): boolean {
   return (
-    exercise.isActive &&
     isIntegerInRange(exercise.targetSetCount, 1, 20) &&
     isIntegerInRange(exercise.targetMinReps, 1, 1000) &&
     isIntegerInRange(exercise.targetMaxReps, 1, 1000) &&

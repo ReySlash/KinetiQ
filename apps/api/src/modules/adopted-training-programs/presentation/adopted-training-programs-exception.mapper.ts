@@ -13,6 +13,7 @@ import {
   AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramQueryError,
   AdoptedTrainingProgramSourceNotFoundError,
+  AdoptedTrainingProgramSourceIntegrityError,
   AdoptedTrainingProgramSourceUnavailableError,
 } from '../application/errors/adopted-training-program.errors';
 import {
@@ -53,7 +54,8 @@ export function toAdoptedTrainingProgramsHttpException(error: unknown): Error {
   }
   if (
     error instanceof AdoptedTrainingProgramPersistenceError ||
-    error instanceof AdoptedTrainingProgramQueryError
+    error instanceof AdoptedTrainingProgramQueryError ||
+    error instanceof AdoptedTrainingProgramSourceIntegrityError
   ) {
     return withCode(InternalServerErrorException, error);
   }

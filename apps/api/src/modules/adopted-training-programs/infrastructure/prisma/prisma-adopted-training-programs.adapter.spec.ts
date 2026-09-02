@@ -10,6 +10,7 @@ import {
   AdoptedTrainingProgramConcurrencyError,
   AdoptedTrainingProgramNotFoundError,
   AdoptedTrainingProgramPersistenceError,
+  AdoptedTrainingProgramSourceIntegrityError,
   AdoptedTrainingProgramSourceUnavailableError,
 } from '../../application/errors/adopted-training-program.errors';
 import { AdoptedTrainingProgram } from '../../domain/adopted-training-program.aggregate';
@@ -569,6 +570,47 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
         timezone: 'Not/A_Timezone',
       }),
     ).rejects.toBeInstanceOf(WorkoutSessionValidationError);
+    expect(workoutSessionCreate).not.toHaveBeenCalled();
+    expect(occurrenceUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it('classifies malformed persisted prescriptions as integrity failures before persistence', async () => {
+    occurrenceFindFirst.mockResolvedValue({
+      id: occurrenceId,
+      sourceRoutineId: routineId,
+      adoptedTrainingProgram: {
+        startedAt: new Date('2026-08-01T10:00:00.000Z'),
+      },
+    });
+    routineFindFirst.mockResolvedValue({
+      id: routineId,
+      name: 'Upper A',
+      ownerId,
+      visibility: 'PRIVATE',
+      exercises: [
+        {
+          id: '77777777-7777-4777-8777-777777777777',
+          order: 0,
+          sets: 0,
+          minReps: 8,
+          maxReps: 10,
+          targetRir: 2,
+          restSeconds: 120,
+          tempo: null,
+          notes: null,
+          exercise: { id: exerciseId, name: 'Bench Press', isActive: true },
+        },
+      ],
+    });
+
+    await expect(
+      adapter.startProgramWorkout({
+        ownerId,
+        adoptedTrainingProgramId: programId,
+        occurrenceId,
+        timezone: 'UTC',
+      }),
+    ).rejects.toBeInstanceOf(AdoptedTrainingProgramSourceIntegrityError);
     expect(workoutSessionCreate).not.toHaveBeenCalled();
     expect(occurrenceUpdateMany).not.toHaveBeenCalled();
   });

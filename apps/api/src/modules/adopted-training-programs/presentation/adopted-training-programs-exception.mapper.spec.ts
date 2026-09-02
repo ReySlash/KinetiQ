@@ -13,6 +13,7 @@ import {
   AdoptedTrainingProgramPersistenceError,
   AdoptedTrainingProgramQueryError,
   AdoptedTrainingProgramSourceNotFoundError,
+  AdoptedTrainingProgramSourceIntegrityError,
   AdoptedTrainingProgramSourceUnavailableError,
 } from '../application/errors/adopted-training-program.errors';
 import {
@@ -43,6 +44,10 @@ describe('toAdoptedTrainingProgramsHttpException', () => {
       InternalServerErrorException,
     ],
     [new AdoptedTrainingProgramQueryError(), InternalServerErrorException],
+    [
+      new AdoptedTrainingProgramSourceIntegrityError(),
+      InternalServerErrorException,
+    ],
     [new Error('unexpected'), InternalServerErrorException],
   ])('maps errors to %s', (error, exceptionType) => {
     expect(toAdoptedTrainingProgramsHttpException(error)).toBeInstanceOf(
@@ -58,6 +63,7 @@ describe('toAdoptedTrainingProgramsHttpException', () => {
     new AdoptedTrainingProgramConcurrencyError(),
     new AdoptedTrainingProgramPersistenceError(),
     new AdoptedTrainingProgramQueryError(),
+    new AdoptedTrainingProgramSourceIntegrityError(),
   ])(
     'preserves the stable application error code in the HTTP body',
     (error) => {
