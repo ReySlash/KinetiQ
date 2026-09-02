@@ -24,6 +24,15 @@ export const adoptedTrainingProgramDetailSelect = {
   startedAt: true,
   completedAt: true,
   cancelledAt: true,
+  owner: {
+    select: {
+      workoutSessions: {
+        where: { status: 'IN_PROGRESS' },
+        take: 1,
+        select: { id: true },
+      },
+    },
+  },
   occurrences: {
     orderBy: [{ weekNumber: 'asc' }, { dayNumber: 'asc' }],
     select: {
@@ -179,6 +188,7 @@ export function toDetail(
   const hasActiveOccurrence = occurrences.some(
     (item) => item.status === 'IN_PROGRESS',
   );
+  const hasActiveOwnerSession = row.owner.workoutSessions.length > 0;
 
   return {
     id: row.id,
@@ -204,6 +214,7 @@ export function toDetail(
         !hasActiveOccurrence,
       canStartNext:
         row.status === 'ACTIVE' &&
+        !hasActiveOwnerSession &&
         nextPendingOccurrence !== null &&
         nextPendingOccurrence.sourceRoutineAvailable,
       canSkipNext: row.status === 'ACTIVE' && nextPendingOccurrence !== null,

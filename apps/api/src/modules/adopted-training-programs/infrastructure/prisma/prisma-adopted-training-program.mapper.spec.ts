@@ -109,6 +109,7 @@ describe('prisma adopted training program mapper', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
+      owner: { workoutSessions: [] },
       occurrences: [
         {
           id: sourceProgramRoutineId,
@@ -179,6 +180,7 @@ describe('prisma adopted training program mapper', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
+      owner: { workoutSessions: [] },
       occurrences: [
         {
           id: sourceProgramRoutineId,
@@ -213,6 +215,28 @@ describe('prisma adopted training program mapper', () => {
     });
   });
 
+  it('does not advertise start while the owner has another active workout', () => {
+    // Failure mode: BV-04
+    const row = {
+      id: sourceProgramId,
+      programNameSnapshot: 'Strength Base',
+      status: 'ACTIVE' as const,
+      durationWeeksSnapshot: 1,
+      startedAt: new Date('2026-08-31T10:00:00.000Z'),
+      completedAt: null,
+      cancelledAt: null,
+      owner: {
+        workoutSessions: [{ id: '77777777-7777-4777-8777-777777777777' }],
+      },
+      occurrences: [occurrenceDetailRow()],
+    } satisfies AdoptedTrainingProgramDetailRow;
+
+    expect(toDetail(row, ownerId).actions).toMatchObject({
+      canStartNext: false,
+      canSkipNext: true,
+    });
+  });
+
   it('does not advertise start when the next routine contains an inactive exercise', () => {
     const row = {
       id: sourceProgramId,
@@ -222,6 +246,7 @@ describe('prisma adopted training program mapper', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
+      owner: { workoutSessions: [] },
       occurrences: [
         {
           id: sourceProgramRoutineId,
@@ -260,6 +285,7 @@ describe('prisma adopted training program mapper', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
+      owner: { workoutSessions: [] },
       occurrences: [
         occurrenceDetailRow({
           id: '55555555-5555-4555-8555-555555555555',
@@ -295,6 +321,7 @@ describe('prisma adopted training program mapper', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
+      owner: { workoutSessions: [] },
       occurrences: [],
     } satisfies AdoptedTrainingProgramDetailRow;
 

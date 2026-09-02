@@ -380,6 +380,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       startedAt: new Date('2026-08-31T10:00:00.000Z'),
       completedAt: null,
       cancelledAt: null,
+      owner: { workoutSessions: [] },
       occurrences: [
         {
           id: occurrenceId,
@@ -404,6 +405,17 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       }),
     );
     expect(adoptedProgramFindFirst.mock.calls[0]?.[0].select).toBeDefined();
+    expect(adoptedProgramFindFirst.mock.calls[0]?.[0].select).toMatchObject({
+      owner: {
+        select: {
+          workoutSessions: {
+            where: { status: 'IN_PROGRESS' },
+            take: 1,
+            select: { id: true },
+          },
+        },
+      },
+    });
   });
 
   it('returns null for a missing owned detail and maps read failures', async () => {
