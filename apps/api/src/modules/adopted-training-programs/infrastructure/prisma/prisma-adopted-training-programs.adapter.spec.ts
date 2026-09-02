@@ -278,7 +278,15 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
 
   it('rejects cancellation while an occurrence is in progress', async () => {
     adoptedProgramUpdateMany.mockResolvedValue({ count: 0 });
-    adoptedProgramFindFirst.mockResolvedValue({ id: programId });
+    adoptedProgramFindFirst.mockResolvedValue({
+      id: programId,
+      occurrences: [
+        {
+          status: 'IN_PROGRESS',
+          sessionAttempts: [{ status: 'IN_PROGRESS' }],
+        },
+      ],
+    });
 
     await expect(
       adapter.cancel({ ownerId, adoptedTrainingProgramId: programId }),
@@ -286,7 +294,14 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     expect(adoptedProgramUpdateMany.mock.calls[0]?.[0].where).toMatchObject({
       ownerId,
       status: { in: ['ACTIVE', 'PAUSED'] },
-      occurrences: { none: { status: 'IN_PROGRESS' } },
+      occurrences: {
+        none: {
+          OR: [
+            { status: 'IN_PROGRESS' },
+            { sessionAttempts: { some: { status: 'IN_PROGRESS' } } },
+          ],
+        },
+      },
     });
   });
 
@@ -313,6 +328,35 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       // Assert
       await expect(result).rejects.toBeInstanceOf(
         AdoptedTrainingProgramNotFoundError,
+      );
+    },
+  );
+
+  it.each([
+    ['pause', 'PENDING', 'IN_PROGRESS'],
+    ['pause', 'IN_PROGRESS', 'COMPLETED'],
+    ['cancel', 'PENDING', 'IN_PROGRESS'],
+    ['cancel', 'IN_PROGRESS', 'COMPLETED'],
+  ])(
+    'rejects %s for a persisted occurrence/session state mismatch',
+    async (command, occurrenceStatus, sessionStatus) => {
+      adoptedProgramUpdateMany.mockResolvedValue({ count: 0 });
+      adoptedProgramFindFirst.mockResolvedValue({
+        id: programId,
+        occurrences: [
+          {
+            status: occurrenceStatus,
+            sessionAttempts: [{ status: sessionStatus }],
+          },
+        ],
+      });
+
+      const execute =
+        command === 'pause'
+          ? adapter.pause({ ownerId, adoptedTrainingProgramId: programId })
+          : adapter.cancel({ ownerId, adoptedTrainingProgramId: programId });
+      await expect(execute).rejects.toBeInstanceOf(
+        AdoptedTrainingProgramPersistenceStateError,
       );
     },
   );
@@ -514,6 +558,7 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
   ])('maps a zero-row %s command to concurrency', async (_name, execute) => {
     adoptedProgramUpdateMany.mockResolvedValue({ count: 0 });
     occurrenceFindFirst.mockResolvedValue(null);
+    adoptedProgramFindFirst.mockResolvedValue({ id: programId });
 
     await expect(execute()).rejects.toBeInstanceOf(
       AdoptedTrainingProgramConcurrencyError,

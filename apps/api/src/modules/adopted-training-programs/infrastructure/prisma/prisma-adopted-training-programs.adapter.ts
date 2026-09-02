@@ -207,7 +207,14 @@ export class PrismaAdoptedTrainingProgramsAdapter
               id: input.adoptedTrainingProgramId,
               ownerId: input.ownerId,
               status: { in: ['ACTIVE', 'PAUSED'] },
-              occurrences: { none: { status: 'IN_PROGRESS' } },
+              occurrences: {
+                none: {
+                  OR: [
+                    { status: 'IN_PROGRESS' },
+                    { sessionAttempts: { some: { status: 'IN_PROGRESS' } } },
+                  ],
+                },
+              },
             },
             data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
           });
@@ -217,10 +224,19 @@ export class PrismaAdoptedTrainingProgramsAdapter
                 id: input.adoptedTrainingProgramId,
                 ownerId: input.ownerId,
               },
-              select: { id: true },
+              select: {
+                id: true,
+                occurrences: {
+                  select: {
+                    status: true,
+                    sessionAttempts: { select: { status: true } },
+                  },
+                },
+              },
             });
-            if (program === null)
-              throw new AdoptedTrainingProgramNotFoundError();
+            if (!program) throw new AdoptedTrainingProgramNotFoundError();
+            if (hasLifecycleStateMismatch(program.occurrences))
+              throw new AdoptedTrainingProgramPersistenceStateError();
             throw new AdoptedTrainingProgramConcurrencyError();
           }
           const row =
@@ -263,8 +279,7 @@ export class PrismaAdoptedTrainingProgramsAdapter
               },
               select: { id: true },
             });
-            if (program === null)
-              throw new AdoptedTrainingProgramNotFoundError();
+            if (!program) throw new AdoptedTrainingProgramNotFoundError();
             throw new AdoptedTrainingProgramConcurrencyError();
           }
           if (next.id !== input.occurrenceId) {
@@ -330,8 +345,7 @@ export class PrismaAdoptedTrainingProgramsAdapter
               },
               select: { id: true },
             });
-            if (program === null)
-              throw new AdoptedTrainingProgramNotFoundError();
+            if (!program) throw new AdoptedTrainingProgramNotFoundError();
             throw new AdoptedTrainingProgramConcurrencyError();
           }
           if (next.id !== input.occurrenceId) {
@@ -456,7 +470,20 @@ export class PrismaAdoptedTrainingProgramsAdapter
               ownerId: input.ownerId,
               status: from,
               ...(from === 'ACTIVE'
-                ? { occurrences: { none: { status: 'IN_PROGRESS' } } }
+                ? {
+                    occurrences: {
+                      none: {
+                        OR: [
+                          { status: 'IN_PROGRESS' },
+                          {
+                            sessionAttempts: {
+                              some: { status: 'IN_PROGRESS' },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  }
                 : {}),
             },
             data: { status: to, updatedAt: now },
@@ -467,10 +494,19 @@ export class PrismaAdoptedTrainingProgramsAdapter
                 id: input.adoptedTrainingProgramId,
                 ownerId: input.ownerId,
               },
-              select: { id: true },
+              select: {
+                id: true,
+                occurrences: {
+                  select: {
+                    status: true,
+                    sessionAttempts: { select: { status: true } },
+                  },
+                },
+              },
             });
-            if (program === null)
-              throw new AdoptedTrainingProgramNotFoundError();
+            if (!program) throw new AdoptedTrainingProgramNotFoundError();
+            if (hasLifecycleStateMismatch(program.occurrences))
+              throw new AdoptedTrainingProgramPersistenceStateError();
             throw new AdoptedTrainingProgramConcurrencyError();
           }
           const row =
@@ -574,7 +610,8 @@ export class PrismaAdoptedTrainingProgramsAdapter
   private throwCommandError(error: unknown): never {
     if (
       error instanceof AdoptedTrainingProgramConcurrencyError ||
-      error instanceof AdoptedTrainingProgramNotFoundError
+      error instanceof AdoptedTrainingProgramNotFoundError ||
+      error instanceof AdoptedTrainingProgramPersistenceStateError
     ) {
       throw error;
     }
@@ -716,6 +753,25 @@ function hasConstraint(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function hasLifecycleStateMismatch(
+  occurrences:
+    | ReadonlyArray<{
+        status: string;
+        sessionAttempts: ReadonlyArray<{ status: string }>;
+      }>
+    | undefined,
+): boolean {
+  return (
+    occurrences?.some((occurrence) => {
+      const hasActiveOccurrence = occurrence.status === 'IN_PROGRESS';
+      const hasActiveSession = occurrence.sessionAttempts.some(
+        (session) => session.status === 'IN_PROGRESS',
+      );
+      return hasActiveOccurrence !== hasActiveSession;
+    }) ?? false
+  );
 }
 
 function toAdoptedProgramOccurrences(source: AdoptedTrainingProgramSource) {
