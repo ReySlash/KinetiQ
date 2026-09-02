@@ -24,6 +24,19 @@ export type GetExerciseHistoryQuery = {
   offset: number;
 };
 
+export type WorkoutSessionSourceKind =
+  'FREESTYLE' | 'ROUTINE' | 'PROGRAM_WORKOUT';
+
+export type WorkoutSessionProvenance = {
+  sourceKind: WorkoutSessionSourceKind;
+  adoptedTrainingProgramId: string | null;
+  programWorkoutOccurrenceId: string | null;
+  programNameSnapshot: string | null;
+  programWeekNumber: number | null;
+  programDayNumber: number | null;
+  programRoutineNameSnapshot: string | null;
+};
+
 export type CompletedSetHistoryItem = {
   id: string;
   order: number;
@@ -55,6 +68,7 @@ export type WorkoutSessionDetail = {
   status: WorkoutSessionStatusValue;
   sourceRoutineId: string | null;
   sourceRoutineNameSnapshot: string | null;
+  provenance: WorkoutSessionProvenance;
   timezone: string;
   startedAt: Date;
   completedAt: Date | null;
@@ -74,12 +88,13 @@ export type WorkoutSessionListItem = Pick<
   | 'completedAt'
   | 'cancelledAt'
   | 'updatedAt'
-> & { completedSetCount: number };
+> & { completedSetCount: number; provenance: WorkoutSessionProvenance };
 
 export type ExerciseHistoryItem = {
   workoutSessionId: string;
   sessionStatus: WorkoutSessionStatusValue;
   sessionStartedAt: Date;
+  provenance: WorkoutSessionProvenance;
   exercisePerformanceId: string;
   exerciseNameSnapshot: string;
   prescription: Pick<

@@ -3,6 +3,7 @@ import type {
   ExerciseHistoryItem,
   WorkoutSessionDetail,
   WorkoutSessionListItem,
+  WorkoutSessionProvenance,
 } from '../../application/models/workout-session-query.model';
 import { WorkoutSession } from '../../domain/entities/workout-session.entity';
 import type {
@@ -68,11 +69,22 @@ export type WorkoutSessionAggregateRow = Prisma.WorkoutSessionGetPayload<{
   select: typeof workoutSessionAggregateSelect;
 }>;
 
+const programWorkoutOccurrenceSelect = {
+  id: true,
+  weekNumber: true,
+  dayNumber: true,
+  routineNameSnapshot: true,
+  adoptedTrainingProgram: {
+    select: { id: true, programNameSnapshot: true },
+  },
+} satisfies Prisma.ProgramWorkoutOccurrenceSelect;
+
 export const workoutSessionDetailSelect = {
   id: true,
   status: true,
   sourceRoutineId: true,
   sourceRoutineNameSnapshot: true,
+  programWorkoutOccurrence: { select: programWorkoutOccurrenceSelect },
   timezone: true,
   startedAt: true,
   completedAt: true,
@@ -117,7 +129,9 @@ export type WorkoutSessionDetailRow = Prisma.WorkoutSessionGetPayload<{
 export const workoutSessionListSelect = {
   id: true,
   status: true,
+  sourceRoutineId: true,
   sourceRoutineNameSnapshot: true,
+  programWorkoutOccurrence: { select: programWorkoutOccurrenceSelect },
   timezone: true,
   startedAt: true,
   completedAt: true,
@@ -158,7 +172,14 @@ export const exerciseHistorySelect = {
       completedAt: true,
     },
   },
-  workoutSession: { select: { status: true, startedAt: true } },
+  workoutSession: {
+    select: {
+      status: true,
+      startedAt: true,
+      sourceRoutineId: true,
+      programWorkoutOccurrence: { select: programWorkoutOccurrenceSelect },
+    },
+  },
 } satisfies Prisma.ExercisePerformanceSelect;
 
 export type ExerciseHistoryRow = Prisma.ExercisePerformanceGetPayload<{
@@ -367,6 +388,7 @@ export function toDetail(row: WorkoutSessionDetailRow): WorkoutSessionDetail {
     status: row.status,
     sourceRoutineId: row.sourceRoutineId,
     sourceRoutineNameSnapshot: row.sourceRoutineNameSnapshot,
+    provenance: toProvenance(row.sourceRoutineId, row.programWorkoutOccurrence),
     timezone: row.timezone,
     startedAt: row.startedAt,
     completedAt: row.completedAt,
@@ -398,6 +420,7 @@ export function toListItem(row: WorkoutSessionListRow): WorkoutSessionListItem {
     id: row.id,
     status: row.status,
     sourceRoutineNameSnapshot: row.sourceRoutineNameSnapshot,
+    provenance: toProvenance(row.sourceRoutineId, row.programWorkoutOccurrence),
     timezone: row.timezone,
     startedAt: row.startedAt,
     completedAt: row.completedAt,
@@ -417,6 +440,10 @@ export function toExerciseHistoryItem(
     workoutSessionId: row.workoutSessionId,
     sessionStatus: row.workoutSession.status,
     sessionStartedAt: row.workoutSession.startedAt,
+    provenance: toProvenance(
+      row.workoutSession.sourceRoutineId,
+      row.workoutSession.programWorkoutOccurrence,
+    ),
     exercisePerformanceId: row.id,
     exerciseNameSnapshot: row.exerciseNameSnapshot,
     prescription: {
@@ -432,5 +459,38 @@ export function toExerciseHistoryItem(
       ...set,
       loadKg: decimalToString(set.loadKg),
     })),
+  };
+}
+
+function toProvenance(
+  sourceRoutineId: string | null,
+  occurrence: {
+    id: string;
+    weekNumber: number;
+    dayNumber: number;
+    routineNameSnapshot: string;
+    adoptedTrainingProgram: { id: string; programNameSnapshot: string };
+  } | null,
+): WorkoutSessionProvenance {
+  if (occurrence) {
+    return {
+      sourceKind: 'PROGRAM_WORKOUT',
+      adoptedTrainingProgramId: occurrence.adoptedTrainingProgram.id,
+      programWorkoutOccurrenceId: occurrence.id,
+      programNameSnapshot:
+        occurrence.adoptedTrainingProgram.programNameSnapshot,
+      programWeekNumber: occurrence.weekNumber,
+      programDayNumber: occurrence.dayNumber,
+      programRoutineNameSnapshot: occurrence.routineNameSnapshot,
+    };
+  }
+  return {
+    sourceKind: sourceRoutineId ? 'ROUTINE' : 'FREESTYLE',
+    adoptedTrainingProgramId: null,
+    programWorkoutOccurrenceId: null,
+    programNameSnapshot: null,
+    programWeekNumber: null,
+    programDayNumber: null,
+    programRoutineNameSnapshot: null,
   };
 }

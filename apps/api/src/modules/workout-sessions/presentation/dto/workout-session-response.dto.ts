@@ -35,6 +35,20 @@ export class ExercisePerformanceResponseDto {
   completedSets!: CompletedSetResponseDto[];
 }
 
+export class WorkoutSessionProvenanceResponseDto {
+  @ApiProperty({ enum: ['FREESTYLE', 'ROUTINE', 'PROGRAM_WORKOUT'] })
+  sourceKind!: string;
+  @ApiPropertyOptional({ nullable: true, format: 'uuid' })
+  adoptedTrainingProgramId!: string | null;
+  @ApiPropertyOptional({ nullable: true, format: 'uuid' })
+  programWorkoutOccurrenceId!: string | null;
+  @ApiPropertyOptional({ nullable: true }) programNameSnapshot!: string | null;
+  @ApiPropertyOptional({ nullable: true }) programWeekNumber!: number | null;
+  @ApiPropertyOptional({ nullable: true }) programDayNumber!: number | null;
+  @ApiPropertyOptional({ nullable: true })
+  programRoutineNameSnapshot!: string | null;
+}
+
 export class WorkoutSessionDetailResponseDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty({ enum: ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'] })
@@ -43,6 +57,8 @@ export class WorkoutSessionDetailResponseDto {
     string | null;
   @ApiPropertyOptional({ nullable: true }) sourceRoutineNameSnapshot!:
     string | null;
+  @ApiProperty({ type: WorkoutSessionProvenanceResponseDto })
+  provenance!: WorkoutSessionProvenanceResponseDto;
   @ApiProperty() timezone!: string;
   @ApiProperty({ format: 'date-time' }) startedAt!: Date;
   @ApiPropertyOptional({ nullable: true, format: 'date-time' })
@@ -62,6 +78,8 @@ export class WorkoutSessionListItemResponseDto {
   @ApiProperty({ format: 'date-time' }) updatedAt!: Date;
   @ApiPropertyOptional({ nullable: true }) sourceRoutineNameSnapshot!:
     string | null;
+  @ApiProperty({ type: WorkoutSessionProvenanceResponseDto })
+  provenance!: WorkoutSessionProvenanceResponseDto;
   @ApiProperty() timezone!: string;
   @ApiProperty({ format: 'date-time' }) startedAt!: Date;
   @ApiPropertyOptional({ nullable: true, format: 'date-time' })
@@ -76,6 +94,8 @@ export class ExerciseHistoryResponseDto {
   @ApiProperty({ enum: ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'] })
   sessionStatus!: string;
   @ApiProperty({ format: 'date-time' }) sessionStartedAt!: Date;
+  @ApiProperty({ type: WorkoutSessionProvenanceResponseDto })
+  provenance!: WorkoutSessionProvenanceResponseDto;
   @ApiProperty({ format: 'uuid' }) exercisePerformanceId!: string;
   @ApiProperty() exerciseNameSnapshot!: string;
   @ApiProperty({ type: Object }) prescription!: Record<string, unknown>;
