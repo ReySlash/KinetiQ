@@ -6,9 +6,11 @@ the intended specification. **Confirmed** identifies an approved expected
 contract; **Pending decision** identifies behavior that still requires explicit
 approval. All decisions currently recorded in this catalog are confirmed.
 
-The most consequential findings are the missing linked session
-completion/cancellation propagation, concealed-resource commands returning
-`409` instead of `404`, and unstable HTTP error bodies.
+The most consequential confirmed contracts concern linked session
+completion/cancellation propagation, concealed-resource classification, stable
+HTTP error bodies, and consistency between adopted-program occurrences and
+linked workout sessions. These behaviors are implemented and covered by the
+current unit, API, and PostgreSQL E2E suites.
 
 ## Boundary conditions
 
@@ -180,7 +182,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Medium
 - **Input that exposes it:** A `COMPLETED` parent containing a `PENDING` occurrence, a `CANCELLED` parent containing an `IN_PROGRESS` occurrence, or an `ACTIVE` parent whose occurrences are all resolved.
-- **Current behavior observed in the code:** Aggregate validation checks timestamp shape and occurrence structure but not coherence between parent status and occurrence statuses.
+- **Current behavior observed in the code:** Aggregate reconstitution validates timestamp chronology, occurrence structure, and parent/child lifecycle coherence.
 - **Recommended expected contract:** Define and enforce the valid parent/child status matrix during reconstitution.
 - **Contract status:** Confirmed
 - **Why it matters:** Contradictory state can produce incorrect actions, progress, and terminal-history behavior.
@@ -191,7 +193,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Medium
 - **Input that exposes it:** Call `skipOccurrence()` or `completeOccurrence()` on the final unresolved occurrence.
-- **Current behavior observed in the code:** The returned aggregate retains its existing parent status until `complete()` is called separately. The Prisma skip operation independently implements automatic completion.
+- **Current behavior observed in the code:** Domain occurrence resolution and the Prisma occurrence commands automatically complete the parent when every occurrence is resolved.
 - **Recommended expected contract:** Resolving the final unresolved occurrence automatically transitions the parent program to `COMPLETED` in the same operation. Domain and persistence behavior must produce the same transition.
 - **Contract status:** Confirmed
 - **Why it matters:** Different adapters or future callers can produce different aggregate outcomes for the same business event.
@@ -202,7 +204,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Medium
 - **Input that exposes it:** An active adopted program with a startable pending occurrence while the owner has an unrelated in-progress workout.
-- **Current behavior observed in the code:** The read model returns `canStartNext: true`. Starting then fails at the database's one-active-session constraint with `409`.
+- **Current behavior observed in the code:** The read model includes the owner's active-session state and returns `canStartNext: false` when starting would violate the active-session invariant.
 - **Recommended expected contract:** Because action flags represent complete server policy, `canStartNext` must be `false` whenever the owner has another active workout session.
 - **Contract status:** Confirmed
 - **Why it matters:** The UI can advertise an action the server already knows cannot succeed.
@@ -213,7 +215,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Medium
 - **Input that exposes it:** Empty schedule, unavailable source, concurrent adoption, or stale start.
-- **Current behavior observed in the code:** Application errors contain stable `code` fields, but the exception mapper constructs Nest exceptions from only `error.message`.
+- **Current behavior observed in the code:** The HTTP exception mapper preserves stable application error codes while concealing persistence details.
 - **Recommended expected contract:** Return the approved stable code in the structured HTTP error body while keeping sensitive persistence details concealed.
 - **Contract status:** Confirmed
 - **Why it matters:** Frontend behavior otherwise depends on English message text or HTTP status alone.
@@ -224,7 +226,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Low under normal atomic writes; Medium under inconsistent state
 - **Input that exposes it:** An occurrence marked `PENDING` with a linked `IN_PROGRESS` session, or an occurrence marked `IN_PROGRESS` whose session is already terminal.
-- **Current behavior observed in the code:** Pause and cancellation check only whether any occurrence has status `IN_PROGRESS`.
+- **Current behavior observed in the code:** Pause and cancellation validate both occurrence and linked-session states transactionally, classifying mismatches as persistence-state errors.
 - **Recommended expected contract:** Pause and cancellation are rejected when either an occurrence is `IN_PROGRESS` or a linked workout session is active. A mismatch between occurrence and session state is an internal consistency failure rather than a reason to permit the lifecycle change.
 - **Contract status:** Confirmed
 - **Why it matters:** Any partial or migrated inconsistency may allow an unsafe lifecycle change or permanently block a safe one.
@@ -235,7 +237,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Low to Medium
 - **Input that exposes it:** The source template is edited, changes visibility, or is deleted after `findAccessibleBySlug()` but before `create()`.
-- **Current behavior observed in the code:** Source resolution and adopted-program creation are separate Prisma operations. Nested creation itself is atomic, but source authorization and snapshot selection are outside that transaction.
+- **Current behavior observed in the code:** Source authorization, snapshot resolution, aggregate construction, and adopted-program creation run in one Serializable Prisma transaction.
 - **Recommended expected contract:** Adoption uses a source template that is accessible to the user and snapshot-consistent at the time of adoption. Source validation, authorization, snapshot reads, and adopted-program creation occur in the same transaction.
 - **Contract status:** Confirmed
 - **Why it matters:** A narrow race can produce a generic persistence failure or adopt a snapshot based on access that changed during the request.
@@ -246,7 +248,7 @@ completion/cancellation propagation, concealed-resource commands returning
 - **Category:** Business contract violations
 - **Risk:** Low
 - **Input that exposes it:** A visible routine whose persisted exercise prescription is malformed but whose exercises are active.
-- **Current behavior observed in the code:** The read model reports the source as available. Starting later delegates to `WorkoutSession.start()`, which may raise a workout-session validation error and become a generic `500`.
+- **Current behavior observed in the code:** Read and start paths share executable-prescription validation; malformed persisted prescriptions are unavailable to start and map to a controlled internal integrity error.
 - **Recommended expected contract:** Missing, inaccessible, inactive, or empty source routines are normal business unavailability and make the start action unavailable with an appropriate domain reason. A source routine whose persisted prescription violates required invariants is corrupted state: the read model must report it as non-startable, the command must create no session, and the attempt must raise a specific internal application error mapped to `500`. Read-model and command validation must share the same executable-prescription invariants, and integrity failures must be logged with sufficient operational context without exposing sensitive data.
 - **Contract status:** Confirmed
 - **Why it matters:** The current read model can promise startability without validating everything required to create the session.

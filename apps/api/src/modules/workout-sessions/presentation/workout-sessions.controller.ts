@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -201,6 +203,7 @@ export class WorkoutSessionsController {
   }
 
   @Post(':workoutSessionId/exercises')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Add an exercise to a workout' })
   @ApiParam({ name: 'workoutSessionId', format: 'uuid' })
   @ApiBody({ type: AddWorkoutExerciseDto })
@@ -252,6 +255,7 @@ export class WorkoutSessionsController {
   }
 
   @Post(':workoutSessionId/exercises/:exercisePerformanceId/sets')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Record a completed set' })
   @ApiParam({ name: 'workoutSessionId', format: 'uuid' })
   @ApiParam({ name: 'exercisePerformanceId', format: 'uuid' })
@@ -339,6 +343,7 @@ export class WorkoutSessionsController {
   }
 
   @Post(':workoutSessionId/complete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Complete a workout' })
   @ApiParam({ name: 'workoutSessionId', format: 'uuid' })
   @ApiBody({ type: CompleteWorkoutDto })
@@ -361,6 +366,7 @@ export class WorkoutSessionsController {
   }
 
   @Post(':workoutSessionId/cancel')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel a workout' })
   @ApiParam({ name: 'workoutSessionId', format: 'uuid' })
   @ApiBody({ type: CancelWorkoutDto })

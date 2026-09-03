@@ -33,6 +33,91 @@ function id(body: unknown): string {
   return body.id;
 }
 
+type AdoptedProgramDetail = {
+  status: string;
+  occurrences: Array<{
+    id: string;
+    status: string;
+    sessionAttemptIds: string[];
+  }>;
+  nextPendingOccurrence: { id: string } | null;
+};
+
+type WorkoutSessionDetail = {
+  performances: Array<{ id: string }>;
+};
+
+type StartResponse = { workoutSessionId: string };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function record(body: unknown): Record<string, unknown> {
+  if (!isRecord(body)) {
+    throw new Error('Expected an object response.');
+  }
+  return body;
+}
+
+function stringField(body: Record<string, unknown>, field: string): string {
+  const value = body[field];
+  if (typeof value !== 'string') {
+    throw new Error(`Response field ${field} was not a string.`);
+  }
+  return value;
+}
+
+function createdResource(body: unknown): { slug: string } {
+  return { slug: stringField(record(body), 'slug') };
+}
+
+function startResponse(body: unknown): StartResponse {
+  return { workoutSessionId: stringField(record(body), 'workoutSessionId') };
+}
+
+function adoptedProgramDetail(body: unknown): AdoptedProgramDetail {
+  const value = record(body);
+  const occurrences = value.occurrences;
+  if (!Array.isArray(occurrences)) {
+    throw new Error('Adopted program response did not include occurrences.');
+  }
+  const parsedOccurrences = occurrences.map((occurrence) => {
+    const item = record(occurrence);
+    const sessionAttemptIds = item.sessionAttemptIds;
+    if (
+      !Array.isArray(sessionAttemptIds) ||
+      !sessionAttemptIds.every((attemptId) => typeof attemptId === 'string')
+    ) {
+      throw new Error('Occurrence response did not include session attempts.');
+    }
+    return {
+      id: stringField(item, 'id'),
+      status: stringField(item, 'status'),
+      sessionAttemptIds,
+    };
+  });
+  const next = value.nextPendingOccurrence;
+  return {
+    status: stringField(value, 'status'),
+    occurrences: parsedOccurrences,
+    nextPendingOccurrence:
+      next === null ? null : { id: stringField(record(next), 'id') },
+  };
+}
+
+function workoutSessionDetail(body: unknown): WorkoutSessionDetail {
+  const performances = record(body).performances;
+  if (!Array.isArray(performances)) {
+    throw new Error('Workout session response did not include performances.');
+  }
+  return {
+    performances: performances.map((performance) => ({
+      id: stringField(record(performance), 'id'),
+    })),
+  };
+}
+
 describe('adopted training program HTTP journeys (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -81,7 +166,7 @@ describe('adopted training program HTTP journeys (e2e)', () => {
         ],
       })
       .expect(201);
-    const createdSlug = response.body.slug;
+    const createdSlug = createdResource(response.body).slug;
     routineSlugs.push(createdSlug);
     return createdSlug;
   }
@@ -106,8 +191,9 @@ describe('adopted training program HTTP journeys (e2e)', () => {
         })),
       })
       .expect(201);
-    programSlugs.push(response.body.slug);
-    return response.body.slug;
+    const createdProgram = createdResource(response.body);
+    programSlugs.push(createdProgram.slug);
+    return createdProgram.slug;
   }
 
   beforeAll(async () => {
@@ -164,7 +250,9 @@ describe('adopted training program HTTP journeys (e2e)', () => {
       .get('/api/user-training-programs/active')
       .set('Cookie', userCookies)
       .expect(200);
-    const firstOccurrence = active.body.occurrences[0].id;
+    const activeProgram = adoptedProgramDetail(active.body);
+    const firstOccurrence = activeProgram.occurrences[0]?.id;
+    if (!firstOccurrence) throw new Error('First occurrence was not returned.');
 
     const started = await request(app.getHttpServer())
       .post(
@@ -173,12 +261,14 @@ describe('adopted training program HTTP journeys (e2e)', () => {
       .set('Cookie', userCookies)
       .send({ timezone: 'UTC' })
       .expect(201);
-    const sessionId = started.body.workoutSessionId;
+    const sessionId = startResponse(started.body).workoutSessionId;
     const session = await request(app.getHttpServer())
       .get(`/api/workout-sessions/${sessionId}`)
       .set('Cookie', userCookies)
       .expect(200);
-    const performanceId = session.body.performances[0].id;
+    const performanceId = workoutSessionDetail(session.body).performances[0]
+      ?.id;
+    if (!performanceId) throw new Error('Performance was not returned.');
 
     await request(app.getHttpServer())
       .post(
@@ -186,33 +276,36 @@ describe('adopted training program HTTP journeys (e2e)', () => {
       )
       .set('Cookie', userCookies)
       .send({ repetitions: 8, load: '50', loadUnit: 'KG', isWarmup: false })
-      .expect(201);
+      .expect(200);
     await request(app.getHttpServer())
       .post(`/api/workout-sessions/${sessionId}/complete`)
       .set('Cookie', userCookies)
       .send({})
-      .expect(201);
+      .expect(200);
 
     const afterCompletion = await request(app.getHttpServer())
       .get(`/api/user-training-programs/${programId}`)
       .set('Cookie', userCookies)
       .expect(200);
-    expect(afterCompletion.body.occurrences[0].status).toBe('COMPLETED');
-    expect(afterCompletion.body.nextPendingOccurrence).not.toBeNull();
+    const completedFirst = adoptedProgramDetail(afterCompletion.body);
+    expect(completedFirst.occurrences[0]?.status).toBe('COMPLETED');
+    expect(completedFirst.nextPendingOccurrence).not.toBeNull();
 
-    const finalOccurrence = afterCompletion.body.nextPendingOccurrence.id;
+    const finalOccurrence = completedFirst.nextPendingOccurrence?.id;
+    if (!finalOccurrence) throw new Error('Final occurrence was not returned.');
     await request(app.getHttpServer())
       .post(
         `/api/user-training-programs/${programId}/workouts/${finalOccurrence}/skip`,
       )
       .set('Cookie', userCookies)
-      .expect(201);
+      .expect(200);
     const completedProgram = await request(app.getHttpServer())
       .get(`/api/user-training-programs/${programId}`)
       .set('Cookie', userCookies)
       .expect(200);
-    expect(completedProgram.body.status).toBe('COMPLETED');
-    expect(completedProgram.body.occurrences).toEqual(
+    const completed = adoptedProgramDetail(completedProgram.body);
+    expect(completed.status).toBe('COMPLETED');
+    expect(completed.occurrences).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ status: 'COMPLETED' }),
         expect.objectContaining({ status: 'SKIPPED' }),
@@ -239,7 +332,9 @@ describe('adopted training program HTTP journeys (e2e)', () => {
       .get('/api/user-training-programs/active')
       .set('Cookie', userCookies)
       .expect(200);
-    const occurrenceId = active.body.occurrences[0].id;
+    const activeProgram = adoptedProgramDetail(active.body);
+    const occurrenceId = activeProgram.occurrences[0]?.id;
+    if (!occurrenceId) throw new Error('Occurrence was not returned.');
 
     const firstStart = await request(app.getHttpServer())
       .post(
@@ -248,19 +343,20 @@ describe('adopted training program HTTP journeys (e2e)', () => {
       .set('Cookie', userCookies)
       .send({ timezone: 'UTC' })
       .expect(201);
-    const cancelledSessionId = firstStart.body.workoutSessionId;
+    const cancelledSessionId = startResponse(firstStart.body).workoutSessionId;
     await request(app.getHttpServer())
       .post(`/api/workout-sessions/${cancelledSessionId}/cancel`)
       .set('Cookie', userCookies)
       .send({})
-      .expect(201);
+      .expect(200);
 
     const afterCancel = await request(app.getHttpServer())
       .get(`/api/user-training-programs/${programId}`)
       .set('Cookie', userCookies)
       .expect(200);
-    expect(afterCancel.body.occurrences[0].status).toBe('PENDING');
-    expect(afterCancel.body.occurrences[0].sessionAttemptIds).toContain(
+    const cancelledProgram = adoptedProgramDetail(afterCancel.body);
+    expect(cancelledProgram.occurrences[0]?.status).toBe('PENDING');
+    expect(cancelledProgram.occurrences[0]?.sessionAttemptIds).toContain(
       cancelledSessionId,
     );
 
@@ -281,6 +377,8 @@ describe('adopted training program HTTP journeys (e2e)', () => {
       .set('Cookie', userCookies)
       .send({ timezone: 'UTC' })
       .expect(201);
-    expect(retry.body.workoutSessionId).not.toBe(cancelledSessionId);
+    expect(startResponse(retry.body).workoutSessionId).not.toBe(
+      cancelledSessionId,
+    );
   });
 });

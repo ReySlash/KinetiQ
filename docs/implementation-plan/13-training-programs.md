@@ -54,12 +54,13 @@ notes about that scheduled routine occurrence.
   routine placements. It is not a user's active execution of a program and has
   no actual calendar dates.
 - **AdoptedTrainingProgram persistence (implemented):** a user's adopted instance
-  of a program. The schema and migrations exist; domain lifecycle and execution
-  behavior remain pending.
+  of a program. Persistence, domain lifecycle, application orchestration,
+  Prisma infrastructure, and HTTP execution behavior are implemented.
   Calendar mapping and scheduled dates remain deferred.
 - **ProgramWorkoutOccurrence persistence (implemented):** one copied workout
   occurrence from the adopted program schedule, with its own lifecycle and
-  source snapshots. Domain and application behavior remain pending.
+  source snapshots. Domain, application, Prisma, and HTTP behavior are
+  implemented.
 - **WorkoutSession and ExercisePerformance:** implemented historical performed
   training. These models preserve what the athlete actually did rather than
   treating mutable templates as history.
@@ -80,12 +81,10 @@ ExercisePerformance
 CompletedSet
 ```
 
-The adopted-program persistence models are implemented in the current schema;
-their domain, application, API, and frontend execution behavior remains
-pending.
-Workout sessions already support standalone routines and freestyle workouts;
-the next execution slice will add program-workout provenance without removing
-those source modes. See [workout sessions](14-workout-sessions.md).
+The adopted-program persistence, domain, application, Prisma, and HTTP layers
+are implemented. Frontend execution behavior remains pending. Workout
+sessions support standalone, freestyle, and program-origin workouts, including
+stable program provenance. See [workout sessions](14-workout-sessions.md).
 
 ### Reusable template lifecycle
 
@@ -1035,12 +1034,12 @@ without a demonstrated need.
 Do not add placeholder “is defined” tests. Each test must prove behavior at the
 cheapest appropriate layer.
 
-The planned adopted-program slice additionally requires domain lifecycle and
+The implemented adopted-program slice includes domain lifecycle and
 next-occurrence tests; application authorization and transition tests; real
-PostgreSQL partial-index, conditional-update, concurrency, rollback, and
-referential-action tests; API ownership and complete-journey tests; and frontend
-active-program, session-context, retry, skip, and progress tests. The exhaustive
-scenario list and browser critical path are maintained in
+PostgreSQL partial-index, conditional-update, concurrency, rollback,
+referential-action, API ownership, and complete-journey tests. Frontend
+active-program, session-context, retry, skip, and progress tests remain pending.
+The exhaustive scenario list and browser critical path are maintained in
 [testing strategy](16-testing-strategy.md).
 
 ## Implemented template-slice sequence and verification

@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -116,6 +118,7 @@ export class AdoptedTrainingProgramsController {
   }
 
   @Post(':adoptedTrainingProgramId/pause')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Pause an adopted training program' })
   @ApiParam({ name: 'adoptedTrainingProgramId', format: 'uuid' })
   @ApiResponse({ status: 200, type: AdoptedTrainingProgramMutationResponseDto })
@@ -132,6 +135,7 @@ export class AdoptedTrainingProgramsController {
   }
 
   @Post(':adoptedTrainingProgramId/resume')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Resume an adopted training program' })
   @ApiParam({ name: 'adoptedTrainingProgramId', format: 'uuid' })
   @ApiResponse({ status: 200, type: AdoptedTrainingProgramMutationResponseDto })
@@ -148,6 +152,7 @@ export class AdoptedTrainingProgramsController {
   }
 
   @Post(':adoptedTrainingProgramId/cancel')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel an adopted training program' })
   @ApiParam({ name: 'adoptedTrainingProgramId', format: 'uuid' })
   @ApiResponse({ status: 200, type: AdoptedTrainingProgramMutationResponseDto })
@@ -190,6 +195,7 @@ export class AdoptedTrainingProgramsController {
   }
 
   @Post(':adoptedTrainingProgramId/workouts/:occurrenceId/skip')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Skip the next adopted-program workout' })
   @ApiParam({ name: 'adoptedTrainingProgramId', format: 'uuid' })
   @ApiParam({ name: 'occurrenceId', format: 'uuid' })
