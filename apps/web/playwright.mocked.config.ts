@@ -23,6 +23,7 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         NEXT_PUBLIC_API_URL: "http://127.0.0.1:3102",
+        NEXT_DIST_DIR: ".next-playwright",
       },
     },
   ],

@@ -8,6 +8,15 @@ const session = {
   status: "IN_PROGRESS" as const,
   timezone: "Asia/Qatar",
   startedAt: "2026-08-25T08:00:00.000Z",
+  provenance: {
+    sourceKind: "ROUTINE" as const,
+    adoptedTrainingProgramId: null,
+    programWorkoutOccurrenceId: null,
+    programNameSnapshot: null,
+    programWeekNumber: null,
+    programDayNumber: null,
+    programRoutineNameSnapshot: null,
+  },
   performances: [
     {
       id: "223e4567-e89b-12d3-a456-426614174000",

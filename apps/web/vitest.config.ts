@@ -20,10 +20,13 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       include: [
         "src/lib/auth-api.ts",
+        "src/lib/adopted-training-programs-api.ts",
         "src/lib/api/client-request.ts",
         "src/lib/api/error.ts",
         "src/lib/url.ts",
         "src/components/auth-form.tsx",
+        "src/app/(app)/training-programs/adopted/[adoptedTrainingProgramId]/components/adopted-program-action-priority.ts",
+        "src/app/(app)/workout-sessions/components/workout-program-context.tsx",
       ],
       thresholds: {
         lines: 70,

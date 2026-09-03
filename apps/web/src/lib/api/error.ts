@@ -2,10 +2,31 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code: string | null = null,
   ) {
     super(message);
     this.name = "ApiError";
   }
+}
+
+function getApiCode(payload: unknown): string | null {
+  if (typeof payload !== "object" || payload === null) return null;
+
+  if ("code" in payload && typeof payload.code === "string") {
+    return payload.code;
+  }
+
+  if (
+    "error" in payload &&
+    typeof payload.error === "object" &&
+    payload.error !== null &&
+    "code" in payload.error &&
+    typeof payload.error.code === "string"
+  ) {
+    return payload.error.code;
+  }
+
+  return null;
 }
 
 function getApiMessage(payload: unknown): string | undefined {
@@ -40,6 +61,7 @@ export async function parseApiResponse<T>(response: Response): Promise<T> {
     throw new ApiError(
       getApiMessage(payload) ?? "Something went wrong. Please try again.",
       response.status,
+      getApiCode(payload),
     );
   }
 

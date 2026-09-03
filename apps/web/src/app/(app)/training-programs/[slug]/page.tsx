@@ -14,6 +14,7 @@ import {
 import { fetchTrainingProgram } from "@/lib/training-programs-server";
 import type { TrainingProgramDetail } from "@/types/training-program-types";
 import { TrainingProgramActions } from "./training-program-actions";
+import { AdoptTrainingProgramControl } from "../components/adopt-training-program-control";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,10 @@ export default async function TrainingProgramDetailPage({
           Training Programs
         </Link>
         <span className="text-lg leading-none text-muted-foreground">
-          <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
+          <ChevronRight
+            className="size-4 shrink-0 self-center text-muted-foreground"
+            aria-hidden="true"
+          />
         </span>
         <h1 className="text-lg font-bold leading-none">{program.name}</h1>
       </PageHeader>
@@ -66,7 +70,7 @@ export default async function TrainingProgramDetailPage({
                 {program.description || "No description yet."}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col gap-4">
               <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
                 <span>
                   {program.durationWeeks}{" "}
@@ -79,9 +83,17 @@ export default async function TrainingProgramDetailPage({
                 </span>
                 <span>Updated {formatDate(program.updatedAt)}</span>
               </div>
-              {program.visibility === "PRIVATE" && (
-                <TrainingProgramActions slug={program.slug} />
-              )}
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <AdoptTrainingProgramControl
+                  slug={program.slug}
+                  name={program.name}
+                  durationWeeks={program.durationWeeks}
+                  scheduledWorkoutCount={program.schedule.length}
+                />
+                {program.visibility === "PRIVATE" ? (
+                  <TrainingProgramActions slug={program.slug} />
+                ) : null}
+              </div>
             </CardContent>
           </Card>
 

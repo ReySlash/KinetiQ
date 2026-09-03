@@ -38,4 +38,26 @@ describe("API boundary", () => {
       }),
     );
   });
+
+  it.each([
+    [{ message: "Program changed.", code: "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT" }],
+    [{ error: { message: "Program changed.", code: "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT" } }],
+  ])("preserves stable API error codes from supported payloads", async (payload) => {
+    await expect(
+      parseApiResponse(new Response(JSON.stringify(payload), { status: 409 })),
+    ).rejects.toMatchObject({
+      name: "ApiError",
+      message: "Program changed.",
+      status: 409,
+      code: "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT",
+    });
+  });
+
+  it("uses a null code when an API error does not expose one", async () => {
+    await expect(
+      parseApiResponse(
+        new Response(JSON.stringify({ message: "Unavailable" }), { status: 503 }),
+      ),
+    ).rejects.toMatchObject({ code: null });
+  });
 });

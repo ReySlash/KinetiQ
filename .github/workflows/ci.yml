@@ -231,6 +231,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter api prisma:migrate:deploy
+      - run: pnpm --filter api prisma:seed
       - run: pnpm --filter api build
       - run: pnpm --filter api start:prod > /tmp/kinetiq-api.log 2>&1 &
       - run: |

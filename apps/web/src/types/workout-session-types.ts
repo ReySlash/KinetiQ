@@ -1,5 +1,19 @@
 export type WorkoutSessionStatus = "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 export type LoadUnit = "KG" | "LB";
+export type WorkoutSessionSourceKind =
+  | "FREESTYLE"
+  | "ROUTINE"
+  | "PROGRAM_WORKOUT";
+
+export type WorkoutSessionProvenance = {
+  sourceKind: WorkoutSessionSourceKind;
+  adoptedTrainingProgramId: string | null;
+  programWorkoutOccurrenceId: string | null;
+  programNameSnapshot: string | null;
+  programWeekNumber: number | null;
+  programDayNumber: number | null;
+  programRoutineNameSnapshot: string | null;
+};
 
 export type CompletedSet = {
   id: string;
@@ -32,6 +46,7 @@ export type WorkoutSession = {
   status: WorkoutSessionStatus;
   sourceRoutineId?: string | null;
   sourceRoutineNameSnapshot?: string | null;
+  provenance: WorkoutSessionProvenance;
   timezone: string;
   startedAt: string;
   completedAt?: string | null;
@@ -51,6 +66,7 @@ export type WorkoutSessionListItem = {
   completedAt: string | null;
   cancelledAt: string | null;
   completedSetCount: number;
+  provenance: WorkoutSessionProvenance;
 };
 
 export type WorkoutSessionMutation = {

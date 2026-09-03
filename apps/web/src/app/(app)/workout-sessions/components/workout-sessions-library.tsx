@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { WorkoutSessionFilters } from "./workout-session-filters";
 import { StartWorkoutDialog } from "./start-workout-dialog";
+import { WorkoutProgramLink } from "./workout-program-context";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
@@ -103,8 +104,11 @@ export function WorkoutSessionsLibrary({
                           fallbackSrc="/empty-state-exercises.webp"
                         />
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {session.sourceRoutineNameSnapshot ?? "Freestyle workout"}
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium">{session.sourceRoutineNameSnapshot ?? "Freestyle workout"}</span>
+                          <WorkoutProgramLink provenance={session.provenance} />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -150,6 +154,7 @@ export function WorkoutSessionsLibrary({
                       <CardDescription>
                         {session.completedSetCount} sets · {sessionLabel(session.status)}
                       </CardDescription>
+                      <WorkoutProgramLink provenance={session.provenance} className="block truncate text-xs text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary" />
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <Badge
