@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -68,19 +68,43 @@ export function WorkoutSessionSummary({
         </CardHeader>
         <CardContent className="grid gap-2">
           {session.performances.map((performance) => (
-            <div
+            <details
               key={performance.id}
-              className="rounded-xl border border-border/70 p-3"
+              className="group rounded-xl border border-border/70"
             >
-              <div className="flex items-center justify-between gap-2">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-3 marker:hidden [&::-webkit-details-marker]:hidden">
                 <p className="font-medium">
                   {performance.exerciseNameSnapshot}
                 </p>
-                <span className="text-sm text-muted-foreground">
+                <span className="flex items-center gap-2 text-sm text-muted-foreground">
                   {performance.completedSets.length} sets
+                  <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
                 </span>
+              </summary>
+              <div className="grid gap-2 border-t border-border/70 px-3 py-3">
+                {performance.completedSets.length > 0 ? (
+                  performance.completedSets.map((completedSet, index) => (
+                    <div
+                      key={completedSet.id}
+                      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm"
+                    >
+                      <span className="text-muted-foreground">
+                        Set {index + 1}
+                        {completedSet.isWarmup ? " · Warm-up" : ""}
+                      </span>
+                      <span>
+                        {completedSet.repetitions} reps · {completedSet.loadKg} {completedSet.loadUnit}
+                        {completedSet.rir !== null ? ` · RIR ${completedSet.rir}` : ""}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No sets recorded.
+                  </p>
+                )}
               </div>
-            </div>
+            </details>
           ))}
         </CardContent>
       </Card>

@@ -79,7 +79,7 @@ export function StartWorkoutDialog({
               render={
                 <Button
                   size="lg"
-                  className="min-w-0 flex-1 md:flex-none md:px-4"
+                  className="w-auto min-w-0 md:px-4"
                 />
               }
             />

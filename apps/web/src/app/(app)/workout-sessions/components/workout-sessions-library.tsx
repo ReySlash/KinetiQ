@@ -32,7 +32,9 @@ function formatDate(value: string) {
 }
 
 function sessionLabel(status: WorkoutSessionListItem["status"]) {
-  return status === "IN_PROGRESS" ? "In progress" : status.toLowerCase();
+  if (status === "IN_PROGRESS") return "In progress";
+  if (status === "COMPLETED") return "Completed";
+  return "Cancelled";
 }
 
 function sessionBadgeClassName(status: WorkoutSessionListItem["status"]) {
@@ -60,11 +62,11 @@ export function WorkoutSessionsLibrary({
         <div className="w-full md:order-2 md:w-[min(100%,38rem)]">
           <WorkoutSessionFilters />
         </div>
-        <div className="flex justify-center gap-2 md:order-1 md:w-auto md:justify-start">
+        <div className="hidden justify-center gap-2 md:order-1 md:flex md:w-auto md:justify-start">
           <StartWorkoutDialog routines={routines} />
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
+      <div className="min-h-0 flex-1 overflow-auto p-1 pb-16 md:p-2">
         {sessions.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -113,7 +115,7 @@ export function WorkoutSessionsLibrary({
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={sessionBadgeClassName(session.status)}
+                          className={`min-w-20 justify-center ${sessionBadgeClassName(session.status)}`}
                         >
                           {sessionLabel(session.status)}
                         </Badge>
@@ -159,9 +161,9 @@ export function WorkoutSessionsLibrary({
                     <div className="flex shrink-0 items-center gap-1">
                       <Badge
                         variant="outline"
-                        className={sessionBadgeClassName(session.status)}
+                        className={`min-w-20 justify-center ${sessionBadgeClassName(session.status)}`}
                       >
-                        {session.status === "IN_PROGRESS" ? "Active" : sessionLabel(session.status)}
+                        {sessionLabel(session.status)}
                       </Badge>
                       <MoreLink
                         href={`/workout-sessions/${session.id}`}
@@ -175,6 +177,9 @@ export function WorkoutSessionsLibrary({
             </div>
           </>
         )}
+      </div>
+      <div className="fixed inset-x-2 bottom-14 z-30 flex justify-center md:hidden">
+        <StartWorkoutDialog routines={routines} />
       </div>
     </section>
   );

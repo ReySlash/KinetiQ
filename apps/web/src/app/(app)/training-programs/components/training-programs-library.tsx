@@ -47,13 +47,13 @@ export function TrainingProgramsLibrary({
           <TrainingProgramsFilters />
         </div>
         {scope === "my" || activeProgramId ? (
-          <div className="flex flex-col justify-center gap-2 sm:flex-row md:order-1 md:w-auto md:justify-start">
+          <div className="flex flex-row justify-center gap-2 md:order-1 md:w-auto md:justify-start">
             {activeProgramId ? (
               <StyledLink
                 href={`/training-programs/adopted/${activeProgramId}`}
                 variant="outline"
                 size="lg"
-                className="w-full sm:w-auto"
+                className="flex-1 justify-center md:flex-none"
               >
                 <CirclePlay data-icon="inline-start" />
                 View active program
@@ -66,7 +66,7 @@ export function TrainingProgramsLibrary({
                     <StyledLink
                       href="/training-programs/new"
                       size="lg"
-                      className="w-full md:w-auto"
+                      className="flex-1 justify-center md:flex-none"
                     />
                   }
                 >

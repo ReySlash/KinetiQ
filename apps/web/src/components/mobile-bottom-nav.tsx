@@ -34,14 +34,14 @@ export function MobileBottomNav() {
               isActive && "bg-primary/15 text-primary",
             )}
           >
-            <Icon aria-hidden="true" className="size-3.5" />
+            <Icon aria-hidden="true" className="size-5" />
             <span className="max-w-20 truncate">{label}</span>
           </Link>
         );
       })}
       <SidebarTrigger
         aria-label="More navigation"
-        className="flex size-auto min-w-14 flex-col gap-0.5 rounded-lg px-1.5 py-1 text-[9px] font-medium text-muted-foreground after:content-['More'] hover:bg-muted hover:text-foreground"
+        className="flex size-auto min-w-14 flex-col gap-0.5 rounded-lg px-1.5 py-1 text-[9px] font-medium text-muted-foreground after:content-['More'] hover:bg-muted hover:text-foreground [&_svg]:size-5"
       />
     </nav>
   );

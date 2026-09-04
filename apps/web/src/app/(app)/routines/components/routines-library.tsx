@@ -46,14 +46,14 @@ export function RoutinesLibrary({
           <RoutinesFilters />
         </div>
         {scope === "my" ? (
-          <div className="flex justify-center gap-2 md:order-1 md:w-auto md:justify-start">
+          <div className="hidden justify-center gap-2 md:order-1 md:flex md:w-auto md:justify-start">
             <Tooltip>
               <TooltipTrigger
                 render={
                   <StyledLink
                     href="/routines/new"
                     size="lg"
-                    className="w-full md:w-auto"
+                    className="w-auto"
                   />
                 }
               >
@@ -65,7 +65,7 @@ export function RoutinesLibrary({
           </div>
         ) : null}
       </div>
-      <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
+      <div className="min-h-0 flex-1 overflow-auto p-1 pb-16 md:p-2">
         {routines.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -165,6 +165,25 @@ export function RoutinesLibrary({
           </>
         )}
       </div>
+      {scope === "my" ? (
+        <div className="fixed inset-x-2 bottom-14 z-30 flex justify-center md:hidden">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <StyledLink
+                  href="/routines/new"
+                  size="lg"
+                  className="w-auto"
+                />
+              }
+            >
+              <Plus data-icon="inline-start" />
+              New routine
+            </TooltipTrigger>
+            <TooltipContent>Create a new routine</TooltipContent>
+          </Tooltip>
+        </div>
+      ) : null}
     </section>
   );
 }

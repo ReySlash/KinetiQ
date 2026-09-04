@@ -4,22 +4,23 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ActiveWorkout } from "./active-workout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  addWorkoutExercise,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   cancelWorkout,
   completeWorkout,
   deleteWorkoutSet,
   recordWorkoutSet,
-  removeWorkoutExercise,
   updateWorkoutSet,
 } from "@/lib/workout-sessions-api";
 import type {
   RecordWorkoutSetInput,
   WorkoutSession,
 } from "@/types/workout-session-types";
-import { WorkoutExercisePicker } from "./workout-exercise-picker";
 import {
   getProgramReturnHref,
   WorkoutProgramContextCard,
@@ -67,14 +68,6 @@ export function ActiveWorkoutController({
       input: Parameters<typeof updateWorkoutSet>[3];
     }) => updateWorkoutSet(session.id, performanceId, setId, input),
   });
-  const addExerciseMutation = useMutation({
-    mutationFn: (exerciseId: string) =>
-      addWorkoutExercise(session.id, { exerciseId }),
-  });
-  const removeExerciseMutation = useMutation({
-    mutationFn: (exercisePerformanceId: string) =>
-      removeWorkoutExercise(session.id, { exercisePerformanceId }),
-  });
   const programReturnHref = getProgramReturnHref(session.provenance);
 
   async function refresh() {
@@ -96,21 +89,19 @@ export function ActiveWorkoutController({
   }
 
   return (
-    <div className="mx-auto grid gap-3 p-1 md:p-2">
+    <div className="mx-auto grid gap-1 md:gap-3 p-1">
       <WorkoutProgramContextCard provenance={session.provenance} />
       <ActiveWorkout
         session={session}
         isSubmitting={
           mutation.isPending ||
           deleteMutation.isPending ||
-          updateMutation.isPending ||
-          removeExerciseMutation.isPending
+          updateMutation.isPending
         }
         error={
           mutation.error?.message ??
           deleteMutation.error?.message ??
-          updateMutation.error?.message ??
-          removeExerciseMutation.error?.message
+          updateMutation.error?.message
         }
         onRecordSet={async (performanceId, input) => {
           await mutation.mutateAsync({ performanceId, input });
@@ -143,17 +134,6 @@ export function ActiveWorkoutController({
           });
           await refresh();
         }}
-        onRemoveExercise={async (performanceId) => {
-          await removeExerciseMutation.mutateAsync(performanceId);
-          await refresh();
-        }}
-      />
-      <WorkoutExercisePicker
-        isAdding={addExerciseMutation.isPending}
-        onAddExercise={async (exerciseId) => {
-          await addExerciseMutation.mutateAsync(exerciseId);
-          await refresh();
-        }}
       />
       {finishMutation.isError || cancelMutation.isError ? (
         <Alert variant="destructive">
@@ -163,27 +143,39 @@ export function ActiveWorkoutController({
           </AlertDescription>
         </Alert>
       ) : null}
-      <Card>
-        <CardContent className="flex flex-col gap-2 p-3 sm:flex-row sm:justify-end">
-          <Button
-            variant="outline"
-            onClick={() =>
-              void finishAndNavigate("cancel").catch(() => undefined)
+      <div className="flex flex-row justify-center gap-2 px-3 pb-3 md:justify-end">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                onClick={() =>
+                  void finishAndNavigate("cancel").catch(() => undefined)
+                }
+                disabled={finishMutation.isPending || cancelMutation.isPending}
+              />
             }
-            disabled={finishMutation.isPending || cancelMutation.isPending}
           >
             Cancel workout
-          </Button>
-          <Button
-            onClick={() =>
-              void finishAndNavigate("complete").catch(() => undefined)
+          </TooltipTrigger>
+          <TooltipContent>Cancel workout</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                onClick={() =>
+                  void finishAndNavigate("complete").catch(() => undefined)
+                }
+                disabled={finishMutation.isPending || cancelMutation.isPending}
+              />
             }
-            disabled={finishMutation.isPending || cancelMutation.isPending}
           >
             {finishMutation.isPending ? "Finishing…" : "Finish workout"}
-          </Button>
-        </CardContent>
-      </Card>
+          </TooltipTrigger>
+          <TooltipContent>Finish workout</TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   );
 }

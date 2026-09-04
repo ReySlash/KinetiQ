@@ -32,6 +32,18 @@ function statusVariant(
   return "secondary" as const;
 }
 
+function statusClassName(
+  status: "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED",
+) {
+  if (status === "PAUSED") {
+    return "border-sky-500/40 bg-sky-500/10 text-sky-300";
+  }
+  if (status === "COMPLETED") {
+    return "border-emerald-500/40 bg-emerald-500/10 text-emerald-400";
+  }
+  return "";
+}
+
 export default async function AdoptedTrainingProgramPage({
   params,
 }: {
@@ -73,7 +85,10 @@ export default async function AdoptedTrainingProgramPage({
                     {program.durationWeeksSnapshot === 1 ? "week" : "weeks"}
                   </CardDescription>
                 </div>
-                <Badge variant={statusVariant(program.status)}>
+                <Badge
+                  variant={statusVariant(program.status)}
+                  className={`h-6 min-w-24 justify-center px-2.5 ${statusClassName(program.status)}`}
+                >
                   {program.status.toLowerCase()}
                 </Badge>
               </div>

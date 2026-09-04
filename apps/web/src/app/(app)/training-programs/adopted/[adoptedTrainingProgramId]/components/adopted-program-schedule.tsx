@@ -35,16 +35,28 @@ function statusDetails(status: ProgramWorkoutOccurrence["status"]) {
       label: "Completed",
       icon: CircleCheck,
       variant: "secondary" as const,
+      className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
     };
   if (status === "SKIPPED")
-    return { label: "Skipped", icon: SkipForward, variant: "outline" as const };
+    return {
+      label: "Skipped",
+      icon: SkipForward,
+      variant: "outline" as const,
+      className: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+    };
   if (status === "IN_PROGRESS")
     return {
       label: "In progress",
       icon: CirclePause,
       variant: "default" as const,
+      className: "",
     };
-  return { label: "Pending", icon: CircleDashed, variant: "outline" as const };
+  return {
+    label: "Pending",
+    icon: CircleDashed,
+    variant: "outline" as const,
+    className: "border-slate-500/40 bg-slate-500/10 text-slate-300",
+  };
 }
 
 function OccurrenceStatus({
@@ -55,7 +67,10 @@ function OccurrenceStatus({
   const details = statusDetails(occurrence.status);
   const Icon = details.icon;
   return (
-    <Badge variant={details.variant}>
+    <Badge
+      variant={details.variant}
+      className={`h-6 min-w-24 justify-center px-2.5 ${details.className}`}
+    >
       <Icon data-icon="inline-start" />
       {details.label}
     </Badge>

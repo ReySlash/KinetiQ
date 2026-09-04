@@ -59,4 +59,15 @@ describe("AdoptedProgramSchedule", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/scheduled routine is unavailable/i);
     expect(screen.getByRole("alert")).toHaveTextContent(/skip it to continue/i);
   });
+
+  it("uses meaningful colors for every occurrence status", () => {
+    const completed = { ...occurrence("completed", 1, 1), status: "COMPLETED" as const };
+    const skipped = { ...occurrence("skipped", 1, 2), status: "SKIPPED" as const };
+    const pending = occurrence("pending", 1, 3);
+    render(<AdoptedProgramSchedule program={program([completed, skipped, pending])} />);
+
+    expect(screen.getAllByText("Completed")[0]).toHaveClass("text-emerald-400");
+    expect(screen.getAllByText("Skipped")[0]).toHaveClass("text-amber-300");
+    expect(screen.getAllByText("Pending")[0]).toHaveClass("text-slate-300");
+  });
 });
