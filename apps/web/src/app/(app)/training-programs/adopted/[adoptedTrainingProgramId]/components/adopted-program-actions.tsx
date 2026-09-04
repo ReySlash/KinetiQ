@@ -116,13 +116,17 @@ export function AdoptedProgramActions({
     mutation.mutate(command);
   }
 
-  function primaryButton(action: NonNullable<typeof mobileAction>) {
+  function primaryButton(
+    action: NonNullable<typeof mobileAction>,
+    fullWidth = false,
+  ) {
+    const actionClassName = fullWidth ? "w-full" : "w-auto";
     if (action.kind === "continue") {
       return (
         <StyledLink
           href={`/workout-sessions/${action.workoutSessionId}`}
           size="lg"
-          className="w-full"
+          className={actionClassName}
         >
           <CirclePlay data-icon="inline-start" />
           Continue workout
@@ -133,7 +137,7 @@ export function AdoptedProgramActions({
       return (
         <Button
           size="lg"
-          className="w-full"
+          className={actionClassName}
           disabled={mutation.isPending}
           onClick={() => run({ type: "resume" })}
         >
@@ -145,7 +149,7 @@ export function AdoptedProgramActions({
     return (
       <Button
         size="lg"
-        className="w-full"
+        className={actionClassName}
         disabled={mutation.isPending}
         onClick={() => run({ type: "start", occurrenceId: action.occurrenceId })}
       >
@@ -238,7 +242,7 @@ export function AdoptedProgramActions({
       </div>
 
       {mobileAction ? (
-        <div className="fixed inset-x-2 bottom-14 md:hidden">
+        <div className="fixed inset-x-2 bottom-14 flex justify-center md:hidden">
           {primaryButton(mobileAction)}
         </div>
       ) : null}
