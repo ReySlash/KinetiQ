@@ -4,7 +4,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Pool } from 'pg';
 import { PrismaService } from '../src/modules/shared/infrastructure/database/prisma/prisma.service';
 import { AdoptedTrainingProgram } from '../src/modules/adopted-training-programs/domain/adopted-training-program.aggregate';
-import { AdoptedTrainingProgramConcurrencyError } from '../src/modules/adopted-training-programs/application/errors/adopted-training-program.errors';
+import {
+  AdoptedTrainingProgramConcurrencyError,
+  AdoptedTrainingProgramNotFoundError,
+} from '../src/modules/adopted-training-programs/application/errors/adopted-training-program.errors';
 import { PrismaAdoptedTrainingProgramsAdapter } from '../src/modules/adopted-training-programs/infrastructure/prisma/prisma-adopted-training-programs.adapter';
 
 function normalizePredicate(predicate: string | undefined): string {
@@ -299,7 +302,7 @@ describe('adopted training program Prisma adapter (e2e)', () => {
         occurrenceId: otherOccurrenceId,
         timezone: 'UTC',
       }),
-    ).rejects.toBeInstanceOf(AdoptedTrainingProgramConcurrencyError);
+    ).rejects.toBeInstanceOf(AdoptedTrainingProgramNotFoundError);
   });
 
   it('rejects a second non-terminal program without leaving its nested occurrence', async () => {

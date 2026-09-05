@@ -4,7 +4,11 @@ import type { ComponentProps } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type FormSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 
@@ -43,7 +47,7 @@ export function WorkoutSessionSearchForm({
               size="lg"
               type="submit"
               disabled={isPending}
-              className="cursor-pointer !border-primary text-primary hover:!bg-primary hover:!text-black"
+              className="cursor-pointer border-primary! text-primary hover:bg-primary! hover:text-black!"
             />
           }
         >

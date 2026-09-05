@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 import { Prisma } from '../../../../../generated/prisma/client';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma/prisma.service';
 import {
@@ -445,18 +444,22 @@ export class PrismaWorkoutSessionsAdapter
     if (isPrismaError(error, 'P2034')) {
       throw new WorkoutSessionConcurrencyError();
     }
-    if (error instanceof PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        const fields = getPrismaConstraintFields(error);
-        if (fields.length === 1 && fields[0] === 'ownerId') {
-          throw new WorkoutSessionAlreadyActiveError();
-        }
+    if (isPrismaError(error, 'P2002')) {
+      const fields = getPrismaConstraintFields(error);
+      const message = getErrorMessage(error);
+      if (
+        fields.includes('ownerId') ||
+        fields.includes('programWorkoutOccurrenceId') ||
+        message.includes('ownerId') ||
+        message.includes('programWorkoutOccurrenceId')
+      ) {
+        throw new WorkoutSessionAlreadyActiveError();
       }
-      if (error.code === 'P2003') {
-        const fields = getPrismaConstraintFields(error);
-        if (fields.includes('exerciseId')) {
-          throw new WorkoutSessionExerciseUnavailableError();
-        }
+    }
+    if (isPrismaError(error, 'P2003')) {
+      const fields = getPrismaConstraintFields(error);
+      if (fields.includes('exerciseId')) {
+        throw new WorkoutSessionExerciseUnavailableError();
       }
     }
     throw new WorkoutSessionPersistenceError();
@@ -469,10 +472,8 @@ function isPrismaError(error: unknown, code: string): error is PrismaError {
   return isRecord(error) && error.code === code;
 }
 
-function getPrismaConstraintFields(
-  error: PrismaClientKnownRequestError,
-): string[] {
-  const meta = isRecord(error.meta) ? error.meta : undefined;
+function getPrismaConstraintFields(error: unknown): string[] {
+  const meta = isRecord(error) && isRecord(error.meta) ? error.meta : undefined;
   const target = meta?.target;
   if (Array.isArray(target)) {
     return target.filter((field): field is string => typeof field === 'string');
@@ -490,6 +491,12 @@ function getPrismaConstraintFields(
   return Array.isArray(fields)
     ? fields.filter((field): field is string => typeof field === 'string')
     : [];
+}
+
+function getErrorMessage(error: unknown): string {
+  return isRecord(error) && typeof error.message === 'string'
+    ? error.message
+    : '';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
