@@ -13,6 +13,7 @@ import { seedMuscleGroups } from './seeders/seed-muscle-groups';
 import { seedMuscles } from './seeders/seed-muscles';
 import { seedGlobalRoutines } from './seeders/seed-routines';
 import { seedSystemUser } from './seeders/seed-system-user';
+import { seedGlobalTrainingPrograms } from './seeders/seed-training-programs';
 import { validateSeedData } from './seeders/validate-seed-data';
 import { verifySeed } from './seeders/verify-seed';
 
@@ -66,6 +67,9 @@ async function main(): Promise<void> {
 
   // 13. Read-only global routine templates
   await seedGlobalRoutines(prisma, systemUserId);
+
+  // 14. Read-only global training program templates
+  await seedGlobalTrainingPrograms(prisma, systemUserId);
 
   await verifySeed(prisma);
   console.log('Database seed completed successfully.');

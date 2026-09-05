@@ -5,6 +5,7 @@ import {
 } from '../../generated/prisma/client';
 import { exercises } from '../seed-data/exercises';
 import { globalRoutines } from '../seed-data/routines';
+import { globalTrainingPrograms } from '../seed-data/training-programs';
 import { SYSTEM_USER_ID } from '../seed-data/system-user';
 
 export type SeedCounts = {
@@ -21,6 +22,8 @@ export type SeedCounts = {
   demandProfiles: number;
   globalRoutines: number;
   routineExercises: number;
+  globalTrainingPrograms: number;
+  trainingProgramRoutines: number;
 };
 
 export async function getSeedCounts(prisma: PrismaClient): Promise<SeedCounts> {
@@ -38,6 +41,8 @@ export async function getSeedCounts(prisma: PrismaClient): Promise<SeedCounts> {
     demandProfiles,
     globalRoutineCount,
     routineExercises,
+    globalTrainingProgramCount,
+    trainingProgramRoutineCount,
   ] = await Promise.all([
     prisma.muscleGroup.count(),
     prisma.muscle.count(),
@@ -52,6 +57,8 @@ export async function getSeedCounts(prisma: PrismaClient): Promise<SeedCounts> {
     prisma.exerciseDemandProfile.count(),
     prisma.routine.count({ where: { visibility: RoutineVisibility.GLOBAL } }),
     prisma.routineExercise.count(),
+    prisma.trainingProgram.count({ where: { visibility: 'GLOBAL' } }),
+    prisma.trainingProgramRoutine.count(),
   ]);
 
   return {
@@ -68,6 +75,8 @@ export async function getSeedCounts(prisma: PrismaClient): Promise<SeedCounts> {
     demandProfiles,
     globalRoutines: globalRoutineCount,
     routineExercises,
+    globalTrainingPrograms: globalTrainingProgramCount,
+    trainingProgramRoutines: trainingProgramRoutineCount,
   };
 }
 
@@ -143,6 +152,35 @@ export async function verifySeed(prisma: PrismaClient): Promise<SeedCounts> {
     ) {
       throw new Error(
         `Seed verification failed for global routine "${expected.key}".`,
+      );
+    }
+  }
+
+  const seededGlobalTrainingPrograms = await prisma.trainingProgram.findMany({
+    where: { slug: { in: globalTrainingPrograms.map(({ key }) => key) } },
+    select: {
+      slug: true,
+      ownerId: true,
+      visibility: true,
+      durationWeeks: true,
+      _count: { select: { routines: true } },
+    },
+  });
+  const trainingProgramsBySlug = new Map(
+    seededGlobalTrainingPrograms.map((program) => [program.slug, program]),
+  );
+
+  for (const expected of globalTrainingPrograms) {
+    const actual = trainingProgramsBySlug.get(expected.key);
+    if (
+      !actual ||
+      actual.ownerId !== SYSTEM_USER_ID ||
+      actual.visibility !== 'GLOBAL' ||
+      actual.durationWeeks !== expected.durationWeeks ||
+      actual._count.routines !== expected.schedule.length
+    ) {
+      throw new Error(
+        `Seed verification failed for global training program "${expected.key}".`,
       );
     }
   }

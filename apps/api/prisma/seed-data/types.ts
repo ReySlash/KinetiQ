@@ -141,3 +141,18 @@ export type RoutineSeed = {
   description: string;
   exercises: readonly RoutineExerciseSeed[];
 };
+
+export type TrainingProgramScheduleSeed = {
+  routineKey: string;
+  weekNumber: number;
+  dayNumber: number;
+  notes?: string;
+};
+
+export type TrainingProgramSeed = {
+  key: string;
+  name: string;
+  description: string;
+  durationWeeks: number;
+  schedule: readonly TrainingProgramScheduleSeed[];
+};

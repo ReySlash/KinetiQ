@@ -7,6 +7,7 @@ import { muscleGroups } from '../seed-data/muscle-groups';
 import { childMuscles, parentMuscles } from '../seed-data/muscles';
 import { movementPatterns } from '../seed-data/movement-patterns';
 import { globalRoutines } from '../seed-data/routines';
+import { globalTrainingPrograms } from '../seed-data/training-programs';
 import type {
   ExerciseCapabilitySeed,
   ExerciseDemandSeed,
@@ -174,6 +175,10 @@ export function validateSeedData(): void {
     globalRoutines.map((routine) => ({ slug: routine.key })),
     'global routine',
   );
+  assertUniqueSlugs(
+    globalTrainingPrograms.map((program) => ({ slug: program.key })),
+    'global training program',
+  );
 
   const muscleGroupSlugs = new Set(muscleGroups.map(({ slug }) => slug));
   const muscleSlugs = new Set(muscles.map(({ slug }) => slug));
@@ -274,5 +279,55 @@ export function validateSeedData(): void {
         );
       }
     });
+  }
+
+  const routineSlugs = new Set(globalRoutines.map(({ key }) => key));
+
+  for (const program of globalTrainingPrograms) {
+    assertRequiredText(
+      program.name,
+      `Global training program "${program.key}" name`,
+    );
+    assertRequiredText(
+      program.description,
+      `Global training program "${program.key}" description`,
+    );
+
+    if (!Number.isInteger(program.durationWeeks) || program.durationWeeks < 1) {
+      throw new Error(
+        `Global training program "${program.key}" must have a positive integer durationWeeks.`,
+      );
+    }
+
+    const occupiedSlots = new Set<string>();
+    for (const entry of program.schedule) {
+      if (!routineSlugs.has(entry.routineKey)) {
+        throw new Error(
+          `Global training program "${program.key}" references unknown global routine "${entry.routineKey}".`,
+        );
+      }
+      if (
+        !Number.isInteger(entry.weekNumber) ||
+        entry.weekNumber < 1 ||
+        entry.weekNumber > program.durationWeeks
+      ) {
+        throw new Error(
+          `Global training program "${program.key}" has an invalid weekNumber ${entry.weekNumber}.`,
+        );
+      }
+      if (!Number.isInteger(entry.dayNumber) || entry.dayNumber < 1) {
+        throw new Error(
+          `Global training program "${program.key}" has an invalid dayNumber ${entry.dayNumber}.`,
+        );
+      }
+
+      const slot = `${entry.weekNumber}:${entry.dayNumber}`;
+      if (occupiedSlots.has(slot)) {
+        throw new Error(
+          `Global training program "${program.key}" contains duplicate schedule slot "${slot}".`,
+        );
+      }
+      occupiedSlots.add(slot);
+    }
   }
 }
