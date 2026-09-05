@@ -178,12 +178,12 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && occurrenceAction) {
     const occurrence = state.occurrences.find((item) => item.id === occurrenceAction[1]);
     if (!occurrence) return send(response, 404, { message: "Not found" });
-    if (!occurrence.sourceRoutineAvailable) return send(response, 422, { message: "Unavailable", code: "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE" });
     if (occurrenceAction[2] === "skip") {
       occurrence.status = "SKIPPED";
       if (state.occurrences.every((item) => item.status === "COMPLETED" || item.status === "SKIPPED")) state.status = "COMPLETED";
       return send(response, 200, { id: programId, status: state.status, updatedAt: "2026-09-03T08:00:00.000Z" });
     }
+    if (!occurrence.sourceRoutineAvailable) return send(response, 422, { message: "Unavailable", code: "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE" });
     occurrence.status = "IN_PROGRESS";
     occurrence.activeSessionId = workoutSessionId;
     occurrence.latestSessionId = workoutSessionId;

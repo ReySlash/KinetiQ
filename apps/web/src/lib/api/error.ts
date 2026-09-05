@@ -50,14 +50,7 @@ function getApiMessage(payload: unknown): string | undefined {
 export async function parseApiResponse<T>(response: Response): Promise<T> {
   const payload: unknown = await response.json().catch(() => null);
 
-  const hasErrorPayload =
-    typeof payload === "object" &&
-    payload !== null &&
-    "error" in payload &&
-    payload.error !== null &&
-    typeof payload.error === "object";
-
-  if (!response.ok || hasErrorPayload) {
+  if (!response.ok) {
     throw new ApiError(
       getApiMessage(payload) ?? "Something went wrong. Please try again.",
       response.status,

@@ -60,4 +60,17 @@ describe("API boundary", () => {
       ),
     ).rejects.toMatchObject({ code: null });
   });
+
+  it.each([200, 201, 202])("accepts successful %s responses", async (status) => {
+    await expect(
+      parseApiResponse(
+        new Response(JSON.stringify({ error: { message: "Not an HTTP error" }, ok: true }), {
+          status,
+        }),
+      ),
+    ).resolves.toEqual({
+      error: { message: "Not an HTTP error" },
+      ok: true,
+    });
+  });
 });
