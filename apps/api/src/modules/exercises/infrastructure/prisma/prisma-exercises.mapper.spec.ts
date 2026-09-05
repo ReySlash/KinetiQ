@@ -97,12 +97,16 @@ describe('prisma exercises mapper', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       name: 'Squat',
       slug: 'squat',
+      skillLevel: 'BEGINNER',
       thumbnailUrl: null,
       thumbnailStorageKey: null,
       imageAltText: null,
       muscles: [{ muscle: { name: 'Quadriceps', slug: 'quadriceps' } }],
     });
-    expect(list.muscles).toEqual([{ name: 'Quadriceps', slug: 'quadriceps' }]);
+    expect(list).toMatchObject({
+      skillLevel: 'BEGINNER',
+      muscles: [{ name: 'Quadriceps', slug: 'quadriceps' }],
+    });
 
     const detail = toDetail({
       name: 'Squat',

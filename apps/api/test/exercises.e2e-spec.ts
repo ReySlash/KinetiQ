@@ -29,6 +29,39 @@ describe('Exercises HTTP flow (e2e)', () => {
     return body[key];
   }
 
+  function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+  }
+
+  function getListedExercise(
+    body: unknown,
+    slug: string,
+  ): { skillLevel: string } {
+    if (!Array.isArray(body)) {
+      throw new Error('Exercise list response was not an array.');
+    }
+
+    const exercise = body.find(
+      (item): item is { slug: string; skillLevel: string } => {
+        if (!isRecord(item)) {
+          return false;
+        }
+
+        return (
+          typeof item.slug === 'string' &&
+          typeof item.skillLevel === 'string' &&
+          item.slug === slug
+        );
+      },
+    );
+
+    if (!exercise) {
+      throw new Error(`Exercise ${slug} was not present in the list response.`);
+    }
+
+    return exercise;
+  }
+
   async function signInAdmin(): Promise<string[]> {
     const response = await request(app.getHttpServer())
       .post('/api/auth/sign-in/email')
@@ -92,10 +125,8 @@ describe('Exercises HTTP flow (e2e)', () => {
       .expect(200);
 
     expect(Array.isArray(list.body)).toBe(true);
-    expect(list.body).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ slug: publicExerciseSlug }),
-      ]),
+    expect(getListedExercise(list.body, publicExerciseSlug).skillLevel).toEqual(
+      expect.any(String),
     );
 
     const detail = await request(app.getHttpServer())

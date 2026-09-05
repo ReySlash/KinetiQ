@@ -10,6 +10,7 @@ export const exerciseFindAllSelect = {
   id: true,
   name: true,
   slug: true,
+  skillLevel: true,
   thumbnailUrl: true,
   thumbnailStorageKey: true,
   imageAltText: true,
