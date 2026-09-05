@@ -108,7 +108,10 @@ export function WorkoutSessionsLibrary({
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
-                          <span className="font-medium">{session.sourceRoutineNameSnapshot ?? "Freestyle workout"}</span>
+                          <span className="font-medium">
+                            {session.sourceRoutineNameSnapshot ??
+                              "Freestyle workout"}
+                          </span>
                           <WorkoutProgramLink provenance={session.provenance} />
                         </div>
                       </TableCell>
@@ -139,7 +142,10 @@ export function WorkoutSessionsLibrary({
 
             <div className="flex flex-col gap-2 md:hidden">
               {sessions.map((session) => (
-                <Card key={session.id} className="w-full py-1 transition-colors hover:border-primary/50">
+                <Card
+                  key={session.id}
+                  className="w-full py-1 transition-colors hover:border-primary/50"
+                >
                   <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
                     <ImageWithFallback
                       className="rounded-xl"
@@ -151,12 +157,16 @@ export function WorkoutSessionsLibrary({
                     />
                     <div className="min-w-0 flex-1 text-center">
                       <CardTitle className="truncate">
-                        {session.sourceRoutineNameSnapshot ?? "Freestyle workout"}
+                        {session.sourceRoutineNameSnapshot ??
+                          "Freestyle workout"}
                       </CardTitle>
                       <CardDescription>
-                        {session.completedSetCount} sets · {sessionLabel(session.status)}
+                        {session.completedSetCount} sets
                       </CardDescription>
-                      <WorkoutProgramLink provenance={session.provenance} className="block truncate text-xs text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary" />
+                      <WorkoutProgramLink
+                        provenance={session.provenance}
+                        className="block truncate text-xs text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+                      />
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <Badge

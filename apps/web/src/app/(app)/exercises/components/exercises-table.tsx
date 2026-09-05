@@ -22,6 +22,10 @@ type ExercisesTableProps = {
   exercises: Exercise[];
 };
 
+function formatSkillLevel(skillLevel: Exercise["skillLevel"]) {
+  return skillLevel.charAt(0) + skillLevel.slice(1).toLocaleLowerCase();
+}
+
 export function ExercisesTable(props: ExercisesTableProps) {
   const { exercises } = props;
 
@@ -35,6 +39,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
               <TableHead>Exercise</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Muscles Involved</TableHead>
+              <TableHead>Skill Level</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -59,6 +64,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                   </TableCell>
                   <TableCell>{exercise.name}</TableCell>
                   <TableCell>{exercise.muscles.length}</TableCell>
+                  <TableCell>{formatSkillLevel(exercise.skillLevel)}</TableCell>
                   <TableCell>
                     <div className="min-h-full flex justify-end gap-2">
                       <AddToRoutineDialog
@@ -108,7 +114,10 @@ export function ExercisesTable(props: ExercisesTableProps) {
                 <div className="text-wrap text-center">
                   <CardTitle>{exercise.name}</CardTitle>
                   <CardDescription>
-                    {exercise.muscles.length} muscles involved
+                    - {exercise.muscles.length} muscles involved
+                  </CardDescription>
+                  <CardDescription>
+                    - {formatSkillLevel(exercise.skillLevel)}
                   </CardDescription>
                 </div>
 

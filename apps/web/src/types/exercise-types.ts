@@ -91,6 +91,7 @@ export type Exercise = {
   id: string;
   name: string;
   slug: string;
+  skillLevel: ExerciseSkillLevel;
   thumbnailUrl: string | null;
   thumbnailStorageKey: string | null;
   imageAltText: string | null;
