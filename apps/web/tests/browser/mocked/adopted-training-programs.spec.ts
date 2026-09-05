@@ -21,7 +21,9 @@ test.describe("mocked adopted training program journey", () => {
 
     await useScenario(context, "empty");
     await page.goto("/training-programs/active");
-    await expect(page.getByText("No active program", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("No active program", { exact: true }).first(),
+    ).toBeVisible();
 
     await useScenario(context, "error");
     await page.goto("/training-programs/active");
