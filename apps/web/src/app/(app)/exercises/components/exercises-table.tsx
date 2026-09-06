@@ -114,7 +114,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                 <div className="text-wrap text-center">
                   <CardTitle>{exercise.name}</CardTitle>
                   <CardDescription>
-                    - {exercise.muscles.length} muscles involved
+                    - {exercise.muscles.length} muscles
                   </CardDescription>
                   <CardDescription>
                     - {formatSkillLevel(exercise.skillLevel)}
