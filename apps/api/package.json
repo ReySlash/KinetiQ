@@ -24,6 +24,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:mutation": "stryker run",
+    "test:mutation:analytics": "stryker run stryker.analytics.config.mjs",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e:db:up": "docker compose --profile test up -d postgres-test",
     "test:e2e:db:down": "docker compose --profile test rm --force --stop postgres-test",

@@ -81,15 +81,15 @@ Authentication is integrated after public reference-library slices so early work
 
 ## Phase status
 
-| Phase                        | Current status                                                                    | Exit condition                                                   |
-| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Foundation                   | Planned                                                                           | Web/API/database run locally and in CI                           |
-| Reference library            | Planned                                                                           | Seeded muscles and admin exercise management work end to end     |
-| Routine MVP                  | Planned                                                                           | Authenticated users manage only their routines                   |
-| Production MVP               | Planned                                                                           | Security, tests, deployment, backup and restore drill pass       |
-| Training-program templates   | Backend and frontend template slices implemented; acceptance remains              | Programs schedule reusable routines by relative week/day         |
-| Adopted-program execution    | Planned Phase 8.5 current-target slice                                            | Adoption, progress, and program-origin sessions work atomically  |
-| Workout sessions             | Standalone routine/freestyle backend and frontend implemented; acceptance remains | Immutable `WorkoutSession` history supports integrated execution |
-| Analytics                    | Planned after adopted-program integration                                         | Explainable metrics consume stable owned history                 |
-| Recommendations and recovery | Deferred                                                                          | Rules use sufficient real data and expose rationale              |
-| Coach/athlete                | Exploratory                                                                       | Tenancy and consent model is validated                           |
+| Phase                        | Current status                                                                                     | Exit condition                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Foundation                   | Implemented in code and CI; production-environment acceptance remains                              | Web/API/database run locally and in CI                           |
+| Reference library            | Backend and frontend slices implemented; final production acceptance remains                       | Seeded muscles and admin exercise management work end to end     |
+| Routine MVP                  | Backend and frontend slices implemented with ownership tests; production acceptance remains        | Authenticated users manage only their routines                   |
+| Production MVP               | Planned hardening and operational release work                                                     | Security, tests, deployment, backup and restore drill pass       |
+| Training-program templates   | Backend, frontend, seed, and schedule slices implemented; production acceptance remains             | Programs schedule reusable routines by relative week/day         |
+| Adopted-program execution    | Backend and frontend execution implemented with atomic PostgreSQL and journey coverage              | Adoption, progress, and program-origin sessions work atomically  |
+| Workout sessions             | Standalone and program-origin backend/frontend flows implemented; production acceptance remains     | Immutable `WorkoutSession` history supports integrated execution |
+| Analytics                    | Deterministic Phase 9 overview contract approved; implementation is the next product slice          | Explainable metrics consume stable owned history                 |
+| Recommendations and recovery | Deferred until deterministic analytics are implemented and validated                              | Rules use sufficient real data and expose rationale              |
+| Coach/athlete                | Exploratory                                                                                        | Tenancy and consent model is validated                           |

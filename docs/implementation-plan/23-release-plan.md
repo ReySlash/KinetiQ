@@ -96,9 +96,13 @@ This work may begin earlier and must be complete before any shared environment e
 
 No image uploads, image-management workflows, workout-performance tracking, training-program calendar, advanced analytics, recommendations, recovery/fatigue check-ins, AI, nutrition, payments, coach organizations, social features, sport-specific transfer, user-created exercises, or multiple media assets.
 
-## Recommended first implementation task
+## Recommended next implementation task
 
-Implement R0 as a narrowly scoped foundation pull request: workspace structure, web/API health pages, PostgreSQL/Prisma connection with an empty baseline migration, validated environment examples, development/test Compose, and CI for lint/type/unit/build. Do not add Muscle/Exercise models to the same change. The next pull request can then prove the complete migration/seed/API/UI pattern with R1.
+Implement R13 as a read-only, owner-scoped analytics overview vertical slice.
+Begin with completed-workout totals, training days, working-set and repetition
+counts, eligible external-load volume, weekly activity, and exercise frequency.
+Do not add analytics persistence, write flows, heuristics, PR detection, or
+recommendations to this first slice.
 
 ## Status tracking
 
@@ -106,16 +110,17 @@ At plan creation all releases are `PLANNED`. Update this table when work begins;
 
 | Release                         | Status                                                                                                           | Depends on                    |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| R0 Foundation                   | In progress — runtime, CI, and operational documentation are implemented; clean-environment verification remains | —                             |
-| R1 Muscles                      | Implemented in code; acceptance and clean-database verification remain                                           | R0                            |
-| R2 Exercise identity            | Implemented in code; admin/shared-environment security gate remains                                              | R1                            |
-| R3 Muscle assignments           | Implemented in code; acceptance verification remains                                                             | R2                            |
-| R4 Profiles                     | Implemented in code; acceptance verification remains                                                             | R3                            |
+| R0 Foundation                   | Implemented in code and CI; production-environment verification remains                                          | —                             |
+| R1 Muscles                      | Implemented in backend/UI; final production acceptance remains                                                   | R0                            |
+| R2 Exercise identity            | Implemented in backend/UI; final admin production-security acceptance remains                                    | R1                            |
+| R3 Muscle assignments           | Implemented in backend/UI; final production acceptance remains                                                   | R2                            |
+| R4 Profiles                     | Implemented in backend/UI; final production acceptance remains                                                   | R3                            |
 | R5 Media                        | Deferred until post-MVP image generation is ready                                                                | R2, Cloudinary decisions      |
-| R6 Auth/admin hardening         | In progress — Better Auth backend wiring exists; web flows and full HTTP authorization matrix remain             | R0; gates shared R2–R5        |
+| R6 Auth/admin hardening         | Backend/web authentication and HTTP authorization tests implemented; production cookie/revocation acceptance remains | R0; gates shared R2–R5     |
 | R7–R8 Routines                  | Implemented in backend/UI slices; final MVP acceptance and production hardening remain                           | R2, R6                        |
 | R9 Production MVP               | Planned                                                                                                          | R0–R8                         |
 | R10 Training-program templates  | Backend and frontend template/schedule slices implemented; release acceptance remains                            | R9                            |
 | R11 Standalone sessions         | Backend and frontend routine/freestyle slice implemented; acceptance remains                                     | Auth + routines               |
-| R12 Adopted-program execution   | Planned current-target slice                                                                                     | R10, R11                      |
-| R13+ Analytics and later phases | Planned/deferred                                                                                                 | R12 stable integrated history |
+| R12 Adopted-program execution   | Backend/frontend integration implemented with ownership, concurrency, rollback, and journey coverage             | R10, R11                      |
+| R13 Analytics overview          | Deterministic read-only metric contract approved; next implementation slice                                      | R12 stable integrated history |
+| R14+ Heuristics and later phases | Deferred                                                                                                        | R13 validated                 |

@@ -4,11 +4,11 @@
 
 Analytics turn historical training into understandable summaries. They are part of the MVP and depend on trustworthy completed-session data. Initial metrics must be deterministic, explainable, and reproducible.
 
-Phase 9 does not begin until the Phase 8 standalone session slice and Phase 8.5
-adopted-program integration are stable, owner-isolated, and snapshot-safe. See
-[workout sessions](14-workout-sessions.md) and
-[training programs](13-training-programs.md). Analytics consume that history;
-they do not redefine its write model.
+The Phase 8 standalone session slice and Phase 8.5 adopted-program integration
+are implemented with owner-isolation, snapshot, transaction, and journey
+coverage. The approved next product slice is a deterministic, read-only Phase 9
+overview. Analytics consume workout history; they do not redefine its write
+model and do not require a domain layer or write/update flows in this release.
 
 ## Data categories
 
@@ -21,19 +21,70 @@ they do not redefine its write model.
 
 Do not store every chart point or aggregate until performance measurements justify caching. Any materialization must be rebuildable from raw data and keyed by algorithm version.
 
-## First analytics release
+## Approved first analytics release
 
-- Sessions completed and workout consistency by week
-- Exercise frequency
-- Completed working sets and volume load (`sets` are not multiplied; `load × reps` per completed set where meaningful)
-- Estimated 1RM for supported loaded exercises with one named formula and visible limitations
-- Personal records by a defined category
-- Strength trend using e1RM or best comparable set
-- Routine adherence when a schedule exists
+The first release exposes one owner-scoped overview containing:
 
-Basic muscle-set estimates may be included only after the base calculations are
-validated. Complex fatigue modeling, readiness models, AI coaching, and opaque
-recommendations remain later work.
+- completed workout count;
+- distinct training-day count;
+- completed working-set and warm-up-set counts;
+- total repetitions from completed working sets;
+- eligible external-load volume in kilograms;
+- weekly completed-workout activity;
+- active and complete week counts plus average workouts per complete week;
+- exercise frequency grouped by stable exercise ID.
+
+Estimated 1RM, personal records, strength trends, muscle-set estimates,
+adherence scoring, fatigue/readiness models, and recommendations are deferred to
+separately approved contracts.
+
+## Approved period and inclusion rules
+
+- The default period is the current local week plus the previous seven weeks.
+- A custom range is bounded to 52 weeks.
+- Custom range boundaries are inclusive: sessions with `startedAt` equal to
+  either `from` or `to` are included. Adjacent ranges may therefore overlap at
+  a shared boundary instant by design.
+- Weeks run Monday 00:00 through Sunday 23:59:59 in a required valid IANA
+  timezone.
+- Only `COMPLETED` sessions are eligible. `IN_PROGRESS` and `CANCELLED`
+  sessions are excluded.
+- Session status determines eligibility; the local date of `startedAt`
+  determines the training day and week.
+- Program skips are not workouts and do not contribute to analytics.
+- The partial current week appears in the weekly series but is excluded from
+  complete-week averages and ratios.
+
+## Approved set, volume, and completeness rules
+
+- A working set is a completed set where `isWarmup` is `false`.
+- Warm-up sets are excluded from working-set, repetition, and volume totals and
+  are reported separately.
+- Volume is the sum of `loadKg × repetitions` for eligible working sets with a
+  positive external load and positive repetitions.
+- Missing or zero load is not interpreted as zero-volume training. Such sets
+  remain visible in working-set/repetition totals but are excluded from volume.
+- Volume responses include the calculated decimal-safe kilogram value rounded
+  to two decimal places, included and excluded set counts, and a completeness
+  status of `COMPLETE`, `PARTIAL`, or `UNAVAILABLE`.
+- Bodyweight, assisted-load, and unloaded-exercise volume remain deferred until
+  their semantics are separately approved.
+
+## Approved exercise-frequency rules
+
+Exercise frequency groups history by stable `exerciseId`. Each item reports
+completed workout count, completed working-set count, total repetitions,
+eligible volume, and volume completeness. The display name is the most recent
+historical exercise-name snapshot in the selected period.
+
+## Program progress versus adherence
+
+The analytics overview does not expose an adherence score. The current model
+has relative program positions but no scheduled calendar dates or dedicated
+occurrence-resolution timestamps, so on-schedule adherence cannot be derived
+honestly. The adopted-program read model remains authoritative for completed,
+skipped, resolved, and progress counts. A skipped occurrence counts as resolved
+program progress but never as completed training.
 
 ## Metric definitions
 
@@ -62,15 +113,50 @@ should identify their method and assumptions.
 
 ## Architecture
 
-Create an `AnalyticsService` that queries owned completed sessions through read repositories and returns calculation metadata. Pure calculation functions receive normalized inputs and are extensively unit/property tested. Use SQL aggregation for simple counts; use application functions for versioned formulas. Add a background/materialized layer only when measured ranges exceed acceptable latency.
+Create an `AnalyticsModule` with application use cases, read models, calculation
+functions, an owner-scoped query port, a Prisma adapter, and HTTP presentation.
+No analytics domain layer or command port is required for this read-only slice.
+Use SQL aggregation for simple counts and pure application functions for
+deterministic grouping. Add persistence or materialization only when measured
+query performance justifies it.
 
 API examples:
 
 - `GET /api/analytics/overview?from=&to=&timezone=`
-- `GET /api/analytics/exercises/:exerciseId?from=&to=`
+- `GET /api/analytics/exercises/:exerciseId?from=&to=` (later)
 - `GET /api/analytics/muscles?from=&to=&method=role-count-v1` (later)
 
-Use bounded default/max date ranges. Include `calculation` metadata and `dataCompleteness` flags in responses.
+The overview requires a valid IANA timezone, defaults to eight local weeks, and
+accepts a maximum 52-week range. Include period metadata and volume-completeness
+information in the response.
+
+The approved response contract is:
+
+```ts
+type AnalyticsOverview = {
+  period: {
+    from: string;
+    to: string;
+    timezone: string;
+    includesPartialCurrentWeek: boolean;
+  };
+  totals: {
+    completedWorkouts: number;
+    trainingDays: number;
+    completedWorkingSets: number;
+    warmupSets: number;
+    totalRepetitions: number;
+    volumeLoadKg: string | null;
+  };
+  volumeCompleteness: {
+    status: 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
+    includedSetCount: number;
+    excludedSetCount: number;
+  };
+  weekly: WeeklyTrainingSummary[];
+  exercises: ExerciseFrequencySummary[];
+};
+```
 
 ## User-facing presentation
 

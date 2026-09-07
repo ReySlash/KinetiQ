@@ -8,6 +8,7 @@ import { RoutinesModule } from './modules/routines/routines.module';
 import { TrainingProgramsModule } from './modules/training-programs/training-programs.module';
 import { WorkoutSessionsModule } from './modules/workout-sessions/workout-sessions.module';
 import { AdoptedTrainingProgramsModule } from './modules/adopted-training-programs/adopted-training-programs.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AdoptedTrainingProgramsModule } from './modules/adopted-training-progra
     TrainingProgramsModule,
     WorkoutSessionsModule,
     AdoptedTrainingProgramsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
