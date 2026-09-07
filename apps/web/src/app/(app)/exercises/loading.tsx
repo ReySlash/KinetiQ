@@ -17,7 +17,7 @@ export default async function Loading() {
         <h1 className="text-lg font-bold leading-none">Exercises</h1>
       </PageHeader>
       <section className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border/70 bg-card/80 p-1 shadow-sm md:rounded-2xl md:p-2">
-        <div className="flex gap-2 border-b border-border/70 p-1 md:p-2">
+        <div className="flex gap-2 border-b border-border/70 p-1">
           <Skeleton className="h-8 flex-1" />
           <Skeleton className="h-8 w-24" />
         </div>

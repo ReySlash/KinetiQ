@@ -10,7 +10,7 @@ function formatDate(value: string) {
 export function WorkoutSessionCard({ session }: { session: WorkoutSessionListItem }) {
   const statusLabel = session.status === "IN_PROGRESS" ? "In progress" : session.status.toLowerCase();
   return (
-    <Link href={`/workout-sessions/${session.id}`} className="rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+    <Link href={`/workout-sessions/${session.id}`} className="rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
       <Card className="h-full transition-colors hover:border-primary/50">
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
