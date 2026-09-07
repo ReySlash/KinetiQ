@@ -7,8 +7,9 @@ migrations, domain aggregate, application use cases, Prisma infrastructure,
 HTTP presentation, and initial frontend workflow are implemented. This
 document records the current session architecture and the adopted-program
 integration boundary. The adopted-program persistence, domain, application,
-Prisma infrastructure, and HTTP API are implemented. Frontend execution
-behavior remains pending.
+Prisma infrastructure, and HTTP API are implemented. Frontend execution,
+including adopted-program start, continuation, completion, cancellation, and
+return-to-program context, is implemented.
 
 Use these concrete domain names consistently:
 
@@ -412,7 +413,7 @@ complete matrix in [testing strategy](16-testing-strategy.md).
    to workout history, including return-to-program progress behavior.
 8. Run formatting checks, lint, type checks, unit/component, integration, API
    E2E, browser, Prisma, migration, and production-build verification before
-   beginning Phase 9.
+   declaring the Phase 9 analytics slice complete.
 
 ## Accepted session decisions and remaining deferrals
 

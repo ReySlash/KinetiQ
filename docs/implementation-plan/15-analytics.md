@@ -6,9 +6,10 @@ Analytics turn historical training into understandable summaries. They are part 
 
 The Phase 8 standalone session slice and Phase 8.5 adopted-program integration
 are implemented with owner-isolation, snapshot, transaction, and journey
-coverage. The approved next product slice is a deterministic, read-only Phase 9
-overview. Analytics consume workout history; they do not redefine its write
-model and do not require a domain layer or write/update flows in this release.
+coverage. The deterministic, read-only Phase 9 overview is implemented across
+the application, infrastructure, presentation, and frontend layers. Analytics
+consume workout history; they do not redefine its write model and do not
+require a domain layer or write/update flows in this release.
 
 ## Data categories
 

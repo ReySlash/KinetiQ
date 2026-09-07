@@ -92,11 +92,10 @@ authority after start. See [training programs](13-training-programs.md).
 
 ### Phase 9 — Basic analytics (MVP)
 
-Begin only after Phase 8.5 integrated execution and history are stable and
-trustworthy. Add completed sessions, consistency, volume, estimated 1RM, PR
-detection, exercise frequency,
-and basic muscle-set estimates. Compute from raw history initially and label
-heuristic involvement/formula assumptions; advanced fatigue and opaque coaching
+The deterministic, read-only overview is implemented on top of the stable
+Phase 8.5 history slice. It covers completed sessions, consistency, volume,
+exercise frequency, recent workouts, and explainable comparison data. Estimated
+1RM, PR detection, muscle-set heuristics, advanced fatigue, and opaque coaching
 remain later work.
 
 ### Phase 10 — Progression and recovery

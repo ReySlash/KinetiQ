@@ -98,11 +98,10 @@ No image uploads, image-management workflows, workout-performance tracking, trai
 
 ## Recommended next implementation task
 
-Implement R13 as a read-only, owner-scoped analytics overview vertical slice.
-Begin with completed-workout totals, training days, working-set and repetition
-counts, eligible external-load volume, weekly activity, and exercise frequency.
-Do not add analytics persistence, write flows, heuristics, PR detection, or
-recommendations to this first slice.
+Implement R9 production MVP hardening and launch readiness. The product slices
+through R13 are implemented; the next work should establish production-like
+deployment, security, observability, backup/restore, rollback, and final MVP
+acceptance gates before adding recommendations or recovery features.
 
 ## Status tracking
 
@@ -118,9 +117,9 @@ At plan creation all releases are `PLANNED`. Update this table when work begins;
 | R5 Media                        | Deferred until post-MVP image generation is ready                                                                | R2, Cloudinary decisions      |
 | R6 Auth/admin hardening         | Backend/web authentication and HTTP authorization tests implemented; production cookie/revocation acceptance remains | R0; gates shared R2–R5     |
 | R7–R8 Routines                  | Implemented in backend/UI slices; final MVP acceptance and production hardening remain                           | R2, R6                        |
-| R9 Production MVP               | Planned                                                                                                          | R0–R8                         |
+| R9 Production MVP               | Next implementation: deployment, security, observability, backup/restore, rollback, and acceptance hardening   | R0–R8                         |
 | R10 Training-program templates  | Backend and frontend template/schedule slices implemented; release acceptance remains                            | R9                            |
 | R11 Standalone sessions         | Backend and frontend routine/freestyle slice implemented; acceptance remains                                     | Auth + routines               |
 | R12 Adopted-program execution   | Backend/frontend integration implemented with ownership, concurrency, rollback, and journey coverage             | R10, R11                      |
-| R13 Analytics overview          | Deterministic read-only metric contract approved; next implementation slice                                      | R12 stable integrated history |
+| R13 Analytics overview          | Implemented deterministic read-only overview; production acceptance remains                                    | R12 stable integrated history |
 | R14+ Heuristics and later phases | Deferred                                                                                                        | R13 validated                 |

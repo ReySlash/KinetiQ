@@ -81,10 +81,10 @@ ExercisePerformance
 CompletedSet
 ```
 
-The adopted-program persistence, domain, application, Prisma, and HTTP layers
-are implemented. Frontend execution behavior remains pending. Workout
-sessions support standalone, freestyle, and program-origin workouts, including
-stable program provenance. See [workout sessions](14-workout-sessions.md).
+The adopted-program persistence, domain, application, Prisma, HTTP, and
+frontend execution layers are implemented. Workout sessions support
+standalone, freestyle, and program-origin workouts, including stable program
+provenance. See [workout sessions](14-workout-sessions.md).
 
 ### Reusable template lifecycle
 
@@ -518,7 +518,7 @@ TrainingProgram
 `ProgramPhase`, `ProgramWeek`, and `ProgramDay` should be introduced only if a
 concrete future workflow requires metadata or behavior at those levels.
 Adopted-program execution is the separate persistence-backed aggregate described
-above, with domain execution behavior still pending. It is not part of the
+above, with domain and frontend execution behavior implemented. It is not part of the
 reusable template aggregate. Weekday enums, direct program
 exercises, progression rules, percentage-based loading, mesocycles,
 `daysPerWeek`, and frontend-specific fields remain outside the current design.

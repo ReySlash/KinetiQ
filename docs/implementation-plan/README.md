@@ -40,9 +40,9 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [10](10-exercise-media.md)                        | Cloudinary-served exercise and muscle images              | Post-MVP                                        |
 | [11](11-routine-builder.md)                       | User-owned reusable workout templates                     | MVP                                             |
 | [12](12-authentication-and-authorization.md)      | Better Auth integration and ownership                     | MVP                                             |
-| [13](13-training-programs.md)                     | Reusable templates plus planned adopted-program execution | Current target                                  |
+| [13](13-training-programs.md)                     | Reusable templates plus adopted-program execution       | Implemented; production acceptance remains      |
 | [14](14-workout-sessions.md)                      | Historical performed training                             | MVP                                             |
-| [15](15-analytics.md)                             | Derived metrics and recommendations                       | MVP                                             |
+| [15](15-analytics.md)                             | Deterministic derived metrics and analytics overview    | Implemented; production acceptance remains      |
 | [16](16-testing-strategy.md)                      | Test pyramid, fixtures, and gates                         | MVP                                             |
 | [17](17-api-design.md)                            | REST conventions and contracts                            | MVP                                             |
 | [18](18-frontend-architecture.md)                 | Next.js pages, state, forms, accessibility                | MVP                                             |
@@ -90,6 +90,6 @@ Authentication is integrated after public reference-library slices so early work
 | Training-program templates   | Backend, frontend, seed, and schedule slices implemented; production acceptance remains             | Programs schedule reusable routines by relative week/day         |
 | Adopted-program execution    | Backend and frontend execution implemented with atomic PostgreSQL and journey coverage              | Adoption, progress, and program-origin sessions work atomically  |
 | Workout sessions             | Standalone and program-origin backend/frontend flows implemented; production acceptance remains     | Immutable `WorkoutSession` history supports integrated execution |
-| Analytics                    | Deterministic Phase 9 overview contract approved; implementation is the next product slice          | Explainable metrics consume stable owned history                 |
+| Analytics                    | Deterministic Phase 9 overview implemented; production acceptance remains                            | Explainable metrics consume stable owned history                 |
 | Recommendations and recovery | Deferred until deterministic analytics are implemented and validated                              | Rules use sufficient real data and expose rationale              |
 | Coach/athlete                | Exploratory                                                                                        | Tenancy and consent model is validated                           |
