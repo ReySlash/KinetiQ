@@ -19,10 +19,14 @@ export type ChartConfig = Record<
 
 type ChartContainerProps = React.ComponentProps<"div"> & {
   config: ChartConfig;
+  initialDimension?: React.ComponentProps<
+    typeof ResponsiveContainer
+  >["initialDimension"];
 };
 
 export function ChartContainer({
   config,
+  initialDimension,
   className,
   children,
   ...props
@@ -53,7 +57,11 @@ export function ChartContainer({
       style={cssVariables}
       {...props}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        initialDimension={initialDimension}
+      >
         {children}
       </ResponsiveContainer>
     </div>

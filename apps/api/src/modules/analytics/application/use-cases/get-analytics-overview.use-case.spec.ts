@@ -185,7 +185,7 @@ describe('GetAnalyticsOverviewUseCase', () => {
       .mockResolvedValue([]);
     const useCase = new GetAnalyticsOverviewUseCase({
       findCompletedSessions,
-    } as unknown as AnalyticsQueryPort);
+    });
 
     const overview = await useCase.execute({
       ownerId,

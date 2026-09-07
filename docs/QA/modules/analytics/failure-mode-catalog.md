@@ -30,10 +30,10 @@ Sources included [15-analytics.md](/Users/reynaldocarmenatearias/Documents/Proje
 
 - **ID:** BC-03
 - **Category:** Boundary conditions
-- **Risk:** The documented eight-week default series may contain only seven weekly buckets at one exact boundary.
+- **Risk:** The documented four-week default series may contain only three weekly buckets at one exact boundary.
 - **Input that exposes it:** `now` exactly equal to Monday `00:00:00.000` in the requested timezone, with no custom dates.
-- **Current behavior observed in the code:** `to` equals the new week’s start and inclusive bucket construction includes an empty bucket for that week. `includesPartialCurrentWeek` remains false at the exact boundary.
-- **Recommended expected contract:** The default response should consistently represent the current local week plus the previous seven weeks, including an empty current-week bucket at its starting instant.
+- **Current behavior observed in the code:** `to` equals the new week’s start and inclusive bucket construction includes an empty bucket for that week. `includesPartialCurrentWeek` is true because the inclusive endpoint belongs to the current week.
+- **Recommended expected contract:** The default response should consistently represent the current local week plus the previous three weeks, including an empty current-week bucket at its starting instant.
 - **Contract status:** Confirmed
 - **Why it matters:** The weekly series should not change shape solely because a request happens at an exact week boundary.
 
@@ -279,7 +279,7 @@ Sources included [15-analytics.md](/Users/reynaldocarmenatearias/Documents/Proje
 - **Risk:** A partially supplied custom range may resolve differently from what the caller expects.
 - **Input that exposes it:** `from` without `to`, or `to` without `from`.
 - **Current behavior observed in the code:** The application requires `from` and `to` to be supplied together. Omitting both resolves the default period.
-- **Recommended expected contract:** Custom `from` and `to` values must be supplied together. Omitting both selects the default eight-local-week period; supplying only one boundary returns a validation error.
+- **Recommended expected contract:** Custom `from` and `to` values must be supplied together. Omitting both selects the default four-local-week period; supplying only one boundary returns a validation error.
 - **Contract status:** Confirmed
 - **Why it matters:** An older custom `to` can unexpectedly create an invalid range rather than an eight-week period ending at that date.
 

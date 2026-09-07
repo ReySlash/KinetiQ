@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 const VOLUME_STATUSES = ['COMPLETE', 'PARTIAL', 'UNAVAILABLE'] as const;
 

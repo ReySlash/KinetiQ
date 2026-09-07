@@ -168,19 +168,20 @@ describe('analytics overview calculator', () => {
     expect(rejected).toThrow(AnalyticsValidationError);
   });
 
-  it('clamps a current client timestamp that is only slightly ahead of the API clock', () => {
+  it('rejects a current client timestamp that is ahead of the API clock', () => {
     const now = new Date('2026-09-07T20:49:38.000Z');
-    const resolved = resolveAnalyticsOverviewQuery(
-      {
-        ownerId,
-        timezone: 'UTC',
-        from: new Date('2026-08-17T00:00:00.000Z'),
-        to: new Date('2026-09-07T20:49:38.660Z'),
-      },
-      now,
-    );
+    const action = () =>
+      resolveAnalyticsOverviewQuery(
+        {
+          ownerId,
+          timezone: 'UTC',
+          from: new Date('2026-08-17T00:00:00.000Z'),
+          to: new Date('2026-09-07T20:49:38.660Z'),
+        },
+        now,
+      );
 
-    expect(resolved.to).toEqual(now);
+    expect(action).toThrow(AnalyticsValidationError);
   });
 
   it('keeps the current week in the default series at Monday midnight', () => {
@@ -196,7 +197,7 @@ describe('analytics overview calculator', () => {
     const overview = calculateAnalyticsOverview(resolved, []);
 
     // Assert
-    expect(overview.weekly).toHaveLength(8);
+    expect(overview.weekly).toHaveLength(4);
     expect(overview.weekly.at(-1)?.weekStart).toBe('2026-09-07');
   });
 
@@ -627,10 +628,11 @@ describe('analytics overview calculator', () => {
       sessions,
     );
 
-    expect(overview.exercises.map(({ exerciseNameSnapshot }) => exerciseNameSnapshot)).toEqual([
-      'Bench Press',
-      'Cable Fly',
-    ]);
+    expect(
+      overview.exercises.map(
+        ({ exerciseNameSnapshot }) => exerciseNameSnapshot,
+      ),
+    ).toEqual(['Bench Press', 'Cable Fly']);
     expect(overview.exercises[0]).toMatchObject({
       maximumLoadKg: '120.00',
       lastWorkingSet: {
@@ -659,7 +661,7 @@ describe('analytics overview calculator', () => {
     );
 
     expect(overview.exercises[0]).toMatchObject({
-      maximumLoadKg: '0.00',
+      maximumLoadKg: null,
       lastWorkingSet: { repetitions: 10, loadKg: '0.00' },
       volumeLoadKg: null,
     });

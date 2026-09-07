@@ -32,7 +32,7 @@ export function WeeklyChart({
         : metric === "repetitions"
           ? week.totalRepetitions
           : week.volumeLoadKg === null
-            ? 0
+            ? null
             : Number(week.volumeLoadKg),
   }));
 
@@ -40,6 +40,7 @@ export function WeeklyChart({
     <div className="flex flex-col gap-1">
       <ChartContainer
         config={chartConfig}
+        initialDimension={{ width: 640, height: 240 }}
         className="h-60 min-h-60 min-w-0 w-full sm:h-64 sm:min-h-64"
       >
         <AreaChart

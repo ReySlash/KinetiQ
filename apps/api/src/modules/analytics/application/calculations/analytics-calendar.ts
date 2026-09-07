@@ -77,6 +77,15 @@ export function localWallClockDistance(
   return wallClockEpoch(to, timezone) - wallClockEpoch(from, timezone);
 }
 
+export function subtractLocalWallClockDuration(
+  anchor: Date,
+  duration: number,
+  timezone: string,
+): Date {
+  const targetWallClock = new Date(wallClockEpoch(anchor, timezone) - duration);
+  return resolveLocalWallClockDateTime(targetWallClock, timezone);
+}
+
 function wallClockEpoch(date: Date, timezone: string): number {
   const parts = getCalendarParts(date, timezone);
   return Date.UTC(
@@ -159,34 +168,36 @@ function formatDateKey(
 }
 
 function localWallClockToUtc(date: CalendarDate, timezone: string): Date {
-  const target = Date.UTC(date.year, date.month - 1, date.day);
+  return resolveLocalWallClockDateTime(
+    new Date(Date.UTC(date.year, date.month - 1, date.day)),
+    timezone,
+  );
+}
+
+function resolveLocalWallClockDateTime(
+  wallClock: Date,
+  timezone: string,
+): Date {
+  const target = wallClock.getTime();
   let candidate = target;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     candidate += target - wallClockEpoch(new Date(candidate), timezone);
   }
 
-  const candidateDate = new Date(candidate);
-  const candidateParts = getCalendarParts(candidateDate, timezone);
-  if (
-    formatDateKey(candidateParts) === formatDateKey(date) &&
-    candidateParts.hour === 0 &&
-    candidateParts.minute === 0 &&
-    candidateParts.second === 0 &&
-    candidateParts.millisecond === 0 &&
-    localDateKey(new Date(candidate - 1), timezone) < formatDateKey(date)
-  ) {
-    return candidateDate;
+  if (wallClockEpoch(new Date(candidate), timezone) === target) {
+    const previous = new Date(candidate - SEARCH_STEP_MILLISECONDS);
+    if (wallClockEpoch(previous, timezone) < target) {
+      return new Date(candidate);
+    }
   }
 
-  return searchFirstInstantOnOrAfterDate(date, timezone, target);
+  return searchFirstInstantOnOrAfterWallClock(target, timezone);
 }
 
-function searchFirstInstantOnOrAfterDate(
-  date: CalendarDate,
-  timezone: string,
+function searchFirstInstantOnOrAfterWallClock(
   target: number,
+  timezone: string,
 ): Date {
-  const targetKey = formatDateKey(date);
   const searchStart = target - SEARCH_WINDOW_MILLISECONDS;
   const searchEnd = target + SEARCH_WINDOW_MILLISECONDS;
   let previous = searchStart;
@@ -196,9 +207,9 @@ function searchFirstInstantOnOrAfterDate(
     current <= searchEnd;
     current += SEARCH_STEP_MILLISECONDS
   ) {
-    if (localDateKey(new Date(current), timezone) >= targetKey) {
+    if (wallClockEpoch(new Date(current), timezone) >= target) {
       return new Date(
-        findFirstMatchingInstant(previous, current, targetKey, timezone),
+        findFirstMatchingInstant(previous, current, target, timezone),
       );
     }
     previous = current;
@@ -210,14 +221,14 @@ function searchFirstInstantOnOrAfterDate(
 function findFirstMatchingInstant(
   lowerBound: number,
   upperBound: number,
-  targetKey: string,
+  target: number,
   timezone: string,
 ): number {
   let lower = lowerBound;
   let upper = upperBound;
   while (lower < upper) {
     const midpoint = lower + Math.floor((upper - lower) / 2);
-    if (localDateKey(new Date(midpoint), timezone) >= targetKey) {
+    if (wallClockEpoch(new Date(midpoint), timezone) >= target) {
       upper = midpoint;
     } else {
       lower = midpoint + 1;

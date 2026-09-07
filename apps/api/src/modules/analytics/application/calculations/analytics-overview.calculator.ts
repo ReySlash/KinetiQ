@@ -21,11 +21,12 @@ import {
   localDateStart,
   localWallClockDistance,
   localWeekStartInstant,
+  subtractLocalWallClockDuration,
   validateIanaTimezone,
   weekStartKey,
 } from './analytics-calendar';
 
-const MAX_CLIENT_CLOCK_SKEW_MILLISECONDS = 60_000;
+const MAX_LOCAL_RANGE_MILLISECONDS = 364 * DAY_MILLISECONDS;
 
 type MutableMetrics = {
   completedWorkouts: number;
@@ -50,7 +51,7 @@ type MutableExerciseMetrics = MutableMetrics & {
   exerciseSlug: string;
   exerciseNameSnapshot: string;
   completedWorkoutIds: Set<string>;
-  maximumLoadCents: bigint;
+  maximumLoadCents: bigint | null;
   lastWorkingSet: AnalyticsSourceSet | null;
 };
 
@@ -128,7 +129,6 @@ export function calculateAnalyticsOverview(
     exercises: [...exercises.values()]
       .sort(
         (left, right) =>
-          right.completedWorkingSets - left.completedWorkingSets ||
           compareCodePoints(
             left.exerciseNameSnapshot,
             right.exerciseNameSnapshot,
@@ -150,11 +150,7 @@ export function calculateAnalyticsOverview(
 export function resolveAnalyticsComparisonQuery(
   query: ResolvedAnalyticsOverviewQuery,
 ): ResolvedAnalyticsOverviewQuery {
-  const duration = localWallClockDistance(
-    query.from,
-    query.to,
-    query.timezone,
-  );
+  const duration = localWallClockDistance(query.from, query.to, query.timezone);
   const from = subtractLocalWallClockDuration(
     query.from,
     duration,
@@ -168,21 +164,6 @@ export function resolveAnalyticsComparisonQuery(
     includesPartialCurrentWeek: false,
     now: query.from,
   };
-}
-
-function subtractLocalWallClockDuration(
-  anchor: Date,
-  duration: number,
-  timezone: string,
-): Date {
-  let candidate = new Date(anchor.getTime() - duration);
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const difference =
-      localWallClockDistance(candidate, anchor, timezone) - duration;
-    if (difference === 0) return candidate;
-    candidate = new Date(candidate.getTime() + difference);
-  }
-  return candidate;
 }
 
 export function resolveAnalyticsOverviewQuery(
@@ -201,24 +182,23 @@ export function resolveAnalyticsOverviewQuery(
   }
 
   const currentWeekStart = localWeekStartInstant(now, timezone);
-  const from = query.from ?? addCalendarDays(currentWeekStart, -49, timezone);
+  const from = query.from ?? addCalendarDays(currentWeekStart, -21, timezone);
   const requestedTo = query.to;
-  if (
-    requestedTo &&
-    requestedTo.getTime() - now.getTime() > MAX_CLIENT_CLOCK_SKEW_MILLISECONDS
-  ) {
+  if (requestedTo && requestedTo > now) {
     throw new AnalyticsValidationError(
       'Analytics end date cannot be in the future.',
     );
   }
-  const to = requestedTo && requestedTo > now ? now : (requestedTo ?? now);
+  const to = requestedTo ?? now;
 
   if (from >= to) {
     throw new AnalyticsValidationError(
       'Analytics start date must precede the end date.',
     );
   }
-  if (localWallClockDistance(from, to, timezone) > 52 * 7 * DAY_MILLISECONDS) {
+  if (
+    localWallClockDistance(from, to, timezone) > MAX_LOCAL_RANGE_MILLISECONDS
+  ) {
     throw new AnalyticsValidationError(
       'Analytics date range cannot exceed 52 weeks.',
     );
@@ -308,7 +288,7 @@ function createExerciseMetrics(
     exerciseSlug: performance.exerciseSlug,
     exerciseNameSnapshot: performance.exerciseNameSnapshot,
     completedWorkoutIds: new Set<string>(),
-    maximumLoadCents: 0n,
+    maximumLoadCents: null,
     lastWorkingSet: null,
   };
 }
@@ -341,7 +321,11 @@ function addExerciseSet(
     throw new AnalyticsQueryError('Analytics data could not be loaded.');
   }
   const loadCents = parseLoadCents(set.loadKg);
-  if (loadCents > metrics.maximumLoadCents) {
+  if (
+    set.repetitions > 0 &&
+    loadCents > 0n &&
+    (metrics.maximumLoadCents === null || loadCents > metrics.maximumLoadCents)
+  ) {
     metrics.maximumLoadCents = loadCents;
   }
   if (!metrics.lastWorkingSet || compareSets(set, metrics.lastWorkingSet) > 0) {
@@ -349,7 +333,10 @@ function addExerciseSet(
   }
 }
 
-function compareSets(left: AnalyticsSourceSet, right: AnalyticsSourceSet): number {
+function compareSets(
+  left: AnalyticsSourceSet,
+  right: AnalyticsSourceSet,
+): number {
   return (
     left.completedAt.getTime() - right.completedAt.getTime() ||
     left.order - right.order ||
@@ -359,6 +346,7 @@ function compareSets(left: AnalyticsSourceSet, right: AnalyticsSourceSet): numbe
 
 function addSet(metrics: MutableMetrics, set: AnalyticsSourceSet): void {
   validateRepetitions(set.repetitions);
+  validateSet(set);
   if (set.isWarmup) {
     metrics.warmupSets += 1;
     return;
@@ -422,7 +410,7 @@ function toExerciseSummary(
     completedWorkingSetCount: metrics.completedWorkingSets,
     totalRepetitions: metrics.totalRepetitions,
     maximumLoadKg:
-      metrics.completedWorkingSets === 0
+      metrics.maximumLoadCents === null
         ? null
         : centsToDecimal(metrics.maximumLoadCents),
     lastWorkingSet: metrics.lastWorkingSet
@@ -482,10 +470,25 @@ function parseLoadCents(value: string): bigint {
 }
 
 function validateSourceSession(session: AnalyticsSourceSession): void {
-  if (!isValidDate(session.createdAt)) {
+  if (
+    typeof session.id !== 'string' ||
+    !session.id.trim() ||
+    !isValidDate(session.startedAt) ||
+    !isValidDate(session.createdAt)
+  ) {
     throw new AnalyticsQueryError('Analytics data could not be loaded.');
   }
   if (!isValidDate(session.completedAt) || session.cancelledAt !== null) {
+    throw new AnalyticsQueryError('Analytics data could not be loaded.');
+  }
+  if (
+    session.sourceRoutineNameSnapshot !== null &&
+    (typeof session.sourceRoutineNameSnapshot !== 'string' ||
+      session.sourceRoutineNameSnapshot !==
+        session.sourceRoutineNameSnapshot.trim() ||
+      session.sourceRoutineNameSnapshot.length < 2 ||
+      session.sourceRoutineNameSnapshot.length > 150)
+  ) {
     throw new AnalyticsQueryError('Analytics data could not be loaded.');
   }
   const hasCompletedSet = session.performances.some(
@@ -500,8 +503,21 @@ function validatePerformance(
   performance: AnalyticsSourcePerformance,
   namesByExerciseId: Map<string, string>,
 ): void {
+  if (
+    typeof performance.exerciseId !== 'string' ||
+    !performance.exerciseId.trim() ||
+    typeof performance.exerciseSlug !== 'string' ||
+    !isCanonicalSlug(performance.exerciseSlug)
+  ) {
+    throw new AnalyticsQueryError('Analytics data could not be loaded.');
+  }
   const name = performance.exerciseNameSnapshot;
-  if (name !== name.trim() || name.length < 2 || name.length > 150) {
+  if (
+    typeof name !== 'string' ||
+    name !== name.trim() ||
+    name.length < 2 ||
+    name.length > 150
+  ) {
     throw new AnalyticsQueryError('Analytics data could not be loaded.');
   }
   const previousName = namesByExerciseId.get(performance.exerciseId);
@@ -509,6 +525,26 @@ function validatePerformance(
     throw new AnalyticsQueryError('Analytics data could not be loaded.');
   }
   namesByExerciseId.set(performance.exerciseId, name);
+  for (const set of performance.completedSets) validateSet(set);
+}
+
+function validateSet(set: AnalyticsSourceSet): void {
+  if (
+    typeof set.id !== 'string' ||
+    !set.id.trim() ||
+    !Number.isInteger(set.order) ||
+    set.order < 0 ||
+    !isValidDate(set.completedAt) ||
+    typeof set.loadKg !== 'string'
+  ) {
+    throw new AnalyticsQueryError('Analytics data could not be loaded.');
+  }
+  validateRepetitions(set.repetitions);
+  parseLoadCents(set.loadKg);
+}
+
+function isCanonicalSlug(value: string): boolean {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 }
 
 function validateRepetitions(repetitions: number): void {

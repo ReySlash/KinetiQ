@@ -257,6 +257,7 @@ describe('analytics overview calculator additional contracts', () => {
       session('mixed-name-order', '2026-01-06T12:00:00.000Z', [
         {
           exerciseId,
+          exerciseSlug: 'apple',
           exerciseNameSnapshot: 'apple',
           completedSets: [set(1, '1.00')],
         },
@@ -883,7 +884,7 @@ describe('analytics overview calculator additional contracts', () => {
       );
 
       // Assert
-      expect(resolved.from).toEqual(new Date('2026-07-19T21:00:00.000Z'));
+      expect(resolved.from).toEqual(new Date('2026-08-16T21:00:00.000Z'));
     });
   });
 });

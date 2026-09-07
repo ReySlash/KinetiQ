@@ -17,7 +17,7 @@ test.describe("mocked analytics dashboard", () => {
     await expect(page.getByText("+33.3% vs previous period", { exact: true })).toBeVisible();
     await expect(page.getByText("Weekly performance", { exact: true })).toBeVisible();
     await page.getByRole("tab", { name: "Reps" }).click();
-    await expect(page.getByText("Repetitions across 2 local weeks.")).toBeVisible();
+    await expect(page.getByText("Repetitions across 4 local weeks.")).toBeVisible();
 
     await expect(page.getByRole("link", { name: "Barbell Back Squat" })).toHaveAttribute(
       "href",

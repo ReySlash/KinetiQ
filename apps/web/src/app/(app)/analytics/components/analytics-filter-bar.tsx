@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
   Select,
@@ -29,7 +27,6 @@ export function AnalyticsFilterBar({
   pending: boolean;
   onChange: (filters: AnalyticsFilters) => void;
 }) {
-  const [draft, setDraft] = useState(filters);
   return (
     <div className="shrink-0">
       <div className="flex flex-wrap items-center gap-2">
@@ -38,12 +35,10 @@ export function AnalyticsFilterBar({
           <Tooltip>
             <TooltipTrigger render={<span className="inline-flex" />}>
               <Select
-                value={draft.range}
+                value={filters.range}
                 disabled={pending}
                 onValueChange={(value) => {
-                  const next = { ...draft, range: value as AnalyticsRange };
-                  setDraft(next);
-                  onChange(next);
+                  onChange({ ...filters, range: value as AnalyticsRange });
                 }}
               >
                 <SelectTrigger
@@ -51,7 +46,7 @@ export function AnalyticsFilterBar({
                   aria-label="Analytics period"
                   className="h-9 w-24 text-xs sm:w-28 md:w-40 md:text-sm"
                 >
-                  <SelectValue>{rangeLabels[draft.range]}</SelectValue>
+                  <SelectValue>{rangeLabels[filters.range]}</SelectValue>
                 </SelectTrigger>
                 <SelectContent
                   side="bottom"

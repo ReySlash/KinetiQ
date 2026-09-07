@@ -33,6 +33,11 @@ The first release exposes one owner-scoped overview containing:
 - weekly completed-workout activity;
 - active and complete week counts plus average workouts per complete week;
 - exercise frequency grouped by stable exercise ID.
+- four most recently completed workouts in the selected period;
+- maximum eligible external load and the latest completed working set for each
+  exercise;
+- the current exercise slug for navigation, while stable exercise ID remains
+  the grouping key.
 
 Estimated 1RM, personal records, strength trends, muscle-set estimates,
 adherence scoring, fatigue/readiness models, and recommendations are deferred to
@@ -40,7 +45,8 @@ separately approved contracts.
 
 ## Approved period and inclusion rules
 
-- The default period is the current local week plus the previous seven weeks.
+- The default period is the current local week plus the previous three weeks
+  (four local weeks total).
 - A custom range is bounded to 52 weeks.
 - Custom range boundaries are inclusive: sessions with `startedAt` equal to
   either `from` or `to` are included. Adjacent ranges may therefore overlap at
@@ -54,6 +60,11 @@ separately approved contracts.
 - Program skips are not workouts and do not contribute to analytics.
 - The partial current week appears in the weekly series but is excluded from
   complete-week averages and ratios.
+- Comparison data uses the immediately preceding, non-overlapping interval with
+  the same inclusive local-wall-clock duration. At timezone discontinuities,
+  nonexistent local times resolve to the first valid instant afterward and
+  ambiguous local times resolve to the earliest instant; exact duration
+  equality is therefore not always possible at those boundaries.
 
 ## Approved set, volume, and completeness rules
 
@@ -74,8 +85,13 @@ separately approved contracts.
 
 Exercise frequency groups history by stable `exerciseId`. Each item reports
 completed workout count, completed working-set count, total repetitions,
-eligible volume, and volume completeness. The display name is the most recent
-historical exercise-name snapshot in the selected period.
+eligible volume, volume completeness, maximum eligible external load, and the
+latest completed non-warm-up set. Maximum load requires positive repetitions
+and positive external load; it is `null` when no set qualifies. The latest set
+is selected by completion time, set order, and stable set ID, even when its
+load or repetitions are zero. The display name is the most recent historical
+exercise-name snapshot in the selected period and `exerciseSlug` is navigation
+metadata.
 
 ## Program progress versus adherence
 
@@ -126,7 +142,7 @@ API examples:
 - `GET /api/analytics/exercises/:exerciseId?from=&to=` (later)
 - `GET /api/analytics/muscles?from=&to=&method=role-count-v1` (later)
 
-The overview requires a valid IANA timezone, defaults to eight local weeks, and
+The overview requires a valid IANA timezone, defaults to four local weeks, and
 accepts a maximum 52-week range. Include period metadata and volume-completeness
 information in the response.
 
@@ -147,14 +163,23 @@ type AnalyticsOverview = {
     warmupSets: number;
     totalRepetitions: number;
     volumeLoadKg: string | null;
+    activeWeeks: number;
+    completeWeeks: number;
+    averageWorkoutsPerCompleteWeek: number;
   };
   volumeCompleteness: {
-    status: 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
+    status: "COMPLETE" | "PARTIAL" | "UNAVAILABLE";
     includedSetCount: number;
     excludedSetCount: number;
   };
   weekly: WeeklyTrainingSummary[];
   exercises: ExerciseFrequencySummary[];
+  recentWorkouts: RecentWorkoutSummary[];
+  comparison: {
+    period: { from: string; to: string };
+    totals: AnalyticsOverview["totals"];
+    volumeCompleteness: AnalyticsOverview["volumeCompleteness"];
+  };
 };
 ```
 

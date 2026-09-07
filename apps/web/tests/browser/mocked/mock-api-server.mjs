@@ -115,14 +115,16 @@ function analyticsOverview(scenario) {
   const partial = scenario === "analytics-partial";
   const completeness = partial
     ? volumeCompleteness("PARTIAL", 16, 2)
-    : volumeCompleteness("COMPLETE", empty ? 0 : 18, 0);
+    : empty
+      ? volumeCompleteness("UNAVAILABLE", 0, 0)
+      : volumeCompleteness("COMPLETE", 18, 0);
   const totals = {
     completedWorkouts: empty ? 0 : 4,
     trainingDays: empty ? 0 : 3,
     completedWorkingSets: empty ? 0 : 18,
     warmupSets: empty ? 0 : 5,
     totalRepetitions: empty ? 0 : 146,
-    volumeLoadKg: empty || partial ? null : "8650.00",
+    volumeLoadKg: empty ? null : "8650.00",
     activeWeeks: empty ? 0 : 2,
     completeWeeks: empty ? 0 : 1,
     averageWorkoutsPerCompleteWeek: empty ? 0 : 3,
@@ -144,9 +146,11 @@ function analyticsOverview(scenario) {
     },
     totals,
     volumeCompleteness: completeness,
-    weekly: empty ? [] : [
-      { weekStart: "2026-08-24", weekEnd: "2026-08-30", completedWorkouts: 2, trainingDays: 2, completedWorkingSets: 8, warmupSets: 2, totalRepetitions: 64, volumeLoadKg: partial ? null : "3650.00", volumeCompleteness: completeness },
-      { weekStart: "2026-08-31", weekEnd: "2026-09-06", completedWorkouts: 2, trainingDays: 1, completedWorkingSets: 10, warmupSets: 3, totalRepetitions: 82, volumeLoadKg: partial ? null : "5000.00", volumeCompleteness: completeness },
+    weekly: [
+      { weekStart: "2026-08-17", weekEnd: "2026-08-23", completedWorkouts: 0, trainingDays: 0, completedWorkingSets: 0, warmupSets: 0, totalRepetitions: 0, volumeLoadKg: null, volumeCompleteness: empty ? completeness : volumeCompleteness("UNAVAILABLE", 0, 0) },
+      { weekStart: "2026-08-24", weekEnd: "2026-08-30", completedWorkouts: empty ? 0 : 2, trainingDays: empty ? 0 : 2, completedWorkingSets: empty ? 0 : 8, warmupSets: empty ? 0 : 2, totalRepetitions: empty ? 0 : 64, volumeLoadKg: empty ? null : "3650.00", volumeCompleteness: empty ? completeness : partial ? completeness : volumeCompleteness("COMPLETE", 8, 0) },
+      { weekStart: "2026-08-31", weekEnd: "2026-09-06", completedWorkouts: empty ? 0 : 2, trainingDays: empty ? 0 : 1, completedWorkingSets: empty ? 0 : 10, warmupSets: empty ? 0 : 3, totalRepetitions: empty ? 0 : 82, volumeLoadKg: empty ? null : "5000.00", volumeCompleteness: empty ? completeness : partial ? completeness : volumeCompleteness("COMPLETE", 10, 0) },
+      { weekStart: "2026-09-07", weekEnd: "2026-09-13", completedWorkouts: 0, trainingDays: 0, completedWorkingSets: 0, warmupSets: 0, totalRepetitions: 0, volumeLoadKg: null, volumeCompleteness: volumeCompleteness("UNAVAILABLE", 0, 0) },
     ],
     exercises: empty ? [] : exerciseNames.map(([slug, name, sets, repetitions, maximum], index) => ({
       exerciseId: `exercise-${index}`,
@@ -161,8 +165,8 @@ function analyticsOverview(scenario) {
         loadKg: maximum,
         completedAt: `2026-09-0${Math.max(1, 6 - index)}T18:00:00.000Z`,
       },
-      volumeLoadKg: partial && index === 1 ? null : index === 5 ? null : "1200.00",
-      volumeCompleteness: partial && index === 1 ? volumeCompleteness("PARTIAL", 3, 1) : index === 5 ? volumeCompleteness("UNAVAILABLE", 0, 1) : volumeCompleteness("COMPLETE", Number(sets), 0),
+      volumeLoadKg: index === 5 ? null : "1200.00",
+      volumeCompleteness: partial && index === 1 ? volumeCompleteness("PARTIAL", 3, 1) : index === 5 ? volumeCompleteness("UNAVAILABLE", 0, Number(sets)) : volumeCompleteness("COMPLETE", Number(sets), 0),
     })),
     recentWorkouts: empty ? [] : [
       ["session-4", "Upper strength", "2026-09-06T18:00:00.000Z", 6, 48, "3200.00"],

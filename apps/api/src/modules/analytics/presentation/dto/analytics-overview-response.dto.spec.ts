@@ -65,8 +65,12 @@ describe('AnalyticsOverviewResponseDto', () => {
     expect(exercise.required).toContain('volumeLoadKg');
     expect(exercise.required).toContain('maximumLoadKg');
     expect(exercise.required).toContain('lastWorkingSet');
-    expect(exercise.properties?.maximumLoadKg).toMatchObject({ nullable: true });
-    expect(exercise.properties?.lastWorkingSet).toMatchObject({ nullable: true });
+    expect(exercise.properties?.maximumLoadKg).toMatchObject({
+      nullable: true,
+    });
+    expect(exercise.properties?.lastWorkingSet).toMatchObject({
+      nullable: true,
+    });
     expect(recentWorkout.required).toEqual(
       expect.arrayContaining([
         'workoutSessionId',
@@ -86,7 +90,9 @@ describe('AnalyticsOverviewResponseDto', () => {
     expect(exercise.properties?.volumeLoadKg).toMatchObject({ nullable: true });
     expect(totals.properties?.volumeLoadKg).toMatchObject({ nullable: true });
 
-    const overviewPath = Object.values(document.paths ?? {}).find((path) => path?.get);
+    const overviewPath = Object.values(document.paths ?? {}).find(
+      (path) => path?.get,
+    );
     expect(overviewPath?.get?.responses?.['401']).toMatchObject({
       description: 'Authentication is required',
     });
