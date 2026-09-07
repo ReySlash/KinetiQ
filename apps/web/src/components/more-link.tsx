@@ -13,14 +13,18 @@ type MoreLinkProps = {
   ariaLabel?: string;
 };
 
-export function MoreLink({ href, tooltip, ariaLabel = tooltip }: MoreLinkProps) {
+export function MoreLink({
+  href,
+  tooltip,
+  ariaLabel = tooltip,
+}: MoreLinkProps) {
   return (
     <Tooltip>
       <TooltipTrigger
         render={
           <Link
             href={href}
-            className="inline-flex size-10 items-center justify-center rounded-lg border border-border transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="inline-flex size-10 items-center justify-center rounded-lg border border-border transition-colors hover:border-muted-foreground/50 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             aria-label={ariaLabel}
           />
         }
