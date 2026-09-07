@@ -24,7 +24,7 @@ describe('AnalyticsOverviewQueryDto', () => {
     expect(blankErrors).not.toHaveLength(0);
   });
 
-  it('transforms valid date boundaries into Date instances', async () => {
+  it('validates RFC3339 date boundaries with explicit offsets', async () => {
     // Failure mode: BC-02
     // Arrange
     const dto = plainToInstance(AnalyticsOverviewQueryDto, {
@@ -38,8 +38,8 @@ describe('AnalyticsOverviewQueryDto', () => {
 
     // Assert
     expect(errors).toHaveLength(0);
-    expect(dto.from).toBeInstanceOf(Date);
-    expect(dto.to).toBeInstanceOf(Date);
+    expect(dto.from).toBe('2026-01-01T00:00:00.000Z');
+    expect(dto.to).toBe('2026-01-08T00:00:00.000Z');
   });
 
   it.each(['2026-01-01', '2026-01-01T12:00:00'])(

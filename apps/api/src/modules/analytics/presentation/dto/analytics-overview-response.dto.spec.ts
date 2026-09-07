@@ -24,12 +24,24 @@ describe('AnalyticsOverviewResponseDto', () => {
     const schemas = document.components?.schemas;
     const period = schemas?.AnalyticsPeriodResponseDto;
     const totals = schemas?.AnalyticsTotalsResponseDto;
+    const weekly = schemas?.WeeklyTrainingSummaryResponseDto;
+    const exercise = schemas?.ExerciseFrequencySummaryResponseDto;
+    const recentWorkout = schemas?.RecentWorkoutSummaryResponseDto;
+    const comparison = schemas?.AnalyticsComparisonResponseDto;
     const overview = schemas?.AnalyticsOverviewResponseDto;
     if (
       !period ||
       '$ref' in period ||
       !totals ||
       '$ref' in totals ||
+      !weekly ||
+      '$ref' in weekly ||
+      !exercise ||
+      '$ref' in exercise ||
+      !recentWorkout ||
+      '$ref' in recentWorkout ||
+      !comparison ||
+      '$ref' in comparison ||
       !overview ||
       '$ref' in overview
     ) {
@@ -47,6 +59,37 @@ describe('AnalyticsOverviewResponseDto', () => {
     expect(totals.required).toContain('activeWeeks');
     expect(totals.required).toContain('completeWeeks');
     expect(totals.required).toContain('averageWorkoutsPerCompleteWeek');
+    expect(totals.required).toContain('volumeLoadKg');
+    expect(weekly.required).toContain('volumeLoadKg');
+    expect(exercise.required).toContain('exerciseSlug');
+    expect(exercise.required).toContain('volumeLoadKg');
+    expect(exercise.required).toContain('maximumLoadKg');
+    expect(exercise.required).toContain('lastWorkingSet');
+    expect(exercise.properties?.maximumLoadKg).toMatchObject({ nullable: true });
+    expect(exercise.properties?.lastWorkingSet).toMatchObject({ nullable: true });
+    expect(recentWorkout.required).toEqual(
+      expect.arrayContaining([
+        'workoutSessionId',
+        'displayName',
+        'completedWorkingSetCount',
+        'totalRepetitions',
+        'volumeLoadKg',
+      ]),
+    );
+    expect(comparison.required).toEqual(
+      expect.arrayContaining(['period', 'totals', 'volumeCompleteness']),
+    );
+    expect(overview.required).toEqual(
+      expect.arrayContaining(['comparison', 'recentWorkouts']),
+    );
+    expect(weekly.properties?.volumeLoadKg).toMatchObject({ nullable: true });
+    expect(exercise.properties?.volumeLoadKg).toMatchObject({ nullable: true });
+    expect(totals.properties?.volumeLoadKg).toMatchObject({ nullable: true });
+
+    const overviewPath = Object.values(document.paths ?? {}).find((path) => path?.get);
+    expect(overviewPath?.get?.responses?.['401']).toMatchObject({
+      description: 'Authentication is required',
+    });
 
     const periodReference = overview.properties?.period;
     const totalsReference = overview.properties?.totals;

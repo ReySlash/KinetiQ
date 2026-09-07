@@ -1,5 +1,6 @@
 import {
   calculateAnalyticsOverview,
+  resolveAnalyticsComparisonQuery,
   resolveAnalyticsOverviewQuery,
 } from './analytics-overview.calculator';
 import {
@@ -36,6 +37,7 @@ function session(
 ): AnalyticsSourceSession {
   return {
     id,
+    sourceRoutineNameSnapshot: null,
     startedAt: new Date(startedAt),
     createdAt: new Date(startedAt),
     completedAt: new Date(startedAt),
@@ -48,7 +50,12 @@ function performance(
   exerciseNameSnapshot: string,
   completedSets: AnalyticsSourceSession['performances'][number]['completedSets'],
 ) {
-  return { exerciseId, exerciseNameSnapshot, completedSets };
+  return {
+    exerciseId,
+    exerciseSlug: exerciseNameSnapshot.toLowerCase().replaceAll(' ', '-'),
+    exerciseNameSnapshot,
+    completedSets,
+  };
 }
 
 function set(
@@ -56,10 +63,31 @@ function set(
   loadKg: string,
   isWarmup = false,
 ): AnalyticsSourceSession['performances'][number]['completedSets'][number] {
-  return { repetitions, loadKg, isWarmup };
+  return {
+    id: `set-${repetitions}-${loadKg}`,
+    order: 0,
+    repetitions,
+    loadKg,
+    isWarmup,
+    completedAt: new Date('2026-01-06T12:30:00.000Z'),
+  };
 }
 
 describe('analytics overview calculator additional contracts', () => {
+  it('builds an adjacent equal-local-duration comparison across daylight saving time', () => {
+    const comparison = resolveAnalyticsComparisonQuery({
+      ownerId,
+      timezone: 'America/New_York',
+      from: new Date('2026-03-09T04:00:00.000Z'),
+      to: new Date('2026-03-16T04:00:00.000Z'),
+      includesPartialCurrentWeek: false,
+      now: new Date('2026-03-16T04:00:00.000Z'),
+    });
+
+    expect(comparison.from.toISOString()).toBe('2026-03-02T05:00:00.000Z');
+    expect(comparison.to.toISOString()).toBe('2026-03-09T03:59:59.999Z');
+  });
+
   it('orders sessions before selecting the latest exercise snapshot', () => {
     // Failure modes: #6, #14
     // Arrange
@@ -234,6 +262,7 @@ describe('analytics overview calculator additional contracts', () => {
         },
         {
           exerciseId: secondExerciseId,
+          exerciseSlug: 'zebra',
           exerciseNameSnapshot: 'Zebra',
           completedSets: [set(1, '1.00')],
         },
@@ -406,6 +435,7 @@ describe('analytics overview calculator additional contracts', () => {
         performance(' Invalid ', []),
         {
           exerciseId: secondExerciseId,
+          exerciseSlug: 'squat',
           exerciseNameSnapshot: 'Squat',
           completedSets: [set(5, '100.00')],
         },
@@ -452,6 +482,7 @@ describe('analytics overview calculator additional contracts', () => {
         performance('Bench Press', []),
         {
           exerciseId: secondExerciseId,
+          exerciseSlug: 'squat',
           exerciseNameSnapshot: 'Squat',
           completedSets: [set(5, '100.00')],
         },

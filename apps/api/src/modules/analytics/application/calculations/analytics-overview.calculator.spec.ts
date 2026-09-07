@@ -33,9 +33,11 @@ function session(
   id: string,
   startedAt: string,
   performances: AnalyticsSourceSession['performances'],
+  sourceRoutineNameSnapshot: string | null = null,
 ): AnalyticsSourceSession {
   return {
     id,
+    sourceRoutineNameSnapshot,
     startedAt: new Date(startedAt),
     createdAt: new Date(startedAt),
     completedAt: new Date(startedAt),
@@ -49,15 +51,29 @@ function performance(
   exerciseNameSnapshot: string,
   completedSets: AnalyticsSourceSession['performances'][number]['completedSets'],
 ) {
-  return { exerciseId, exerciseNameSnapshot, completedSets };
+  return {
+    exerciseId,
+    exerciseSlug: exerciseNameSnapshot.toLowerCase().replaceAll(' ', '-'),
+    exerciseNameSnapshot,
+    completedSets,
+  };
 }
 
 function set(
   repetitions: number,
   loadKg: string,
   isWarmup = false,
+  completedAt = '2026-01-06T12:30:00.000Z',
+  order = 0,
 ): AnalyticsSourceSession['performances'][number]['completedSets'][number] {
-  return { repetitions, loadKg, isWarmup };
+  return {
+    id: `set-${order}-${repetitions}-${loadKg}`,
+    order,
+    repetitions,
+    loadKg,
+    isWarmup,
+    completedAt: new Date(completedAt),
+  };
 }
 
 describe('analytics overview calculator', () => {
@@ -150,6 +166,21 @@ describe('analytics overview calculator', () => {
     // Assert
     expect(resolved).not.toThrow();
     expect(rejected).toThrow(AnalyticsValidationError);
+  });
+
+  it('clamps a current client timestamp that is only slightly ahead of the API clock', () => {
+    const now = new Date('2026-09-07T20:49:38.000Z');
+    const resolved = resolveAnalyticsOverviewQuery(
+      {
+        ownerId,
+        timezone: 'UTC',
+        from: new Date('2026-08-17T00:00:00.000Z'),
+        to: new Date('2026-09-07T20:49:38.660Z'),
+      },
+      now,
+    );
+
+    expect(resolved.to).toEqual(now);
   });
 
   it('keeps the current week in the default series at Monday midnight', () => {
@@ -565,5 +596,72 @@ describe('analytics overview calculator', () => {
       exerciseA,
       exerciseB,
     ]);
+  });
+
+  it('ranks exercises by working sets and reports maximum and latest working-set performance', () => {
+    const sessions = [
+      session(
+        'older-session',
+        '2026-01-06T10:00:00.000Z',
+        [
+          performance(exerciseA, 'Bench Press', [
+            set(8, '80.00', true, '2026-01-06T10:10:00.000Z', 0),
+            set(5, '120.00', false, '2026-01-06T10:20:00.000Z', 1),
+            set(8, '100.00', false, '2026-01-06T10:30:00.000Z', 2),
+          ]),
+          performance(exerciseB, 'Cable Fly', [
+            set(12, '25.00', false, '2026-01-06T10:40:00.000Z', 0),
+          ]),
+        ],
+        'Push day',
+      ),
+      session('newer-session', '2026-01-07T10:00:00.000Z', [
+        performance(exerciseA, 'Bench Press', [
+          set(10, '95.00', false, '2026-01-07T10:20:00.000Z', 0),
+        ]),
+      ]),
+    ];
+
+    const overview = calculateAnalyticsOverview(
+      query('2026-01-05T00:00:00.000Z', '2026-01-12T00:00:00.000Z'),
+      sessions,
+    );
+
+    expect(overview.exercises.map(({ exerciseNameSnapshot }) => exerciseNameSnapshot)).toEqual([
+      'Bench Press',
+      'Cable Fly',
+    ]);
+    expect(overview.exercises[0]).toMatchObject({
+      maximumLoadKg: '120.00',
+      lastWorkingSet: {
+        repetitions: 10,
+        loadKg: '95.00',
+        completedAt: '2026-01-07T10:20:00.000Z',
+      },
+    });
+    expect(overview.recentWorkouts[0]).toMatchObject({
+      workoutSessionId: 'newer-session',
+      displayName: 'Freestyle workout',
+      completedWorkingSetCount: 1,
+      totalRepetitions: 10,
+    });
+    expect(overview.recentWorkouts[1]?.displayName).toBe('Push day');
+  });
+
+  it('keeps zero-load working sets as performance while marking volume unavailable', () => {
+    const overview = calculateAnalyticsOverview(
+      query('2026-01-05T00:00:00.000Z', '2026-01-12T00:00:00.000Z'),
+      [
+        session('bodyweight', '2026-01-06T12:00:00.000Z', [
+          performance(exerciseA, 'Pull Up', [set(10, '0.00')]),
+        ]),
+      ],
+    );
+
+    expect(overview.exercises[0]).toMatchObject({
+      maximumLoadKg: '0.00',
+      lastWorkingSet: { repetitions: 10, loadKg: '0.00' },
+      volumeLoadKg: null,
+    });
   });
 });

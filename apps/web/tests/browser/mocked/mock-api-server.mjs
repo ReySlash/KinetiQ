@@ -106,6 +106,87 @@ function workoutDetail(state) {
   };
 }
 
+function volumeCompleteness(status = "COMPLETE", includedSetCount = 18, excludedSetCount = 0) {
+  return { status, includedSetCount, excludedSetCount };
+}
+
+function analyticsOverview(scenario) {
+  const empty = scenario === "analytics-empty";
+  const partial = scenario === "analytics-partial";
+  const completeness = partial
+    ? volumeCompleteness("PARTIAL", 16, 2)
+    : volumeCompleteness("COMPLETE", empty ? 0 : 18, 0);
+  const totals = {
+    completedWorkouts: empty ? 0 : 4,
+    trainingDays: empty ? 0 : 3,
+    completedWorkingSets: empty ? 0 : 18,
+    warmupSets: empty ? 0 : 5,
+    totalRepetitions: empty ? 0 : 146,
+    volumeLoadKg: empty || partial ? null : "8650.00",
+    activeWeeks: empty ? 0 : 2,
+    completeWeeks: empty ? 0 : 1,
+    averageWorkoutsPerCompleteWeek: empty ? 0 : 3,
+  };
+  const exerciseNames = [
+    ["barbell-back-squat", "Barbell Back Squat", 6, 48, "140.00"],
+    ["bench-press", "Bench Press", 4, 32, "100.00"],
+    ["romanian-deadlift", "Romanian Deadlift", 3, 24, "125.00"],
+    ["lat-pulldown", "Lat Pulldown", 2, 18, "70.00"],
+    ["cable-row", "Cable Row", 2, 16, "65.00"],
+    ["pull-up", "Pull Up", 1, 8, "0.00"],
+  ];
+  return {
+    period: {
+      from: "2026-07-13T00:00:00.000+03:00",
+      to: "2026-09-07T23:59:59.999+03:00",
+      timezone: "Asia/Qatar",
+      includesPartialCurrentWeek: true,
+    },
+    totals,
+    volumeCompleteness: completeness,
+    weekly: empty ? [] : [
+      { weekStart: "2026-08-24", weekEnd: "2026-08-30", completedWorkouts: 2, trainingDays: 2, completedWorkingSets: 8, warmupSets: 2, totalRepetitions: 64, volumeLoadKg: partial ? null : "3650.00", volumeCompleteness: completeness },
+      { weekStart: "2026-08-31", weekEnd: "2026-09-06", completedWorkouts: 2, trainingDays: 1, completedWorkingSets: 10, warmupSets: 3, totalRepetitions: 82, volumeLoadKg: partial ? null : "5000.00", volumeCompleteness: completeness },
+    ],
+    exercises: empty ? [] : exerciseNames.map(([slug, name, sets, repetitions, maximum], index) => ({
+      exerciseId: `exercise-${index}`,
+      exerciseSlug: slug,
+      exerciseNameSnapshot: name,
+      completedWorkoutCount: index < 3 ? 2 : 1,
+      completedWorkingSetCount: sets,
+      totalRepetitions: repetitions,
+      maximumLoadKg: maximum,
+      lastWorkingSet: {
+        repetitions: index === 5 ? 8 : 6,
+        loadKg: maximum,
+        completedAt: `2026-09-0${Math.max(1, 6 - index)}T18:00:00.000Z`,
+      },
+      volumeLoadKg: partial && index === 1 ? null : index === 5 ? null : "1200.00",
+      volumeCompleteness: partial && index === 1 ? volumeCompleteness("PARTIAL", 3, 1) : index === 5 ? volumeCompleteness("UNAVAILABLE", 0, 1) : volumeCompleteness("COMPLETE", Number(sets), 0),
+    })),
+    recentWorkouts: empty ? [] : [
+      ["session-4", "Upper strength", "2026-09-06T18:00:00.000Z", 6, 48, "3200.00"],
+      ["session-3", "Lower strength", "2026-09-04T18:00:00.000Z", 5, 42, "2800.00"],
+      ["session-2", "Pull day", "2026-09-02T18:00:00.000Z", 4, 32, "1450.00"],
+      ["session-1", "Bodyweight circuit", "2026-08-30T18:00:00.000Z", 3, 24, null],
+    ].map(([id, name, completedAt, sets, repetitions, volume], index) => ({
+      workoutSessionId: id,
+      displayName: name,
+      startedAt: completedAt,
+      completedAt,
+      completedWorkingSetCount: sets,
+      totalRepetitions: repetitions,
+      volumeLoadKg: volume,
+      volumeCompleteness: index === 3 ? volumeCompleteness("UNAVAILABLE", 0, 3) : completeness,
+    })),
+    comparison: {
+      period: { from: "2026-05-18T00:00:00.000+03:00", to: "2026-07-12T23:59:59.999+03:00" },
+      totals: { ...totals, completedWorkouts: empty ? 0 : 3, completedWorkingSets: empty ? 0 : 15, totalRepetitions: empty ? 0 : 120, volumeLoadKg: empty || partial ? null : "7200.00" },
+      volumeCompleteness: completeness,
+    },
+  };
+}
+
 function readJsonBody(request) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -142,6 +223,11 @@ const server = createServer(async (request, response) => {
 
   const scenario = scenarioFor(request);
   const state = stateFor(request);
+  if (request.method === "GET" && url.pathname === "/api/analytics/overview") {
+    if (scenario === "analytics-loading") await new Promise((resolve) => setTimeout(resolve, 1200));
+    if (scenario === "analytics-error") return send(response, 500, { message: "Analytics service unavailable" });
+    return send(response, 200, analyticsOverview(scenario));
+  }
   const isProgramRead =
     url.pathname === "/api/user-training-programs/active" ||
     url.pathname === `/api/user-training-programs/${programId}`;

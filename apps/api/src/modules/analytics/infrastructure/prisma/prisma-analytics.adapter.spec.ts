@@ -52,6 +52,7 @@ describe('PrismaAnalyticsAdapter', () => {
     const findMany = jest.fn().mockResolvedValue([
       {
         id: '323e4567-e89b-12d3-a456-426614174000',
+        sourceRoutineNameSnapshot: 'Upper day',
         startedAt: new Date('2026-01-06T12:00:00.000Z'),
         createdAt: new Date('2026-01-06T12:05:00.000Z'),
         completedAt: new Date('2026-01-06T13:00:00.000Z'),
@@ -59,12 +60,16 @@ describe('PrismaAnalyticsAdapter', () => {
         performances: [
           {
             exerciseId: '423e4567-e89b-12d3-a456-426614174000',
+            exercise: { slug: 'bench-press' },
             exerciseNameSnapshot: 'Bench Press',
             completedSets: [
               {
+                id: '523e4567-e89b-12d3-a456-426614174000',
+                order: 0,
                 repetitions: 8,
                 loadKg: { toString: () => '100.25' },
                 isWarmup: false,
+                completedAt: new Date('2026-01-06T12:30:00.000Z'),
               },
             ],
           },
@@ -83,6 +88,7 @@ describe('PrismaAnalyticsAdapter', () => {
     expect(sessions).toEqual([
       {
         id: '323e4567-e89b-12d3-a456-426614174000',
+        sourceRoutineNameSnapshot: 'Upper day',
         startedAt: new Date('2026-01-06T12:00:00.000Z'),
         createdAt: new Date('2026-01-06T12:05:00.000Z'),
         completedAt: new Date('2026-01-06T13:00:00.000Z'),
@@ -90,9 +96,17 @@ describe('PrismaAnalyticsAdapter', () => {
         performances: [
           {
             exerciseId: '423e4567-e89b-12d3-a456-426614174000',
+            exerciseSlug: 'bench-press',
             exerciseNameSnapshot: 'Bench Press',
             completedSets: [
-              { repetitions: 8, loadKg: '100.25', isWarmup: false },
+              {
+                id: '523e4567-e89b-12d3-a456-426614174000',
+                order: 0,
+                repetitions: 8,
+                loadKg: '100.25',
+                isWarmup: false,
+                completedAt: new Date('2026-01-06T12:30:00.000Z'),
+              },
             ],
           },
         ],

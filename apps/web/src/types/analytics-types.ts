@@ -1,37 +1,4 @@
-export type AnalyticsOverviewQuery = {
-  ownerId: string;
-  timezone: string;
-  from?: Date;
-  to?: Date;
-};
-
-export type AnalyticsSourceSet = {
-  id: string;
-  order: number;
-  repetitions: number;
-  loadKg: string;
-  isWarmup: boolean;
-  completedAt: Date;
-};
-
-export type AnalyticsSourcePerformance = {
-  exerciseId: string;
-  exerciseSlug: string;
-  exerciseNameSnapshot: string;
-  completedSets: AnalyticsSourceSet[];
-};
-
-export type AnalyticsSourceSession = {
-  id: string;
-  sourceRoutineNameSnapshot: string | null;
-  startedAt: Date;
-  createdAt: Date;
-  completedAt: Date | null;
-  cancelledAt: Date | null;
-  performances: AnalyticsSourcePerformance[];
-};
-
-export type AnalyticsVolumeStatus = 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
+export type AnalyticsVolumeStatus = "COMPLETE" | "PARTIAL" | "UNAVAILABLE";
 
 export type AnalyticsVolumeCompleteness = {
   status: AnalyticsVolumeStatus;
@@ -79,7 +46,7 @@ export type RecentWorkoutSummary = {
   volumeCompleteness: AnalyticsVolumeCompleteness;
 };
 
-export type AnalyticsOverviewCore = {
+export type AnalyticsOverview = {
   period: {
     from: string;
     to: string;
@@ -101,12 +68,12 @@ export type AnalyticsOverviewCore = {
   weekly: WeeklyTrainingSummary[];
   exercises: ExerciseFrequencySummary[];
   recentWorkouts: RecentWorkoutSummary[];
-};
-
-export type AnalyticsOverview = AnalyticsOverviewCore & {
   comparison: {
     period: { from: string; to: string };
-    totals: AnalyticsOverviewCore['totals'];
+    totals: AnalyticsOverview["totals"];
     volumeCompleteness: AnalyticsVolumeCompleteness;
   };
 };
+
+export type AnalyticsRange = "1w" | "2w" | "4w" | "26w" | "52w";
+export type AnalyticsMetric = "workouts" | "sets" | "repetitions" | "volume";

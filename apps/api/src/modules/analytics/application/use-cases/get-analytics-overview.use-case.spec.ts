@@ -36,6 +36,29 @@ const emptyOverview: AnalyticsOverview = {
   },
   weekly: [],
   exercises: [],
+  recentWorkouts: [],
+  comparison: {
+    period: {
+      from: '2025-12-29T00:00:00.000Z',
+      to: '2026-01-04T23:59:59.999Z',
+    },
+    totals: {
+      completedWorkouts: 0,
+      trainingDays: 0,
+      completedWorkingSets: 0,
+      warmupSets: 0,
+      totalRepetitions: 0,
+      volumeLoadKg: null,
+      activeWeeks: 0,
+      completeWeeks: 1,
+      averageWorkoutsPerCompleteWeek: 0,
+    },
+    volumeCompleteness: {
+      status: 'UNAVAILABLE',
+      includedSetCount: 0,
+      excludedSetCount: 0,
+    },
+  },
 };
 
 describe('GetAnalyticsOverviewUseCase', () => {
@@ -109,6 +132,7 @@ describe('GetAnalyticsOverviewUseCase', () => {
           performances: [
             {
               exerciseId: '423e4567-e89b-12d3-a456-426614174000',
+              exerciseSlug: 'bench-press',
               exerciseNameSnapshot: 'Bench Press',
               completedSets: [
                 { repetitions: 8, loadKg: 'invalid', isWarmup: false },
@@ -153,5 +177,36 @@ describe('GetAnalyticsOverviewUseCase', () => {
     expect(overview.totals.volumeLoadKg).toBeNull();
     expect(overview.volumeCompleteness.status).toBe('UNAVAILABLE');
     expect(overview.exercises).toEqual(emptyOverview.exercises);
+  });
+
+  it('loads an immediately preceding comparison period with the same owner and local duration', async () => {
+    const findCompletedSessions = jest
+      .fn<Promise<AnalyticsSourceSession[]>, [unknown]>()
+      .mockResolvedValue([]);
+    const useCase = new GetAnalyticsOverviewUseCase({
+      findCompletedSessions,
+    } as unknown as AnalyticsQueryPort);
+
+    const overview = await useCase.execute({
+      ownerId,
+      timezone: 'UTC',
+      from: new Date('2026-01-05T00:00:00.000Z'),
+      to: new Date('2026-01-12T00:00:00.000Z'),
+    });
+
+    expect(findCompletedSessions).toHaveBeenCalledTimes(2);
+    expect(findCompletedSessions).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        ownerId,
+        timezone: 'UTC',
+        from: new Date('2025-12-29T00:00:00.000Z'),
+        to: new Date('2026-01-04T23:59:59.999Z'),
+      }),
+    );
+    expect(overview.comparison.period).toEqual({
+      from: '2025-12-29T00:00:00.000Z',
+      to: '2026-01-04T23:59:59.999Z',
+    });
   });
 });

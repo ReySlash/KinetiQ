@@ -11,6 +11,7 @@ describe('Prisma analytics mapper', () => {
     // Arrange
     const row = {
       id: '323e4567-e89b-12d3-a456-426614174000',
+      sourceRoutineNameSnapshot: 'Upper day',
       startedAt: new Date('2026-01-06T12:00:00.000Z'),
       createdAt: new Date('2026-01-06T12:05:00.000Z'),
       completedAt: new Date('2026-01-06T13:00:00.000Z'),
@@ -18,17 +19,24 @@ describe('Prisma analytics mapper', () => {
       performances: [
         {
           exerciseId: '423e4567-e89b-12d3-a456-426614174000',
+          exercise: { slug: 'bench-press' },
           exerciseNameSnapshot: 'Bench Press',
           completedSets: [
             {
+              id: '523e4567-e89b-12d3-a456-426614174000',
+              order: 0,
               repetitions: 8,
               loadKg: new Prisma.Decimal('100.25'),
               isWarmup: false,
+              completedAt: new Date('2026-01-06T12:30:00.000Z'),
             },
             {
+              id: '623e4567-e89b-12d3-a456-426614174000',
+              order: 1,
               repetitions: 10,
               loadKg: new Prisma.Decimal('50.00'),
               isWarmup: true,
+              completedAt: new Date('2026-01-06T12:35:00.000Z'),
             },
           ],
         },
@@ -41,6 +49,7 @@ describe('Prisma analytics mapper', () => {
     // Assert
     expect(mapped).toEqual({
       id: row.id,
+      sourceRoutineNameSnapshot: 'Upper day',
       startedAt: row.startedAt,
       createdAt: row.createdAt,
       completedAt: row.completedAt,
@@ -48,10 +57,25 @@ describe('Prisma analytics mapper', () => {
       performances: [
         {
           exerciseId: row.performances[0].exerciseId,
+          exerciseSlug: 'bench-press',
           exerciseNameSnapshot: 'Bench Press',
           completedSets: [
-            { repetitions: 8, loadKg: '100.25', isWarmup: false },
-            { repetitions: 10, loadKg: '50', isWarmup: true },
+            {
+              id: '523e4567-e89b-12d3-a456-426614174000',
+              order: 0,
+              repetitions: 8,
+              loadKg: '100.25',
+              isWarmup: false,
+              completedAt: new Date('2026-01-06T12:30:00.000Z'),
+            },
+            {
+              id: '623e4567-e89b-12d3-a456-426614174000',
+              order: 1,
+              repetitions: 10,
+              loadKg: '50',
+              isWarmup: true,
+              completedAt: new Date('2026-01-06T12:35:00.000Z'),
+            },
           ],
         },
       ],

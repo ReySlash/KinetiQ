@@ -35,7 +35,7 @@ export class WeeklyTrainingSummaryResponseDto {
   @ApiProperty()
   totalRepetitions!: number;
 
-  @ApiPropertyOptional({ nullable: true, example: '1250.50' })
+  @ApiProperty({ nullable: true, example: '1250.50' })
   volumeLoadKg!: string | null;
 
   @ApiProperty({ type: AnalyticsVolumeCompletenessResponseDto })
@@ -45,6 +45,9 @@ export class WeeklyTrainingSummaryResponseDto {
 export class ExerciseFrequencySummaryResponseDto {
   @ApiProperty({ format: 'uuid' })
   exerciseId!: string;
+
+  @ApiProperty()
+  exerciseSlug!: string;
 
   @ApiProperty()
   exerciseNameSnapshot!: string;
@@ -58,11 +61,31 @@ export class ExerciseFrequencySummaryResponseDto {
   @ApiProperty()
   totalRepetitions!: number;
 
-  @ApiPropertyOptional({ nullable: true, example: '1250.50' })
+  @ApiProperty({ nullable: true, example: '120.00' })
+  maximumLoadKg!: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    type: () => AnalyticsLastWorkingSetResponseDto,
+  })
+  lastWorkingSet!: AnalyticsLastWorkingSetResponseDto | null;
+
+  @ApiProperty({ nullable: true, example: '1250.50' })
   volumeLoadKg!: string | null;
 
   @ApiProperty({ type: AnalyticsVolumeCompletenessResponseDto })
   volumeCompleteness!: AnalyticsVolumeCompletenessResponseDto;
+}
+
+export class AnalyticsLastWorkingSetResponseDto {
+  @ApiProperty()
+  repetitions!: number;
+
+  @ApiProperty({ example: '95.00' })
+  loadKg!: string;
+
+  @ApiProperty({ format: 'date-time' })
+  completedAt!: string;
 }
 
 export class AnalyticsPeriodResponseDto {
@@ -95,7 +118,7 @@ export class AnalyticsTotalsResponseDto {
   @ApiProperty()
   totalRepetitions!: number;
 
-  @ApiPropertyOptional({ nullable: true, example: '1250.50' })
+  @ApiProperty({ nullable: true, example: '1250.50' })
   volumeLoadKg!: string | null;
 
   @ApiProperty()
@@ -106,6 +129,51 @@ export class AnalyticsTotalsResponseDto {
 
   @ApiProperty({ example: 2.5 })
   averageWorkoutsPerCompleteWeek!: number;
+}
+
+export class AnalyticsComparisonPeriodResponseDto {
+  @ApiProperty({ format: 'date-time' })
+  from!: string;
+
+  @ApiProperty({ format: 'date-time' })
+  to!: string;
+}
+
+export class AnalyticsComparisonResponseDto {
+  @ApiProperty({ type: AnalyticsComparisonPeriodResponseDto })
+  period!: AnalyticsComparisonPeriodResponseDto;
+
+  @ApiProperty({ type: AnalyticsTotalsResponseDto })
+  totals!: AnalyticsTotalsResponseDto;
+
+  @ApiProperty({ type: AnalyticsVolumeCompletenessResponseDto })
+  volumeCompleteness!: AnalyticsVolumeCompletenessResponseDto;
+}
+
+export class RecentWorkoutSummaryResponseDto {
+  @ApiProperty({ format: 'uuid' })
+  workoutSessionId!: string;
+
+  @ApiProperty()
+  displayName!: string;
+
+  @ApiProperty({ format: 'date-time' })
+  startedAt!: string;
+
+  @ApiProperty({ format: 'date-time' })
+  completedAt!: string;
+
+  @ApiProperty()
+  completedWorkingSetCount!: number;
+
+  @ApiProperty()
+  totalRepetitions!: number;
+
+  @ApiProperty({ nullable: true, example: '1250.50' })
+  volumeLoadKg!: string | null;
+
+  @ApiProperty({ type: AnalyticsVolumeCompletenessResponseDto })
+  volumeCompleteness!: AnalyticsVolumeCompletenessResponseDto;
 }
 
 export class AnalyticsOverviewResponseDto {
@@ -123,4 +191,10 @@ export class AnalyticsOverviewResponseDto {
 
   @ApiProperty({ type: [ExerciseFrequencySummaryResponseDto] })
   exercises!: ExerciseFrequencySummaryResponseDto[];
+
+  @ApiProperty({ type: [RecentWorkoutSummaryResponseDto] })
+  recentWorkouts!: RecentWorkoutSummaryResponseDto[];
+
+  @ApiProperty({ type: AnalyticsComparisonResponseDto })
+  comparison!: AnalyticsComparisonResponseDto;
 }

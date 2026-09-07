@@ -37,6 +37,7 @@ export class AnalyticsController {
   })
   @ApiQuery({ name: 'to', required: false, type: String, format: 'date-time' })
   @ApiResponse({ status: 200, type: AnalyticsOverviewResponseDto })
+  @ApiResponse({ status: 401, description: 'Authentication is required' })
   @ApiResponse({ status: 400, description: 'Invalid analytics query' })
   @ApiResponse({
     status: 500,
@@ -50,8 +51,8 @@ export class AnalyticsController {
       return await this.getAnalyticsOverview.execute({
         ownerId: principal.userId,
         timezone: query.timezone,
-        from: query.from,
-        to: query.to,
+        from: query.from ? new Date(query.from) : undefined,
+        to: query.to ? new Date(query.to) : undefined,
       });
     } catch (error) {
       throw toAnalyticsHttpException(error);
