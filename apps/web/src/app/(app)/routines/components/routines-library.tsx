@@ -82,12 +82,6 @@ export function RoutinesLibrary({
                     : "Create your first routine and start arranging your training."}
                 </p>
               </div>
-              {scope === "my" && (
-                <StyledLink href="/routines/new" variant="outline">
-                  <Plus />
-                  Create routine
-                </StyledLink>
-              )}
             </CardContent>
           </Card>
         ) : (

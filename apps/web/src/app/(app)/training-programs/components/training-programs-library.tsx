@@ -60,21 +60,23 @@ export function TrainingProgramsLibrary({
               </StyledLink>
             ) : null}
             {scope === "my" ? (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <StyledLink
-                      href="/training-programs/new"
-                      size="lg"
-                      className="flex-1 justify-center md:flex-none"
-                    />
-                  }
-                >
-                  <Plus data-icon="inline-start" />
-                  New training program
-                </TooltipTrigger>
-                <TooltipContent>Create a new training program</TooltipContent>
-              </Tooltip>
+              <div className="hidden md:block">
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <StyledLink
+                        href="/training-programs/new"
+                        size="lg"
+                        className="w-auto"
+                      />
+                    }
+                  >
+                    <Plus data-icon="inline-start" />
+                    New training program
+                  </TooltipTrigger>
+                  <TooltipContent>Create a new training program</TooltipContent>
+                </Tooltip>
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -98,12 +100,6 @@ export function TrainingProgramsLibrary({
                     : "Create your first training program and structure your training over time."}
                 </p>
               </div>
-              {scope === "my" && (
-                <StyledLink href="/training-programs/new" variant="outline">
-                  <Plus />
-                  Create your first training program
-                </StyledLink>
-              )}
             </CardContent>
           </Card>
         ) : (
@@ -186,6 +182,25 @@ export function TrainingProgramsLibrary({
           </>
         )}
       </div>
+      {scope === "my" ? (
+        <div className="fixed inset-x-2 bottom-14 z-30 flex justify-center md:hidden">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <StyledLink
+                  href="/training-programs/new"
+                  size="lg"
+                  className="w-auto"
+                />
+              }
+            >
+              <Plus data-icon="inline-start" />
+              New training program
+            </TooltipTrigger>
+            <TooltipContent>Create a new training program</TooltipContent>
+          </Tooltip>
+        </div>
+      ) : null}
     </section>
   );
 }
