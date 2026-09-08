@@ -25,6 +25,7 @@ export class ProgramWorkoutOccurrenceDetailResponseDto {
   @ApiProperty() weekNumber!: number;
   @ApiProperty() dayNumber!: number;
   @ApiProperty() routineNameSnapshot!: string;
+  @ApiPropertyOptional({ nullable: true }) sourceRoutineSlug!: string | null;
   @ApiPropertyOptional({ nullable: true }) programSlotNotesSnapshot!:
     string | null;
   @ApiProperty({ enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED'] })

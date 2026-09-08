@@ -46,6 +46,7 @@ export const adoptedTrainingProgramDetailSelect = {
       sourceRoutine: {
         select: {
           id: true,
+          slug: true,
           ownerId: true,
           visibility: true,
           exercises: {
@@ -242,6 +243,7 @@ function toOccurrenceDetail(
     weekNumber: occurrence.weekNumber,
     dayNumber: occurrence.dayNumber,
     routineNameSnapshot: occurrence.routineNameSnapshot,
+    sourceRoutineSlug: occurrence.sourceRoutine?.slug ?? null,
     programSlotNotesSnapshot: occurrence.programSlotNotesSnapshot,
     status: occurrence.status,
     sourceRoutineAvailable:

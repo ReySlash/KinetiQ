@@ -35,6 +35,7 @@ function fixture(overrides: Partial<AdoptedTrainingProgram> = {}): AdoptedTraini
     weekNumber: 1,
     dayNumber: 1,
     routineNameSnapshot: "Upper A",
+    sourceRoutineSlug: "upper-a",
     programSlotNotesSnapshot: null,
     status: "PENDING" as const,
     sourceRoutineAvailable: true,

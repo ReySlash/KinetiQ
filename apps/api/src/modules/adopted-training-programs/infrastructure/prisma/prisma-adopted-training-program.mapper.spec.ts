@@ -121,6 +121,7 @@ describe('prisma adopted training program mapper', () => {
           sourceRoutineId,
           sourceRoutine: {
             id: sourceRoutineId,
+            slug: 'upper-a',
             ownerId,
             visibility: 'PRIVATE' as const,
             exercises: [routineExerciseRow()],
@@ -169,6 +170,8 @@ describe('prisma adopted training program mapper', () => {
     expect(detail.occurrences[1].latestSessionId).toBe(
       '77777777-7777-4777-8777-777777777777',
     );
+    expect(detail.occurrences[0].sourceRoutineSlug).toBe('upper-a');
+    expect(detail.occurrences[1].sourceRoutineSlug).toBeNull();
   });
 
   it('does not advertise start or pause while an occurrence has an active session', () => {
@@ -192,6 +195,7 @@ describe('prisma adopted training program mapper', () => {
           sourceRoutineId,
           sourceRoutine: {
             id: sourceRoutineId,
+            slug: 'upper-a',
             ownerId,
             visibility: 'PRIVATE' as const,
             exercises: [],
@@ -258,6 +262,7 @@ describe('prisma adopted training program mapper', () => {
           sourceRoutineId,
           sourceRoutine: {
             id: sourceRoutineId,
+            slug: 'upper-a',
             ownerId,
             visibility: 'PRIVATE' as const,
             exercises: [
@@ -292,6 +297,7 @@ describe('prisma adopted training program mapper', () => {
         occurrenceDetailRow({
           sourceRoutine: {
             id: sourceRoutineId,
+            slug: 'upper-a',
             ownerId,
             visibility: 'PRIVATE',
             exercises: [routineExerciseRow({ sets: 0 })],
@@ -382,6 +388,7 @@ function occurrenceDetailRow(
     sourceRoutineId,
     sourceRoutine: {
       id: sourceRoutineId,
+      slug: 'upper-a',
       ownerId,
       visibility: 'PRIVATE',
       exercises: [routineExerciseRow()],

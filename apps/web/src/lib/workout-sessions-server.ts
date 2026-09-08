@@ -10,6 +10,26 @@ export type WorkoutSessionsFetchResult =
   | { status: "authenticated"; sessions: WorkoutSessionListItem[] }
   | { status: "unauthenticated" };
 
+export type ActiveWorkoutFetchResult =
+  | { status: "authenticated"; session: WorkoutSession | null }
+  | { status: "unauthenticated" };
+
+export async function fetchActiveWorkoutSession(): Promise<ActiveWorkoutFetchResult> {
+  try {
+    return {
+      status: "authenticated",
+      session: await serverRequest<WorkoutSession | null>(
+        "workout-sessions/active",
+      ),
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      return { status: "unauthenticated" };
+    }
+    throw error;
+  }
+}
+
 export async function fetchWorkoutSessions(
   filters: WorkoutSessionFilters = {},
 ): Promise<WorkoutSessionsFetchResult> {
