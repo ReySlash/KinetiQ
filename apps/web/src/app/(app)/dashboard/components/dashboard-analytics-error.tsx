@@ -4,6 +4,11 @@ import { RefreshCw } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function DashboardAnalyticsError({ onRetry }: { onRetry: () => void }) {
   return (
@@ -12,9 +17,16 @@ export function DashboardAnalyticsError({ onRetry }: { onRetry: () => void }) {
       <AlertTitle>Training summary is unavailable</AlertTitle>
       <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
         <span>We could not load your recent training metrics.</span>
-        <Button variant="outline" onClick={onRetry}>
-          Retry
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button variant="outline" onClick={onRetry}>
+                Retry
+              </Button>
+            }
+          />
+          <TooltipContent>Retry loading dashboard analytics</TooltipContent>
+        </Tooltip>
       </AlertDescription>
     </Alert>
   );

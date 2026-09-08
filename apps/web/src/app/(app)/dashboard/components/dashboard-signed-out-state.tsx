@@ -9,6 +9,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function DashboardSignedOutState() {
   return (
@@ -24,9 +29,14 @@ export function DashboardSignedOutState() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <StyledLink href="/sign-in?callbackURL=%2Fdashboard" size="lg">
-          Sign in
-        </StyledLink>
+        <Tooltip>
+          <TooltipTrigger render={<span className="inline-flex" />}>
+            <StyledLink href="/sign-in?callbackURL=%2Fdashboard" size="lg">
+              Sign in
+            </StyledLink>
+          </TooltipTrigger>
+          <TooltipContent>Sign in to open your dashboard</TooltipContent>
+        </Tooltip>
       </EmptyContent>
     </Empty>
   );

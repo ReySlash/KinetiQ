@@ -31,14 +31,22 @@ test.describe("mocked dashboard", () => {
     await expect(page.getByText("This week", { exact: true })).toBeVisible();
     const metrics = page.getByRole("region", { name: "This week" });
     await expect(metrics.getByText("Workouts", { exact: true })).toBeVisible();
-    await expect(metrics.getByText("Volume", { exact: true })).toBeVisible();
     await expect(metrics.getByText("Sets", { exact: true })).toBeVisible();
     await expect(metrics.getByText("Reps", { exact: true })).toBeVisible();
+    await expect(metrics.getByText("Volume", { exact: true })).toHaveCount(0);
     await expect(page.getByText("Recent workouts", { exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "View all" })).toHaveAttribute(
       "href",
       "/workout-sessions",
     );
+    await page.getByRole("link", { name: "View analytics" }).hover();
+    await expect(
+      page.getByText("Open your full training analytics", { exact: true }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Upper A" }).first().hover();
+    await expect(
+      page.getByText("Open Upper A routine details", { exact: true }),
+    ).toBeVisible();
   });
 
   test("continues an active workout before offering program actions", async ({
@@ -54,6 +62,25 @@ test.describe("mocked dashboard", () => {
       /\/workout-sessions\/423e4567/,
     );
     await expect(page.getByRole("link", { name: "Start a workout" })).toHaveCount(0);
+  });
+
+  test("starts the next program occurrence and opens its created session", async ({
+    page,
+    context,
+  }) => {
+    await authenticate(context, "dashboard-start");
+    await page.goto("/dashboard");
+
+    await page.getByRole("button", { name: "Start workout" }).hover();
+    await expect(
+      page.getByText("Start the next workout in your active program", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Start workout" }).click();
+    await expect(page).toHaveURL(
+      /\/workout-sessions\/423e4567-e89b-12d3-a456-426614174000$/,
+    );
   });
 
   test("opens a paused program when there is no active workout", async ({
@@ -88,7 +115,7 @@ test.describe("mocked dashboard", () => {
       page.getByText("No completed workouts this week.", { exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Open active program" })).toHaveCount(1);
-    await expect(page.getByRole("link", { name: "Start workout" })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Start workout" })).toHaveCount(1);
   });
 
   test("degrades training reads independently", async ({ page, context }) => {

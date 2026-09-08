@@ -31,7 +31,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
 
   return (
     <>
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         {/* Desktop Table */}
         <Table>
           <TableHeader>
@@ -90,7 +90,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
         </Table>
       </div>
 
-      <div className="flex flex-col gap-2 md:hidden">
+      <div className="flex flex-col gap-2 lg:hidden">
         {/* Mobile Table */}
         {exercises.length > 0 ? (
           exercises.map((exercise) => (

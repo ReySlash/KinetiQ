@@ -28,7 +28,10 @@ export function WorkoutSessionSearchForm({
   onSubmit,
 }: WorkoutSessionSearchFormProps) {
   return (
-    <form className="flex w-full flex-row gap-2" onSubmit={onSubmit}>
+    <form
+      className="flex min-w-0 w-full flex-row gap-2 md:flex-1 md:w-auto"
+      onSubmit={onSubmit}
+    >
       <div className="flex w-full flex-col gap-1">
         <Input
           aria-label="Search workouts by routine name"

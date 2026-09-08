@@ -1,5 +1,7 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DashboardMetrics } from "@/app/(app)/dashboard/components/dashboard-metrics";
 import { DashboardRecentWorkouts } from "@/app/(app)/dashboard/components/dashboard-recent-workouts";
@@ -7,6 +9,21 @@ import { DashboardHeader } from "@/app/(app)/dashboard/components/dashboard-head
 import { TrainingPlanCard } from "@/app/(app)/dashboard/components/training-plan-card";
 import type { AnalyticsOverview } from "@/types/analytics-types";
 import type { AdoptedTrainingProgram } from "@/types/adopted-training-program-types";
+
+const navigation = vi.hoisted(() => ({
+  push: vi.fn(),
+  refresh: vi.fn(),
+  startProgramWorkout: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: navigation.push, refresh: navigation.refresh }),
+}));
+
+vi.mock("@/lib/adopted-training-programs-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/adopted-training-programs-api")>()),
+  startProgramWorkout: navigation.startProgramWorkout,
+}));
 
 const overview = {
   totals: {
@@ -97,6 +114,13 @@ const activeProgram = {
   totalCount: 36,
   resolvedCount: 0,
   progressPercent: 0,
+  actions: {
+    canPause: true,
+    canResume: false,
+    canCancel: true,
+    canStartNext: true,
+    canSkipNext: true,
+  },
   nextPendingOccurrence: {
     id: "occurrence-1",
     weekNumber: 1,
@@ -113,6 +137,10 @@ const activeProgram = {
 } as AdoptedTrainingProgram;
 
 describe("dashboard components", () => {
+  beforeEach(() => {
+    Object.values(navigation).forEach((mock) => mock.mockReset());
+  });
+
   it("renders the safe continuation action", () => {
     render(
       <TrainingPlanCard
@@ -146,20 +174,34 @@ describe("dashboard components", () => {
   it("shows unavailable volume without converting it to zero", () => {
     render(<DashboardMetrics overview={overview} />);
     expect(screen.getByText("Workouts", { exact: true })).toBeInTheDocument();
-    expect(screen.getByText("Volume", { exact: true })).toBeInTheDocument();
     expect(screen.getByText("Sets", { exact: true })).toBeInTheDocument();
     expect(screen.getByText("Reps", { exact: true })).toBeInTheDocument();
-    expect(screen.getByText("Not available", { exact: true })).toBeInTheDocument();
-    expect(screen.getByText("2 sets excluded", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText("Volume", { exact: true })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "This week" }).querySelector(".grid-cols-3"),
+    ).not.toBeNull();
   });
 
-  it("links the next routine and exposes both active-program actions", () => {
+  it("starts the next occurrence and opens the returned workout session", async () => {
+    const user = userEvent.setup();
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    navigation.startProgramWorkout.mockResolvedValue({
+      workoutSessionId: "session-2",
+      occurrenceId: "occurrence-1",
+      sessionStatus: "IN_PROGRESS",
+      occurrenceStatus: "IN_PROGRESS",
+    });
+
     render(
-      <TrainingPlanCard
-        action={{ kind: "program", adoptedTrainingProgramId: activeProgram.id }}
-        activeWorkout={null}
-        activeProgram={activeProgram}
-      />,
+      <QueryClientProvider client={queryClient}>
+        <TrainingPlanCard
+          action={{ kind: "program", adoptedTrainingProgramId: activeProgram.id }}
+          activeWorkout={null}
+          activeProgram={activeProgram}
+        />
+      </QueryClientProvider>,
     );
 
     const routineLink = screen.getByRole("link", { name: "Push" });
@@ -168,10 +210,21 @@ describe("dashboard components", () => {
       "/routines/push",
     );
     expect(routineLink).toHaveClass("text-primary");
-    expect(screen.getByRole("link", { name: "Start workout" })).toHaveAttribute(
-      "href",
-      "/routines/push",
+    expect(
+      screen.getByText("Next workout in your program", { exact: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Strength Base · Week 1, day 1", { exact: true }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Start workout" }));
+    expect(navigation.startProgramWorkout).toHaveBeenCalledWith(
+      "program-1",
+      "occurrence-1",
+      expect.objectContaining({ timezone: expect.any(String) }),
     );
+    await waitFor(() => {
+      expect(navigation.push).toHaveBeenCalledWith("/workout-sessions/session-2");
+    });
     expect(screen.getByRole("link", { name: "Open active program" })).toHaveAttribute(
       "href",
       "/training-programs/adopted/program-1",
@@ -200,7 +253,10 @@ describe("dashboard components", () => {
   it("does not require a program to render the workout fallback", () => {
     render(<TrainingPlanCard action={{ kind: "workouts" }} activeWorkout={null} activeProgram={program} />);
     const newWorkoutLink = screen.getByRole("link", { name: "New workout" });
-    expect(newWorkoutLink.parentElement).toHaveClass("grid", "grid-cols-2");
+    expect(newWorkoutLink.closest("[data-slot='card-content']")).toHaveClass(
+      "grid",
+      "grid-cols-2",
+    );
     expect(newWorkoutLink).toHaveClass(
       "w-full",
       "md:w-auto",

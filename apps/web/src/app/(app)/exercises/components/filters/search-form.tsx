@@ -31,7 +31,10 @@ export function SearchForm(props: SearchFormProps) {
   } = props;
 
   return (
-    <form className="flex gap-2 flex-row w-full md:w-1/2" onSubmit={onSubmit}>
+    <form
+      className="flex min-w-0 w-full flex-row gap-2 md:flex-1 md:w-auto"
+      onSubmit={onSubmit}
+    >
       <div className="flex w-full flex-col gap-1">
         <Input
           aria-label={ariaLabel}

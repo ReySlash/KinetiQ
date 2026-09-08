@@ -85,8 +85,10 @@ export function ActiveWorkout({
       const changes: Partial<RecordWorkoutSetInput> = {};
       if (!originalEdit || repetitions !== originalEdit.repetitions)
         changes.repetitions = Number(repetitions);
-      if (!originalEdit || load.trim() !== originalEdit.load)
+      if (!originalEdit || load.trim() !== originalEdit.load) {
         changes.load = load.trim();
+        changes.loadUnit = "KG";
+      }
       void onUpdateSet(editingSetId, changes);
       setEditingSetId(null);
       setOriginalEdit(null);

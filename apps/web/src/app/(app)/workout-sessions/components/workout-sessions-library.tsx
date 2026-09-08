@@ -81,7 +81,7 @@ export function WorkoutSessionsLibrary({
           </Card>
         ) : (
           <>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -140,7 +140,7 @@ export function WorkoutSessionsLibrary({
               </Table>
             </div>
 
-            <div className="flex flex-col gap-2 md:hidden">
+            <div className="flex flex-col gap-2 lg:hidden">
               {sessions.map((session) => (
                 <Card
                   key={session.id}

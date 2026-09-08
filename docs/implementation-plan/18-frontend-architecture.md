@@ -63,10 +63,11 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
   one compact training-plan card, then recent completed workouts; the header
   does not duplicate the training-plan actions; metrics align with analytics
   terminology: Workouts, Volume, Sets, and Reps
-- dashboard actions are navigation-only and live in the training-plan card:
-  continue an active workout; open an active/paused adopted program; open the
-  next source routine to start it when available; or start a workout and
-  explore programs when neither resource is active
+- dashboard actions live in the training-plan card: continuing a workout and
+  opening programs or routine details are navigation-only; starting the next
+  program occurrence uses the existing start command and navigates to the
+  returned workout-session ID; when neither resource is active, the card links
+  to workout creation and program discovery
 - dashboard sections degrade independently with retry controls; an unknown
   active-workout state never suggests starting another workout; an empty week
   retains truthful zero-valued metric cards and an empty recent-workouts view

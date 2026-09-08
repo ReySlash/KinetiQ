@@ -6,11 +6,18 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { navigationItems } from "@/components/side-nav";
 import { cn } from "@/lib/utils";
 
-const primaryNavigation = navigationItems.filter(({ href }) =>
-  ["/dashboard", "/workout-sessions", "/exercises", "/routines"].includes(
-    href,
-  ),
-);
+function getNavigationItem(href: (typeof navigationItems)[number]["href"]) {
+  const item = navigationItems.find((candidate) => candidate.href === href);
+  if (!item) throw new Error(`Missing navigation item for ${href}.`);
+  return item;
+}
+
+export const mobileNavigationItems = [
+  getNavigationItem("/dashboard"),
+  { ...getNavigationItem("/training-programs"), label: "Programs" },
+  getNavigationItem("/workout-sessions"),
+  getNavigationItem("/routines"),
+] as const;
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -20,7 +27,7 @@ export function MobileBottomNav() {
       aria-label="Mobile primary navigation"
       className="fixed inset-x-0 bottom-0 z-40 flex h-12 items-center justify-around border-t border-border/70 bg-background/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_oklch(0_0_0/0.12)] backdrop-blur-xl md:hidden"
     >
-      {primaryNavigation.map(({ href, label, icon: Icon }) => {
+      {mobileNavigationItems.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
         return (
