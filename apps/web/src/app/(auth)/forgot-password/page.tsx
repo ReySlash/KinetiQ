@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SubmitEvent, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { authApi } from "@/lib/auth-api";
-import { AuthPage } from "@/components/auth-page";
+import { AuthPage } from "@/app/(auth)/components/auth-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

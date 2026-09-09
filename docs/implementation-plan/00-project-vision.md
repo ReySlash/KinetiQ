@@ -36,7 +36,7 @@ Scores describe the exercise under a documented typical execution and prescripti
 
 ## Scope
 
-The product starts with controlled muscles and exercises, detailed relationships, search, thumbnails, authentication, and personal routines. It later adds training programs, sessions, analytics, recommendations, recovery, and coaching in that dependency order.
+The product starts with controlled muscles and exercises, detailed relationships, search, thumbnails, authentication, and personal routines. The current MVP also includes reusable and adopted training programs, performed workout sessions, and basic explainable analytics. Progression recommendations, recovery, and coaching remain later capabilities in that dependency order.
 
 ## Out of scope as product claims
 

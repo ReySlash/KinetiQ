@@ -1,8 +1,8 @@
 # KinetiQ
 
-KinetiQ is a full-stack fitness development platform for building a high-quality exercise library, designing reusable workout routines, and later tracking training performance, fatigue, progression, and long-term development.
+KinetiQ is a full-stack fitness development platform for building a high-quality exercise library, designing reusable workout routines and training programs, recording completed workouts, and understanding training history through explainable analytics. Progression, recovery, and long-term coaching capabilities remain later-stage work.
 
-The first product milestone is intentionally narrow: a realistic single-developer MVP focused on controlled exercise data, muscle relationships, exercise profiles, authentication, and user-owned routines. More advanced features such as workout history, analytics, progression recommendations, recovery tracking, coach workflows, nutrition, payments, and social features are planned for later phases.
+The product milestone remains intentionally focused: a realistic single-developer MVP with controlled exercise data, muscle relationships, exercise profiles, authentication, user-owned routines, reusable and adopted training programs, workout performance history, and basic analytics. More advanced features such as progression recommendations, recovery tracking, coach workflows, nutrition, payments, and social features remain later phases.
 
 ## Planned Stack
 
@@ -46,11 +46,14 @@ The first production MVP includes:
 - User-owned workout routines
 - Routine exercise prescriptions
 - Routine create, edit, duplicate, and delete workflows
+- Reusable training-program templates and user-owned adopted-program execution
+- Workout sessions with completed-set performance history
+- Initial explainable, read-only analytics derived from completed workouts
 - Responsive UI
 - Backend and frontend tests
 - Docker-based deployment
 
-The MVP does not include image uploads or image-management workflows, workout-performance tracking, advanced analytics, AI, nutrition, payments, coach organizations, or social features.
+The MVP does not include image uploads or image-management workflows, advanced analytics or opaque recommendations, progression guidance, recovery/fatigue tracking, AI, nutrition, payments, coach organizations, social features, or calendar scheduling/synchronization.
 
 ## Implementation Plan
 
@@ -81,9 +84,9 @@ Exercise ratings are editorial classifications, not precise scientific measureme
 
 ## Current Status
 
-The repository has a working foundation and a partial reference-library implementation. PostgreSQL runs through Docker Compose for local development; the API has Prisma migrations, validated configuration, Better Auth wiring, public muscle/exercise endpoints, and a database readiness endpoint; the web app has responsive reference-library pages and the shared application shell.
+The repository has implemented reference-library, routine, training-program, adopted-program, workout-session, and basic analytics slices. PostgreSQL runs through Docker Compose for local development; the API has Prisma migrations, validated configuration, Better Auth wiring, owner-scoped session and analytics queries, public muscle/exercise endpoints, and a database readiness endpoint; the web app has responsive pages, active-workout and program execution flows, analytics, and the shared application shell.
 
-The next product slice is MVP hardening: complete authentication/admin acceptance, ownership/security verification, accessibility, observability, backups, and deployment readiness. Image uploads, training programs, workout sessions, analytics, progression, recovery, and coach workflows remain deferred according to the implementation plan.
+The next product slice is MVP hardening: complete authentication/admin acceptance, ownership/security verification, accessibility, observability, backups, and deployment readiness. Advanced analytics, progression, recovery, calendar scheduling, and coach workflows remain deferred according to the implementation plan.
 
 ### Local verification
 

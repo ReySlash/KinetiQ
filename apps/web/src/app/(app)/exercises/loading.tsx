@@ -21,7 +21,7 @@ export default async function Loading() {
           <Skeleton className="h-8 flex-1" />
           <Skeleton className="h-8 w-24" />
         </div>
-        <div className="hidden min-h-0 overflow-auto md:block">
+        <div className="hidden min-h-0 overflow-auto lg:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -55,7 +55,7 @@ export default async function Loading() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex flex-col gap-2 md:hidden">
+        <div className="flex flex-col gap-2 lg:hidden">
           {Array.from({ length: 8 }, (_, index) => (
             <Card key={index} className="w-full py-1">
               <CardContent className="flex items-center justify-between gap-2 px-1">

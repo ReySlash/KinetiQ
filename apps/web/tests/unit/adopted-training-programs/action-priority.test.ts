@@ -25,6 +25,7 @@ function program(
         weekNumber: 1,
         dayNumber: 1,
         routineNameSnapshot: "Upper A",
+        sourceRoutineSlug: "upper-a",
         programSlotNotesSnapshot: null,
         status: "PENDING",
         sourceRoutineAvailable: true,

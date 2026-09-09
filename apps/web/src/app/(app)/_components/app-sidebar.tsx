@@ -21,9 +21,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
-import { ThemeToggle } from "./theme-toggle";
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import { User2 } from "lucide-react";
 import { authApi, type AuthSession } from "@/lib/auth-api";

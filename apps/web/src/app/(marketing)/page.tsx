@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/hero-image.png",
+        url: "/hero-image.webp",
         width: 1448,
         height: 1086,
         alt: "KinetiQ exercise intelligence interface",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "KinetiQ — Structured Strength Training",
     description,
-    images: ["/hero-image.png"],
+    images: ["/hero-image.webp"],
   },
 };
 
@@ -153,7 +153,7 @@ export default function MarketingPage() {
             <div className="relative order-1 mx-auto flex w-full max-w-2xl items-center justify-center lg:order-2 lg:max-w-none">
               <div className="absolute inset-10 -z-10 rounded-full bg-primary/10 blur-3xl" />
               <Image
-                src="/hero-image.png"
+                src="/hero-image.webp"
                 alt="KinetiQ interface showing a barbell back squat with muscle involvement and exercise details"
                 width={1448}
                 height={1086}

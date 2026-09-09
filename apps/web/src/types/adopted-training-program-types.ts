@@ -15,6 +15,7 @@ export type ProgramWorkoutOccurrence = {
   weekNumber: number;
   dayNumber: number;
   routineNameSnapshot: string;
+  sourceRoutineSlug: string | null;
   programSlotNotesSnapshot: string | null;
   status: ProgramWorkoutOccurrenceStatus;
   sourceRoutineAvailable: boolean;

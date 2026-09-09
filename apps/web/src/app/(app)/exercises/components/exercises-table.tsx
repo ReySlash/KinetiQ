@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Exercise } from "@/types/exercise-types";
 import ImageWithFallback from "@/components/image-with-fallback";
-import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
+import { AddToRoutineDialog } from "@/app/(app)/exercises/components/add-to-routine-dialog";
 import { MoreLink } from "@/components/more-link";
 import { getLocalImageSrc } from "@/lib/local-image";
 
@@ -31,7 +31,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
 
   return (
     <>
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         {/* Desktop Table */}
         <Table>
           <TableHeader>
@@ -90,7 +90,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
         </Table>
       </div>
 
-      <div className="flex flex-col gap-2 md:hidden">
+      <div className="flex flex-col gap-2 lg:hidden">
         {/* Mobile Table */}
         {exercises.length > 0 ? (
           exercises.map((exercise) => (

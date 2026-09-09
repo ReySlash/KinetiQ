@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { FeatureComingSoon } from "@/components/feature-coming-soon";
+import { FeatureComingSoon } from "@/app/(app)/_components/feature-coming-soon";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

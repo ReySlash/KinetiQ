@@ -1,55 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KinetiQ web application
 
-## Getting Started
+The KinetiQ web application is a Next.js App Router frontend for the fitness
+platform. It provides the public exercise and muscle reference library,
+authenticated routines, training programs, workout recording and history,
+analytics, and the shared responsive application shell.
 
-First, run the development server:
+Route-specific UI lives under `src/app`, shared UI primitives and components
+live under `src/components`, and frontend API clients/types live under `src/lib`
+and `src/types`. Server Components are used for page orchestration where
+appropriate; client components handle interactive forms, queries, and workout
+recording. Frontend code consumes API contracts and does not import Prisma or
+other backend internals.
+
+## Local setup
+
+From the repository root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp apps/web/.env.example apps/web/.env
+pnpm dev:web
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The web application runs at `http://localhost:3001`. The local environment
+expects `NEXT_PUBLIC_API_URL=http://localhost:3000` and
+`NEXT_PUBLIC_SITE_URL=http://localhost:3001`. For a production build,
+`NEXT_PUBLIC_SITE_URL` must be set to the public application URL.
 
-## Frontend testing
+The API must be running separately for authenticated and data-backed pages.
+Start it with `pnpm dev:api` after completing the API setup described in the
+[API README](../api/README.md).
 
-Run the deterministic unit and component suite with Vitest, RTL, and MSW:
+## Development and verification
 
 ```bash
-pnpm test:unit
-pnpm test:coverage
+pnpm --filter web dev
+pnpm --filter web lint
+pnpm --filter web typecheck
+pnpm --filter web build
+```
+
+The root shortcuts `pnpm dev:web`, `pnpm lint:web`, and `pnpm build:web` are
+also available. The production build requires a valid `NEXT_PUBLIC_SITE_URL`.
+
+## Tests
+
+Run the deterministic frontend suites with Vitest, React Testing Library, and
+MSW:
+
+```bash
+pnpm --filter web test:unit
+pnpm --filter web test:coverage
 ```
 
 The browser suites are intentionally separate:
 
 ```bash
-pnpm test:browser:mocked  # Playwright with mocked API responses
-pnpm test:a11y            # Playwright + axe-core
-pnpm test:smoke           # real API smoke tests when credentials are configured
+# Playwright journeys with mocked API responses
+pnpm --filter web test:browser:mocked
+
+# Playwright accessibility checks with axe-core
+pnpm --filter web test:a11y
+
+# Real API smoke tests when credentials are configured
+pnpm --filter web test:smoke
 ```
 
-Set `WEB_SMOKE_EMAIL`, `WEB_SMOKE_PASSWORD`, and `WEB_SMOKE_BASE_URL` for the real API smoke suite. CI runs deterministic suites on every change and only enables real API smoke when its dedicated test database credentials are available.
+The smoke suite uses `WEB_SMOKE_BASE_URL`, `WEB_SMOKE_EMAIL`, and
+`WEB_SMOKE_PASSWORD`. CI runs deterministic suites on changes and enables the
+real API smoke job only when its dedicated secrets and test database are
+available.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Images and local assets
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Local exercise, muscle, and routine-cover assets are served from the public
+directory and consumed through the shared image helpers. Missing images use
+feature-specific fallbacks. The repository-local Sharp utility can report or
+migrate supported raster assets:
 
-## Learn More
+```bash
+pnpm optimize:images
+pnpm optimize:images -- --benchmark
+pnpm optimize:images -- --write
+```
 
-To learn more about Next.js, take a look at the following resources:
+The optimizer is dry-run by default. See the root README and implementation
+plan for deployment, media, and production-environment details.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Further documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Project README](../../README.md)
+- [Frontend architecture](../../docs/implementation-plan/18-frontend-architecture.md)
+- [Implementation plan](../../docs/implementation-plan/README.md)

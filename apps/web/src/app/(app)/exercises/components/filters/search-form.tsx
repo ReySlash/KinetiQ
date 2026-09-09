@@ -3,7 +3,11 @@
 import type { ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type FormSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 
@@ -31,7 +35,10 @@ export function SearchForm(props: SearchFormProps) {
   } = props;
 
   return (
-    <form className="flex gap-2 flex-row w-full md:w-1/2" onSubmit={onSubmit}>
+    <form
+      className="flex min-w-0 w-full flex-row gap-2 md:flex-1 md:w-auto"
+      onSubmit={onSubmit}
+    >
       <div className="flex w-full flex-col gap-1">
         <Input
           aria-label={ariaLabel}
@@ -50,7 +57,7 @@ export function SearchForm(props: SearchFormProps) {
               size="lg"
               type="submit"
               disabled={isPending}
-              className="cursor-pointer !border-primary text-primary hover:!bg-primary hover:!text-black"
+              className="cursor-pointer border-primary! text-primary hover:bg-primary! hover:text-black!"
             />
           }
         >

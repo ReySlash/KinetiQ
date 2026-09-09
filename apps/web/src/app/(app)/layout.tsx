@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { MobileBottomNav } from "@/components/mobile-bottom-nav";
-import { QueryProvider } from "@/components/query-provider";
+import { AppSidebar } from "@/app/(app)/_components/app-sidebar";
+import { MobileBottomNav } from "@/app/(app)/_components/mobile-bottom-nav";
+import { QueryProvider } from "@/app/(app)/_components/query-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteUrl } from "@/lib/site";

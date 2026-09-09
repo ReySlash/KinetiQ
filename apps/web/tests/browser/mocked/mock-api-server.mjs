@@ -34,6 +34,7 @@ function createState(scenario) {
       {
         id: firstOccurrenceId, weekNumber: 1, dayNumber: 1,
         routineNameSnapshot: "Upper A", programSlotNotesSnapshot: "Keep two reps in reserve.",
+        sourceRoutineSlug: scenario === "unavailable" ? null : "upper-a",
         status: completed ? "COMPLETED" : active ? "IN_PROGRESS" : "PENDING",
         sourceRoutineAvailable: scenario !== "unavailable",
         sessionAttemptIds: active || completed ? [workoutSessionId] : [],
@@ -43,6 +44,7 @@ function createState(scenario) {
       ...(occurrenceCount === 2 ? [{
         id: secondOccurrenceId, weekNumber: 2, dayNumber: 1,
         routineNameSnapshot: "Lower A", programSlotNotesSnapshot: null,
+        sourceRoutineSlug: "lower-a",
         status: completed ? "COMPLETED" : "PENDING", sourceRoutineAvailable: true,
         sessionAttemptIds: [], activeSessionId: null, latestSessionId: null,
       }] : []),
@@ -227,6 +229,10 @@ const server = createServer(async (request, response) => {
 
   const scenario = scenarioFor(request);
   const state = stateFor(request);
+  if (request.method === "GET" && url.pathname === "/api/workout-sessions/active") {
+    if (scenario === "dashboard-workout-error") return send(response, 500, { message: "Active workout service unavailable" });
+    return send(response, 200, scenario === "continue" ? workoutDetail(state) : null);
+  }
   if (request.method === "GET" && url.pathname === "/api/analytics/overview") {
     if (scenario === "analytics-loading") await new Promise((resolve) => setTimeout(resolve, 1200));
     if (scenario === "analytics-error") return send(response, 500, { message: "Analytics service unavailable" });
@@ -236,7 +242,7 @@ const server = createServer(async (request, response) => {
     url.pathname === "/api/user-training-programs/active" ||
     url.pathname === `/api/user-training-programs/${programId}`;
   if (scenario === "loading" && isProgramRead) await new Promise((resolve) => setTimeout(resolve, 1200));
-  if (scenario === "error" && isProgramRead) return send(response, 500, { message: "Program service unavailable" });
+  if ((scenario === "error" || scenario === "dashboard-program-error") && isProgramRead) return send(response, 500, { message: "Program service unavailable" });
 
   if (request.method === "GET" && url.pathname === "/api/training-programs/strength-base") {
     return send(response, 200, {

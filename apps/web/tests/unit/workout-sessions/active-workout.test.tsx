@@ -119,4 +119,30 @@ describe("ActiveWorkout", () => {
     await user.click(screen.getByRole("button", { name: /delete set/i }));
     expect(onDeleteSet).toHaveBeenCalledWith("423e4567-e89b-12d3-a456-426614174000");
   });
+
+  it("updates a completed-set load together with its canonical unit", async () => {
+    const user = userEvent.setup();
+    const onUpdateSet = vi.fn();
+    render(
+      <ActiveWorkout
+        session={sessionWithMultipleExercises}
+        onRecordSet={vi.fn()}
+        onUpdateSet={onUpdateSet}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: /incline dumbbell press/i }),
+    );
+    await user.click(screen.getByRole("button", { name: /edit set/i }));
+    const loadInput = screen.getByLabelText("Load (kg)");
+    await user.clear(loadInput);
+    await user.type(loadInput, "32.5");
+    await user.click(screen.getByRole("button", { name: /save set/i }));
+
+    expect(onUpdateSet).toHaveBeenCalledWith(
+      "423e4567-e89b-12d3-a456-426614174000",
+      { load: "32.5", loadUnit: "KG" },
+    );
+  });
 });

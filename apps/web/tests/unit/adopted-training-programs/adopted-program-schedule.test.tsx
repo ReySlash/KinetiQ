@@ -10,6 +10,7 @@ function occurrence(id: string, weekNumber: number, dayNumber: number): ProgramW
     weekNumber,
     dayNumber,
     routineNameSnapshot: `Routine ${id}`,
+    sourceRoutineSlug: `routine-${id}`,
     programSlotNotesSnapshot: null,
     status: "PENDING",
     sourceRoutineAvailable: true,

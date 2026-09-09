@@ -55,7 +55,25 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 
 ### Authenticated routines
 
-- dashboard and routine library
+- dashboard command center composed from existing authenticated reads: the
+  server-rendered route concurrently resolves authentication, active workout,
+  and active adopted-program state, while a focused client component fetches
+  the timezone-dependent one-week analytics overview
+- the dashboard uses a metrics-first hierarchy: greeting, one-week metrics,
+  one compact training-plan card, then recent completed workouts; the header
+  does not duplicate the training-plan actions; metrics align with analytics
+  terminology: Workouts, Volume, Sets, and Reps
+- dashboard actions live in the training-plan card: continuing a workout and
+  opening programs or routine details are navigation-only; starting the next
+  program occurrence uses the existing start command and navigates to the
+  returned workout-session ID; when neither resource is active, the card links
+  to workout creation and program discovery
+- dashboard sections degrade independently with retry controls; an unknown
+  active-workout state never suggests starting another workout; an empty week
+  retains truthful zero-valued metric cards and an empty recent-workouts view
+- dashboard components are route-colocated, one component per file, and reuse
+  installed shadcn primitives without introducing a formal global Atomic Design
+  hierarchy or a dashboard-specific backend endpoint
 - new/edit/detail pages
 - exercise picker, ordered routine exercise cards, prescription fields, duplication/delete dialogs
 

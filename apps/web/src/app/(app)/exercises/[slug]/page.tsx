@@ -9,8 +9,8 @@ import StatsBarChart from "../components/stats-bar-chart";
 import OverviewCard from "../components/overview-card";
 
 import HeroCard from "../../../../components/hero-card";
-import MuscleSCard from "@/components/muscles-card";
-import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
+import MuscleSCard from "@/app/(app)/exercises/components/muscles-card";
+import { AddToRoutineDialog } from "@/app/(app)/exercises/components/add-to-routine-dialog";
 
 export const dynamic = "force-dynamic";
 

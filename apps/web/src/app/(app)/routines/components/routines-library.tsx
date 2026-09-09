@@ -24,6 +24,10 @@ import {
 } from "@/components/ui/table";
 import type { RoutineListItem } from "@/types/routine-types";
 
+import {
+  getRoutineCoverSrc,
+  ROUTINE_IMAGE_FALLBACK,
+} from "@/lib/routine-image";
 import { RoutinesFilters } from "./routines-filters";
 
 function formatDate(value: string) {
@@ -74,7 +78,9 @@ export function RoutinesLibrary({
               </div>
               <div>
                 <p className="font-medium">
-                  {scope === "global" ? "No global routines found" : "No routines yet"}
+                  {scope === "global"
+                    ? "No global routines found"
+                    : "No routines yet"}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {scope === "global"
@@ -98,63 +104,77 @@ export function RoutinesLibrary({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {routines.map((routine) => (
-                    <TableRow key={routine.slug}>
-                      <TableCell>
-                        <ImageWithFallback
-                          className="rounded-xl border"
-                          src="/empty-state-exercises.webp"
-                          alt="Routine cover"
-                          width={70}
-                          height={70}
-                          fallbackSrc="/empty-state-exercises.webp"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{routine.name}</TableCell>
-                      <TableCell>{routine.exerciseCount}</TableCell>
-                      <TableCell>{formatDate(routine.updatedAt)}</TableCell>
-                      <TableCell>
-                        <div className="flex justify-end">
-                          <MoreLink
-                            href={`/routines/${routine.slug}`}
-                            tooltip="Open routine details"
-                            ariaLabel={`Open ${routine.name}`}
+                  {routines.map((routine) => {
+                    const coverSrc = getRoutineCoverSrc(routine.name);
+
+                    return (
+                      <TableRow key={routine.slug}>
+                        <TableCell>
+                          <ImageWithFallback
+                            className="size-17.5 shrink-0 rounded-xl border object-cover"
+                            src={coverSrc ?? ROUTINE_IMAGE_FALLBACK}
+                            alt="Routine cover"
+                            width={70}
+                            height={70}
+                            fallbackSrc={ROUTINE_IMAGE_FALLBACK}
                           />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {routine.name}
+                        </TableCell>
+                        <TableCell>{routine.exerciseCount}</TableCell>
+                        <TableCell>{formatDate(routine.updatedAt)}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <MoreLink
+                              href={`/routines/${routine.slug}`}
+                              tooltip="Open routine details"
+                              ariaLabel={`Open ${routine.name}`}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
 
             <div className="flex flex-col gap-2 md:hidden">
-              {routines.map((routine) => (
-                <Card key={routine.slug} className="w-full py-1">
-                  <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
-                    <ImageWithFallback
-                      className="rounded-xl"
-                      src="/empty-state-exercises.webp"
-                      alt="Routine cover"
-                      width={70}
-                      height={70}
-                      fallbackSrc="/empty-state-exercises.webp"
-                    />
-                    <div className="min-w-0 flex-1 text-center">
-                      <CardTitle className="truncate">{routine.name}</CardTitle>
-                      <CardDescription>
-                        {routine.exerciseCount}{" "}
-                        {routine.exerciseCount === 1 ? "exercise" : "exercises"}
-                      </CardDescription>
-                    </div>
-                    <MoreLink
-                      href={`/routines/${routine.slug}`}
-                      tooltip="Open routine details"
-                      ariaLabel={`Open ${routine.name}`}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
+              {routines.map((routine) => {
+                const coverSrc = getRoutineCoverSrc(routine.name);
+
+                return (
+                  <Card key={routine.slug} className="w-full py-1">
+                    <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
+                      <ImageWithFallback
+                        className="size-17.5 shrink-0 rounded-xl object-cover"
+                        src={coverSrc ?? ROUTINE_IMAGE_FALLBACK}
+                        alt="Routine cover"
+                        width={70}
+                        height={70}
+                        fallbackSrc={ROUTINE_IMAGE_FALLBACK}
+                      />
+                      <div className="min-w-0 flex-1 text-center">
+                        <CardTitle className="truncate">
+                          {routine.name}
+                        </CardTitle>
+                        <CardDescription>
+                          {routine.exerciseCount}{" "}
+                          {routine.exerciseCount === 1
+                            ? "exercise"
+                            : "exercises"}
+                        </CardDescription>
+                      </div>
+                      <MoreLink
+                        href={`/routines/${routine.slug}`}
+                        tooltip="Open routine details"
+                        ariaLabel={`Open ${routine.name}`}
+                      />
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}
@@ -164,11 +184,7 @@ export function RoutinesLibrary({
           <Tooltip>
             <TooltipTrigger
               render={
-                <StyledLink
-                  href="/routines/new"
-                  size="lg"
-                  className="w-auto"
-                />
+                <StyledLink href="/routines/new" size="lg" className="w-auto" />
               }
             >
               <Plus data-icon="inline-start" />

@@ -20,15 +20,15 @@ export function WorkoutSessionSummary({
   );
   const isCompleted = session.status === "COMPLETED";
   return (
-    <div className="mx-auto grid max-w-3xl gap-3 p-2 md:p-4">
+    <div className="mx-auto grid gap-3 p-1 md:p-0">
       <WorkoutProgramContextCard provenance={session.provenance} />
-      <Card className="border-border/70 bg-card/80">
-        <CardHeader className="items-center text-center">
-          <div className="flex size-12 justify-self-center items-center justify-center rounded-full border border-primary text-primary">
+      <Card className="gap-2 border-border/70 bg-card/80">
+        <CardHeader className="items-center justify-items-center gap-1 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full border border-primary/60 bg-primary/10 text-primary">
             {isCompleted ? (
-              <Check className="size-7" strokeWidth={3} />
+              <Check className="size-5" strokeWidth={3} />
             ) : (
-              <X className="size-7" strokeWidth={2.5} />
+              <X className="size-5" strokeWidth={3} />
             )}
           </div>
           <CardTitle>
@@ -38,18 +38,18 @@ export function WorkoutSessionSummary({
             {session.sourceRoutineNameSnapshot ?? "Freestyle workout"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-border/70 p-3">
+        <CardContent className="flex flex-wrap justify-center gap-2">
+          <div className="min-w-24 rounded-xl border border-border/70 p-3">
             <p className="text-xs text-muted-foreground">Exercises</p>
             <p className="mt-1 text-xl font-semibold">
               {session.performances.length}
             </p>
           </div>
-          <div className="rounded-xl border border-border/70 p-3">
+          <div className="min-w-24 rounded-xl border border-border/70 p-3">
             <p className="text-xs text-muted-foreground">Sets</p>
             <p className="mt-1 text-xl font-semibold">{completedSets}</p>
           </div>
-          <div className="rounded-xl border border-border/70 p-3">
+          <div className="min-w-24 rounded-xl border border-border/70 p-3">
             <p className="text-xs text-muted-foreground">Started</p>
             <p className="mt-1 text-sm font-medium">
               {new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(
@@ -78,7 +78,10 @@ export function WorkoutSessionSummary({
                 </p>
                 <span className="flex items-center gap-2 text-sm text-muted-foreground">
                   {performance.completedSets.length} sets
-                  <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                  <ChevronDown
+                    className="size-4 transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  />
                 </span>
               </summary>
               <div className="grid gap-2 border-t border-border/70 px-3 py-3">
@@ -93,8 +96,11 @@ export function WorkoutSessionSummary({
                         {completedSet.isWarmup ? " · Warm-up" : ""}
                       </span>
                       <span>
-                        {completedSet.repetitions} reps · {completedSet.loadKg} {completedSet.loadUnit}
-                        {completedSet.rir !== null ? ` · RIR ${completedSet.rir}` : ""}
+                        {completedSet.repetitions} reps · {completedSet.loadKg}{" "}
+                        {completedSet.loadUnit}
+                        {completedSet.rir !== null
+                          ? ` · RIR ${completedSet.rir}`
+                          : ""}
                       </span>
                     </div>
                   ))
