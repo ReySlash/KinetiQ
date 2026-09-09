@@ -2,6 +2,10 @@
 
 import { History } from "lucide-react";
 import ImageWithFallback from "@/components/image-with-fallback";
+import {
+  getRoutineCoverSrc,
+  ROUTINE_IMAGE_FALLBACK,
+} from "@/lib/routine-image";
 import { MoreLink } from "@/components/more-link";
 import type { RoutineListItem } from "@/types/routine-types";
 import type { WorkoutSessionListItem } from "@/types/workout-session-types";
@@ -47,6 +51,16 @@ function sessionBadgeClassName(status: WorkoutSessionListItem["status"]) {
   }
 
   return "border-primary/30 bg-primary/15 text-primary";
+}
+
+function getWorkoutCoverSrc(session: WorkoutSessionListItem) {
+  const routineName =
+    session.sourceRoutineNameSnapshot ??
+    session.provenance.programRoutineNameSnapshot;
+
+  return routineName
+    ? (getRoutineCoverSrc(routineName) ?? ROUTINE_IMAGE_FALLBACK)
+    : ROUTINE_IMAGE_FALLBACK;
 }
 
 export function WorkoutSessionsLibrary({
@@ -98,12 +112,12 @@ export function WorkoutSessionsLibrary({
                     <TableRow key={session.id}>
                       <TableCell>
                         <ImageWithFallback
-                          className="rounded-xl border"
-                          src="/empty-state-exercises.webp"
+                          className="size-[70px] shrink-0 rounded-xl border object-cover"
+                          src={getWorkoutCoverSrc(session)}
                           alt="Workout cover"
                           width={70}
                           height={70}
-                          fallbackSrc="/empty-state-exercises.webp"
+                          fallbackSrc={ROUTINE_IMAGE_FALLBACK}
                         />
                       </TableCell>
                       <TableCell>
@@ -148,12 +162,12 @@ export function WorkoutSessionsLibrary({
                 >
                   <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
                     <ImageWithFallback
-                      className="rounded-xl"
-                      src="/empty-state-exercises.webp"
+                      className="size-[70px] shrink-0 rounded-xl object-cover"
+                      src={getWorkoutCoverSrc(session)}
                       alt="Workout cover"
                       width={70}
                       height={70}
-                      fallbackSrc="/empty-state-exercises.webp"
+                      fallbackSrc={ROUTINE_IMAGE_FALLBACK}
                     />
                     <div className="min-w-0 flex-1 text-center">
                       <CardTitle className="truncate">

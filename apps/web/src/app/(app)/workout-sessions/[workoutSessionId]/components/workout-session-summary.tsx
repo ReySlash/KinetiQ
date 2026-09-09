@@ -1,4 +1,9 @@
 import { Check, ChevronDown, X } from "lucide-react";
+import ImageWithFallback from "@/components/image-with-fallback";
+import {
+  getRoutineCoverSrc,
+  ROUTINE_IMAGE_FALLBACK,
+} from "@/lib/routine-image";
 import {
   Card,
   CardContent,
@@ -19,17 +24,33 @@ export function WorkoutSessionSummary({
     0,
   );
   const isCompleted = session.status === "COMPLETED";
+  const routineName =
+    session.sourceRoutineNameSnapshot ??
+    session.provenance.programRoutineNameSnapshot;
+  const coverSrc = routineName
+    ? (getRoutineCoverSrc(routineName) ?? ROUTINE_IMAGE_FALLBACK)
+    : ROUTINE_IMAGE_FALLBACK;
   return (
     <div className="mx-auto grid max-w-3xl gap-3 p-2 md:p-4">
       <WorkoutProgramContextCard provenance={session.provenance} />
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="items-center text-center">
-          <div className="flex size-12 justify-self-center items-center justify-center rounded-full border border-primary text-primary">
-            {isCompleted ? (
-              <Check className="size-7" strokeWidth={3} />
-            ) : (
-              <X className="size-7" strokeWidth={2.5} />
-            )}
+          <div className="flex items-center gap-3">
+            <ImageWithFallback
+              className="size-16 rounded-xl border object-cover"
+              src={coverSrc}
+              alt="Workout cover"
+              width={64}
+              height={64}
+              fallbackSrc={ROUTINE_IMAGE_FALLBACK}
+            />
+            <div className="flex size-12 items-center justify-center rounded-full border border-primary text-primary">
+              {isCompleted ? (
+                <Check className="size-7" strokeWidth={3} />
+              ) : (
+                <X className="size-7" strokeWidth={2.5} />
+              )}
+            </div>
           </div>
           <CardTitle>
             {isCompleted ? "Great work!" : "Workout cancelled"}

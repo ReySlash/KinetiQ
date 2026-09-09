@@ -6,7 +6,6 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { BookOpen, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { MouseEvent } from "react";
 
 import { createRoutine, updateRoutine } from "@/lib/routines-api";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ import { PageHeader } from "@/components/page-header";
 import StyledLink from "@/components/styled-link";
 import type { RoutineCreateInput, RoutineDetail } from "@/types/routine-types";
 import Link from "next/link";
+import { RoutineExercisePicker } from "./routine-exercise-picker";
 
 const optionalInteger = (min: number, max: number) =>
   z.preprocess(
@@ -145,28 +145,6 @@ export function RoutineBuilder({
       routine ? updateRoutine(routine.slug, input) : createRoutine(input),
   });
 
-  async function handleBrowseExercises(event: MouseEvent<HTMLAnchorElement>) {
-    if (routine) return;
-
-    const name = form.getValues("name").trim();
-    if (!name) return;
-
-    event.preventDefault();
-    const isValidName = await form.trigger("name");
-    if (!isValidName) return;
-
-    const description = form.getValues("description")?.trim() || null;
-    mutation.mutate(
-      { name, description, exercises: [] },
-      {
-        onSuccess: async () => {
-          await queryClient.invalidateQueries({ queryKey: ["routines"] });
-          router.push("/exercises");
-        },
-      },
-    );
-  }
-
   function onSubmit(values: FormValues) {
     mutation.mutate(
       {
@@ -187,6 +165,19 @@ export function RoutineBuilder({
         },
       },
     );
+  }
+
+  function addExercise(exerciseSlug: string) {
+    fields.append({
+      exerciseSlug,
+      sets: "",
+      minReps: "",
+      maxReps: "",
+      targetRir: null,
+      restSeconds: null,
+      tempo: "",
+      notes: "",
+    });
   }
 
   return (
@@ -264,27 +255,22 @@ export function RoutineBuilder({
                 <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-8 text-center">
                   <BookOpen className="size-6 text-primary" />
                   <p className="text-sm text-muted-foreground">
-                    Browse the exercise library to choose an exercise for this
-                    routine.
+                    Add exercises to build the prescription for this routine.
                   </p>
-                  <StyledLink
-                    href="/exercises"
-                    variant="outline"
-                    onClick={handleBrowseExercises}
-                  >
-                    {mutation.isPending
-                      ? "Saving routine…"
-                      : "Browse exercises"}
-                  </StyledLink>
+                  <RoutineExercisePicker
+                    selectedExerciseSlugs={[]}
+                    className="self-center md:self-end"
+                    onAddExercise={(exercise) => addExercise(exercise.slug)}
+                  />
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {fields.fields.map((field, index) => (
                     <div
                       key={field.id}
-                      className="rounded-2xl border border-border/70 bg-background/30 p-4"
+                      className="rounded-2xl border border-border/70 bg-background/30 p-3"
                     >
-                      <div className="mb-4 flex items-start justify-between gap-3">
+                      <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
                           <p className="font-medium">{field.exerciseSlug}</p>
                           <p className="text-xs text-muted-foreground">
@@ -301,7 +287,7 @@ export function RoutineBuilder({
                           <Trash2 className="text-destructive" />
                         </Button>
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-4">
+                      <div className="grid gap-2 sm:grid-cols-4">
                         <PrescriptionField
                           label="Sets"
                           id={`sets-${index}`}
@@ -361,7 +347,7 @@ export function RoutineBuilder({
                           />
                         </PrescriptionField>
                       </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <div className="mt-2 grid gap-2 sm:grid-cols-3">
                         <PrescriptionField
                           label="Rest seconds"
                           id={`rest-${index}`}
@@ -407,6 +393,14 @@ export function RoutineBuilder({
                       </div>
                     </div>
                   ))}
+                  <div className="flex justify-center md:justify-end">
+                    <RoutineExercisePicker
+                      selectedExerciseSlugs={fields.fields.map(
+                        (field) => field.exerciseSlug,
+                      )}
+                      onAddExercise={(exercise) => addExercise(exercise.slug)}
+                    />
+                  </div>
                 </div>
               )}
             </CardContent>
