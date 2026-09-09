@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 const programId = "123e4567-e89b-12d3-a456-426614174000";
 
@@ -12,6 +12,24 @@ async function useScenario(
   ]);
 }
 
+async function gotoAfterTransientAbort(page: Page, path: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await page.goto(path);
+    } catch (error) {
+      if (
+        !(error instanceof Error) ||
+        !error.message.includes("net::ERR_ABORTED") ||
+        attempt === 2
+      ) {
+        throw error;
+      }
+
+      await page.waitForTimeout(100);
+    }
+  }
+}
+
 test.describe("mocked adopted training program journey", () => {
   test("provides route-level loading, empty, and error contracts", async ({ page, context }) => {
     await useScenario(context, "loading");
@@ -20,13 +38,13 @@ test.describe("mocked adopted training program journey", () => {
     await navigation;
 
     await useScenario(context, "empty");
-    await page.goto("/training-programs/active");
+    await gotoAfterTransientAbort(page, "/training-programs/active");
     await expect(
       page.getByText("No active program", { exact: true }).first(),
     ).toBeVisible();
 
     await useScenario(context, "error");
-    await page.goto("/training-programs/active");
+    await gotoAfterTransientAbort(page, "/training-programs/active");
     await expect(page.getByText("Active program unavailable", { exact: true })).toBeVisible();
 
     await useScenario(context, "loading");
@@ -35,7 +53,7 @@ test.describe("mocked adopted training program journey", () => {
     await detailNavigation;
 
     await useScenario(context, "error");
-    await page.goto(`/training-programs/adopted/${programId}`);
+    await gotoAfterTransientAbort(page, `/training-programs/adopted/${programId}`);
     await expect(page.getByText("Program unavailable", { exact: true })).toBeVisible();
   });
 

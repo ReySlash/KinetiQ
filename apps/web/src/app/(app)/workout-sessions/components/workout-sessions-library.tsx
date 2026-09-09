@@ -112,7 +112,7 @@ export function WorkoutSessionsLibrary({
                     <TableRow key={session.id}>
                       <TableCell>
                         <ImageWithFallback
-                          className="size-[70px] shrink-0 rounded-xl border object-cover"
+                          className="size-17.5 shrink-0 rounded-xl border object-cover"
                           src={getWorkoutCoverSrc(session)}
                           alt="Workout cover"
                           width={70}
@@ -162,7 +162,7 @@ export function WorkoutSessionsLibrary({
                 >
                   <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
                     <ImageWithFallback
-                      className="size-[70px] shrink-0 rounded-xl object-cover"
+                      className="size-17.5 shrink-0 rounded-xl object-cover"
                       src={getWorkoutCoverSrc(session)}
                       alt="Workout cover"
                       width={70}
