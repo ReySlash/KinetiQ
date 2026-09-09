@@ -10,5 +10,5 @@ export function getLocalImageSrc(
     "muscle-groups": "Muscle-groups",
   };
 
-  return `/temp/${folderByFeature[feature]}/${slug}.png`;
+  return `/temp/${folderByFeature[feature]}/${slug}.webp`;
 }

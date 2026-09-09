@@ -18,6 +18,11 @@
     "test:api": "pnpm --filter api test",
     "test:api:e2e": "pnpm --filter api test:e2e",
     "test:api:mutation": "pnpm --filter api test:mutation",
+    "test:images": "node --test scripts/optimize-images.test.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "format": "pnpm -r format"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
   }
 }
