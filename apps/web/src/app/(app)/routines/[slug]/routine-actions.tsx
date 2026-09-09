@@ -5,7 +5,7 @@ import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AuthRequiredDialog } from "@/components/auth-required-dialog";
+import { AuthRequiredDialog } from "@/app/(auth)/components/auth-required-dialog";
 import StyledLink from "@/components/styled-link";
 import { Button } from "@/components/ui/button";
 import {

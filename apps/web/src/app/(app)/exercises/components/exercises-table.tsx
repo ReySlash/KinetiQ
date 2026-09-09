@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Exercise } from "@/types/exercise-types";
 import ImageWithFallback from "@/components/image-with-fallback";
-import { AddToRoutineDialog } from "@/components/add-to-routine-dialog";
+import { AddToRoutineDialog } from "@/app/(app)/exercises/components/add-to-routine-dialog";
 import { MoreLink } from "@/components/more-link";
 import { getLocalImageSrc } from "@/lib/local-image";
 

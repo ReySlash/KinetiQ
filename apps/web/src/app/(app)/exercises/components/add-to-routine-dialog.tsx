@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, LoaderCircle } from "lucide-react";
 
@@ -20,8 +19,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Card, CardContent } from "@/components/ui/card";
-import type { RoutineListItem } from "@/types/routine-types";
+import StyledLink from "@/components/styled-link";
+import { RoutineChoice } from "./routine-choice";
 
 type AddToRoutineDialogProps = {
   exerciseSlug: string;
@@ -32,6 +31,7 @@ type AddToRoutineDialogProps = {
 export function AddToRoutineDialog({
   exerciseSlug,
   exerciseName,
+  triggerSize = "lg",
 }: AddToRoutineDialogProps) {
   const routines = useQuery({
     queryKey: ["routines", "picker"],
@@ -54,8 +54,8 @@ export function AddToRoutineDialog({
               render={
                 <Button
                   variant="outline"
-                  size="lg"
-                  className="h-10 cursor-pointer !border-primary/50 bg-primary/5 text-primary hover:!border-primary hover:!bg-primary hover:!text-black"
+                  size={triggerSize}
+                  className="h-10 cursor-pointer border-primary/50! bg-primary/5 text-primary hover:border-primary! hover:bg-primary! hover:text-black!"
                 />
               }
             />
@@ -101,53 +101,15 @@ export function AddToRoutineDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            nativeButton={false}
+          <StyledLink
+            href={`/routines/new?exerciseSlug=${encodeURIComponent(exerciseSlug)}`}
             variant="outline"
-            render={
-              <Link
-                href={`/routines/new?exerciseSlug=${encodeURIComponent(exerciseSlug)}`}
-              />
-            }
           >
             <Plus />
             Create new routine
-          </Button>
+          </StyledLink>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function RoutineChoice({
-  routine,
-  exerciseSlug,
-}: {
-  routine: RoutineListItem;
-  exerciseSlug: string;
-}) {
-  return (
-    <Card className="transition-colors hover:border-primary/50">
-      <CardContent className="flex items-center justify-between gap-3 p-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{routine.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {routine.exerciseCount}{" "}
-            {routine.exerciseCount === 1 ? "exercise" : "exercises"}
-          </p>
-        </div>
-        <Button
-          nativeButton={false}
-          size="sm"
-          render={
-            <Link
-              href={`/routines/${routine.slug}/edit?exerciseSlug=${encodeURIComponent(exerciseSlug)}`}
-            />
-          }
-        >
-          Open builder
-        </Button>
-      </CardContent>
-    </Card>
   );
 }

@@ -5,7 +5,7 @@ import { Dumbbell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AuthRequiredDialog } from "@/components/auth-required-dialog";
+import { AuthRequiredDialog } from "@/app/(auth)/components/auth-required-dialog";
 import StyledLink from "@/components/styled-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {

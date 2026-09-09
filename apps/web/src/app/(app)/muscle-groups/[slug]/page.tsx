@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import MuscleGroupOverviewCard from "../muscle-group-overview-card";
 import HeroCard from "@/components/hero-card";
-import MuscleSCard from "@/components/muscles-card";
+import MuscleSCard from "@/app/(app)/exercises/components/muscles-card";
 
 export const dynamic = "force-dynamic";
 

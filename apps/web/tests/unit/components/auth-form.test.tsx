@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthForm } from "@/components/auth-form";
+import { AuthForm } from "@/app/(auth)/components/auth-form";
 import { authApi } from "@/lib/auth-api";
 
 const replace = vi.fn();

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { navigationItems } from "@/components/side-nav";
+import { navigationItems } from "@/app/(app)/_components/side-nav";
 import { cn } from "@/lib/utils";
 
 function getNavigationItem(href: (typeof navigationItems)[number]["href"]) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mobileNavigationItems } from "@/components/mobile-bottom-nav";
+import { mobileNavigationItems } from "@/app/(app)/_components/mobile-bottom-nav";
 
 describe("mobile bottom navigation", () => {
   it("prioritizes the core training journey in display order", () => {
