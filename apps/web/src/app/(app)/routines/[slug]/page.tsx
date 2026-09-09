@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MoreLink } from "@/components/more-link";
+import ImageWithFallback from "@/components/image-with-fallback";
 import { PageHeader } from "@/components/page-header";
 import {
   Card,
@@ -13,6 +14,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { fetchRoutine } from "@/lib/routines-server";
+import {
+  getRoutineCoverSrc,
+  ROUTINE_IMAGE_FALLBACK,
+} from "@/lib/routine-image";
 
 import { RoutineActions } from "./routine-actions";
 
@@ -71,11 +76,21 @@ export default async function RoutineDetailsPage({
       <section className="min-h-0 flex-1 overflow-y-auto rounded-lg md:rounded-2xl">
         <div className="flex flex-col gap-2">
           <Card className="border border-border/70">
-            <CardHeader>
-              <CardTitle>{routine.name}</CardTitle>
-              <CardDescription>
-                {routine.description || "No description yet."}
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start gap-4">
+              <ImageWithFallback
+                className="size-20 shrink-0 rounded-xl border object-cover"
+                src={getRoutineCoverSrc(routine.name) ?? ROUTINE_IMAGE_FALLBACK}
+                alt="Routine cover"
+                width={80}
+                height={80}
+                fallbackSrc={ROUTINE_IMAGE_FALLBACK}
+              />
+              <div className="min-w-0 space-y-1">
+                <CardTitle>{routine.name}</CardTitle>
+                <CardDescription>
+                  {routine.description || "No description yet."}
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
