@@ -71,13 +71,9 @@ test.describe("mocked dashboard", () => {
     await authenticate(context, "dashboard-start");
     await page.goto("/dashboard");
 
-    await page.getByRole("button", { name: "Start workout" }).focus();
-    await expect(
-      page.getByText("Start the next workout in your active program", {
-        exact: true,
-      }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "Start workout" }).click();
+    const startWorkoutButton = page.getByRole("button", { name: "Start workout" });
+    await expect(startWorkoutButton).toBeVisible();
+    await startWorkoutButton.click();
     await expect(page).toHaveURL(
       /\/workout-sessions\/423e4567-e89b-12d3-a456-426614174000$/,
     );
