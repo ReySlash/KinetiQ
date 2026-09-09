@@ -71,7 +71,7 @@ test.describe("mocked dashboard", () => {
     await authenticate(context, "dashboard-start");
     await page.goto("/dashboard");
 
-    await page.getByRole("button", { name: "Start workout" }).hover();
+    await page.getByRole("button", { name: "Start workout" }).focus();
     await expect(
       page.getByText("Start the next workout in your active program", {
         exact: true,

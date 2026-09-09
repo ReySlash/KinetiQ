@@ -149,7 +149,10 @@ export function TrainingPlanCard({
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Progress value={activeProgram.progressPercent}>
+            <Progress
+              aria-label="Program progress"
+              value={activeProgram.progressPercent}
+            >
               <ProgressLabel>Program progress</ProgressLabel>
               <span className="ml-auto text-sm text-muted-foreground tabular-nums">
                 {Math.round(activeProgram.progressPercent)}%
