@@ -62,7 +62,10 @@ The MVP includes seeded, read-only muscle data; admin-managed global exercises; 
 
 The MVP explicitly excludes image uploads and image-management workflows, named weekdays, scheduled calendar dates, calendar synchronization, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
 
-## Recommended implementation order
+## Historical implementation order
+
+This is the sequence used to build the current slices. The live status table
+above is authoritative for what is implemented and what remains before release.
 
 1. Establish the monorepo, local Docker services, API/web shells, CI, configuration validation, and test databases.
 2. Add Prisma, migrations, seeded muscles, and read-only muscle API/UI.
@@ -71,11 +74,12 @@ The MVP explicitly excludes image uploads and image-management workflows, named 
 5. Integrate Better Auth and protect admin exercise mutations.
 6. Add owned routines and prescriptions, including duplication and ordering.
 7. Harden accessibility, security, observability, backups, and deployment; run the MVP acceptance suite.
-8. Implement reusable training-program templates and relative schedules.
-9. Implement WorkoutSession performance records.
-10. Integrate adopted-program execution and program-origin workout history.
-11. Add the first explainable analytics queries within the MVP boundary.
-12. After MVP, add Cloudinary image asset management and upload workflows.
+8. Implement reusable training-program templates and relative schedules. *(Implemented.)*
+9. Implement WorkoutSession performance records. *(Implemented.)*
+10. Integrate adopted-program execution and program-origin workout history. *(Implemented.)*
+11. Add the first explainable analytics queries within the MVP boundary. *(Implemented.)*
+12. Complete production acceptance and hardening before adding later-stage features.
+13. After MVP, add Cloudinary image asset management and upload workflows.
 
 Authentication is integrated after public reference-library slices so early work stays small. Before production data exists, admin mutation endpoints must be protected; no insecure production staging period is acceptable.
 

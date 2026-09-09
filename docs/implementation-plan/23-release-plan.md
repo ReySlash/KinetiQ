@@ -77,9 +77,14 @@ This work may begin earlier and must be complete before any shared environment e
 
 **Deliver:** production images/Compose/Nginx/Certbot, chosen PostgreSQL/object storage, full CI gates, security headers/rate limits, structured logs/alerts, backups, runbooks, restoration and rollback rehearsal.
 
-**Acceptance:** production-like deploy/smoke, two-user security suite, admin exercise lifecycle, routine lifecycle, HTTPS renewal test, off-host backup and isolated restore meet RPO/RTO. This establishes the production baseline; the current MVP product target continues through adopted-program execution.
+**Acceptance:** production-like deploy/smoke, two-user security suite, admin exercise lifecycle, routine lifecycle, HTTPS renewal test, off-host backup and isolated restore meet RPO/RTO. This establishes the production baseline; the current MVP product target continues through the implemented adopted-program and basic analytics slices.
 
-## Current-target and later releases after the production baseline
+## Historical roadmap after the production baseline
+
+The following releases describe the sequence in which the current MVP slices
+were planned. R10–R13 are now implemented in code; their remaining work is
+production acceptance and operational hardening, as reflected in the status
+table below.
 
 - **R10:** reusable training-program templates and relative weekly schedules
 - **R11:** standalone Phase 8 routine/freestyle session persistence, lifecycle,
@@ -92,9 +97,13 @@ This work may begin earlier and must be complete before any shared environment e
 - **R16:** recovery check-ins and fatigue-context experiments
 - **R17+:** exercise relationships, general athletic qualities, sport mappings, coach/athlete discovery as separately validated slices
 
-## Explicit non-goals through R9
+## Remaining product non-goals
 
-No image uploads, image-management workflows, workout-performance tracking, training-program calendar, advanced analytics, recommendations, recovery/fatigue check-ins, AI, nutrition, payments, coach organizations, social features, sport-specific transfer, user-created exercises, or multiple media assets.
+No image uploads, image-management workflows, training-program calendar,
+calendar synchronization, advanced analytics, progression recommendations,
+recovery/fatigue check-ins, AI, nutrition, payments, coach organizations,
+social features, sport-specific transfer, user-created exercises, or multiple
+media assets.
 
 ## Recommended next implementation task
 
