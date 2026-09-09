@@ -109,7 +109,9 @@ test.describe("mocked dashboard", () => {
     await expect(
       page.getByRole("region", { name: "This week" }).getByText("Workouts", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("Training plan", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Next workout in your program", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText("Recent workouts", { exact: true })).toBeVisible();
     await expect(
       page.getByText("No completed workouts this week.", { exact: true }),

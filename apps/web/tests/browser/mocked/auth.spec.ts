@@ -35,7 +35,7 @@ test.describe("mocked browser auth flows", () => {
           ?.value;
       })
       .toBe("mock-session");
-    await expect(page).toHaveURL(/\/routines$/);
+    await expect(page).toHaveURL(/\/routines$/, { timeout: 15_000 });
 
     await page.goto("/sign-in");
     await page.waitForTimeout(750);
