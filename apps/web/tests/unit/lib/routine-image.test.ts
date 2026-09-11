@@ -13,11 +13,13 @@ describe("routine image helpers", () => {
     expect(getRoutineCoverSrc("PUSH")).toBe(
       "/temp/Covers/push.webp?v=2",
     );
+    expect(getRoutineCoverSrc("Upper Body")).toBe(
+      "/temp/Covers/upper-body.webp?v=2",
+    );
   });
 
   it("does not use keyword or unsupported-name matches", () => {
     expect(getRoutineCoverSrc("Push Day")).toBeNull();
-    expect(getRoutineCoverSrc("Upper Body")).toBeNull();
   });
 
   it("exposes the existing fallback image", () => {

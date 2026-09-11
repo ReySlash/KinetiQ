@@ -8,6 +8,7 @@ const routineCoverSlugs = new Set([
   "pull",
   "push",
   "lower-body",
+  "upper-body",
 ]);
 
 export const ROUTINE_IMAGE_FALLBACK = "/empty-state-exercises.webp";
