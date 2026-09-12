@@ -42,7 +42,7 @@ export default function MuscleSCard(props: MuscleSCardProps) {
                     alt={m.imageAltText ?? "Not image description found."}
                     width={70}
                     height={70}
-                    fallbackSrc="/empty-state-muscles.webp"
+                    fallbackSrc="/assets/empty-state-muscles.webp"
                   />
                 </TableCell>
                 <TableCell className="text-wrap whitespace-normal">

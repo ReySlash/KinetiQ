@@ -38,4 +38,18 @@ describe('HealthService', () => {
       ServiceUnavailableException,
     );
   });
+
+  it('times out a database check that does not return promptly', async () => {
+    jest.useFakeTimers();
+    const prisma: HealthDatabase = {
+      $queryRaw: jest.fn().mockReturnValue(new Promise(() => undefined)),
+    };
+    const service = new HealthService(prisma);
+    const result = service.checkReadiness();
+
+    jest.advanceTimersByTime(2_000);
+
+    await expect(result).rejects.toBeInstanceOf(ServiceUnavailableException);
+    jest.useRealTimers();
+  });
 });

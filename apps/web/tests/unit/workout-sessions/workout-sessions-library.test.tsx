@@ -63,10 +63,10 @@ describe("WorkoutSessionsLibrary workout covers", () => {
 
     expect(images).toHaveLength(4);
     expect(
-      sources.filter((source) => source.includes("/temp/Covers/push.webp?v=2")),
+      sources.filter((source) => source.includes("/assets/Covers/push.webp?v=2")),
     ).toHaveLength(2);
     expect(
-      sources.filter((source) => source.includes("/empty-state-exercises.webp")),
+      sources.filter((source) => source.includes("/assets/empty-state-exercises.webp")),
     ).toHaveLength(2);
   });
 });

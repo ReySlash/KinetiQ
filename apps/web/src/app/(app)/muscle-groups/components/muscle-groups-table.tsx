@@ -76,7 +76,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                       }
                       width={70}
                       height={70}
-                      fallbackSrc="/empty-state-muscles.webp"
+                      fallbackSrc="/assets/empty-state-muscles.webp"
                     />
                   </TableCell>
                   <TableCell>{muscleGroup.name}</TableCell>
@@ -119,7 +119,7 @@ export function MuscleGroupsTable(props: MuscleGroupsTableProps) {
                   alt={muscleGroup.imageAltText ?? "Event cover"}
                   width={70}
                   height={70}
-                  fallbackSrc="/empty-state-muscles.webp"
+                  fallbackSrc="/assets/empty-state-muscles.webp"
                 />
 
                 <div>

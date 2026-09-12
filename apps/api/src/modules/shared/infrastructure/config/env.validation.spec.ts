@@ -52,6 +52,8 @@ describe('validateEnv', () => {
         BETTER_AUTH_SECRET: 'a'.repeat(32),
         BETTER_AUTH_URL: 'http://api.example.com',
         WEB_ORIGIN: 'https://app.example.com',
+        RESEND_API_KEY: 're_test_key',
+        RESEND_FROM_EMAIL: 'KinetiQ <noreply@example.com>',
       }),
     ).toThrow('BETTER_AUTH_URL must use HTTPS in production.');
 
@@ -62,8 +64,22 @@ describe('validateEnv', () => {
         BETTER_AUTH_SECRET: 'a'.repeat(32),
         BETTER_AUTH_URL: 'https://api.example.com',
         WEB_ORIGIN: 'http://app.example.com',
+        RESEND_API_KEY: 're_test_key',
+        RESEND_FROM_EMAIL: 'KinetiQ <noreply@example.com>',
       }),
     ).toThrow('WEB_ORIGIN must use HTTPS in production.');
+  });
+
+  it('requires email delivery configuration in production', () => {
+    expect(() =>
+      validateEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://db',
+        BETTER_AUTH_SECRET: 'a'.repeat(32),
+        BETTER_AUTH_URL: 'https://api.example.com',
+        WEB_ORIGIN: 'https://app.example.com',
+      }),
+    ).toThrow('RESEND_API_KEY is required in production.');
   });
 
   it('accepts complete secure production auth configuration', () => {
@@ -74,6 +90,8 @@ describe('validateEnv', () => {
         BETTER_AUTH_SECRET: 'a'.repeat(32),
         BETTER_AUTH_URL: 'https://api.example.com',
         WEB_ORIGIN: 'https://app.example.com',
+        RESEND_API_KEY: 're_test_key',
+        RESEND_FROM_EMAIL: 'KinetiQ <noreply@example.com>',
       }),
     ).toMatchObject({
       NODE_ENV: 'production',

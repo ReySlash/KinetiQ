@@ -53,7 +53,7 @@ export default async function ExerciseDetailsPage(props: {
                 getLocalImageSrc("exercises", exerciseDetails.slug)
               }
               imageAltText={exerciseDetails.imageAltText}
-              fallbackSrc="/empty-state-exercises.webp"
+              fallbackSrc="/assets/empty-state-exercises.webp"
             />
 
             <StatsBarChart
@@ -92,7 +92,7 @@ export default async function ExerciseDetailsPage(props: {
               getLocalImageSrc("exercises", exerciseDetails.slug)
             }
             imageAltText={exerciseDetails.imageAltText}
-            fallbackSrc="/empty-state-exercises.webp"
+            fallbackSrc="/assets/empty-state-exercises.webp"
           />
 
           <OverviewCard
