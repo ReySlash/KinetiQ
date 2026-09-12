@@ -28,6 +28,18 @@ jobs:
       - name: Run image optimization tests
         run: pnpm test:images
 
+  production-images:
+    needs: image-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API production image
+        run: docker build --file apps/api/Dockerfile --build-arg COMMIT_SHA=${{ github.sha }} --tag kinetiq-api:${{ github.sha }} .
+      - name: Build web production image
+        run: docker build --file apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com --build-arg NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com --tag kinetiq-web:${{ github.sha }} .
+
   verify:
     runs-on: ubuntu-latest
 

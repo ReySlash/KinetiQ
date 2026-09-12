@@ -1,23 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   images: {
     localPatterns: [
       {
-        pathname: "/empty-state-*.webp",
+        pathname: "/assets/**",
         search: "",
       },
       {
-        pathname: "/hero-image.webp",
-        search: "",
-      },
-      {
-        pathname: "/temp/**",
-        search: "",
-      },
-      {
-        pathname: "/temp/Covers/**",
+        pathname: "/assets/Covers/**",
         search: "?v=2",
       },
     ],

@@ -17,8 +17,18 @@ export class HealthService {
   constructor(@Inject(PrismaService) private readonly prisma: HealthDatabase) {}
 
   async checkReadiness() {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
+      await Promise.race([
+        this.prisma.$queryRaw`SELECT 1`,
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error('database readiness timeout')),
+            2_000,
+          );
+        }),
+      ]);
 
       return {
         status: 'ok' as const,
@@ -29,6 +39,10 @@ export class HealthService {
         status: 'error',
         database: 'down',
       });
+    } finally {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     }
   }
 }

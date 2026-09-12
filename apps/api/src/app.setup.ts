@@ -3,8 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import type { NextFunction, Request, Response } from 'express';
+import { randomUUID } from 'node:crypto';
 import { PrismaService } from './modules/shared/infrastructure/database/prisma/prisma.service';
 import { type EnvironmentVariables } from './modules/shared/infrastructure/config/env.validation';
+
+const requestIdPattern = /^[A-Za-z0-9._:-]{1,128}$/;
 
 export function configureApp(app: INestApplication): void {
   const prismaService = app.get(PrismaService);
@@ -12,8 +15,35 @@ export function configureApp(app: INestApplication): void {
   const webOrigin = configService.get<string>('WEB_ORIGIN');
   const nodeEnv =
     configService.getOrThrow<EnvironmentVariables['NODE_ENV']>('NODE_ENV');
+  const commitSha = configService.get<string>('COMMIT_SHA') ?? 'unknown';
 
   app.setGlobalPrefix('api');
+  app.use((request: Request, response: Response, next: NextFunction) => {
+    const suppliedRequestId = request.get('x-request-id');
+    const requestId =
+      suppliedRequestId && requestIdPattern.test(suppliedRequestId)
+        ? suppliedRequestId
+        : randomUUID();
+    const startedAt = performance.now();
+
+    response.setHeader('x-request-id', requestId);
+    response.on('finish', () => {
+      Logger.log(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          service: 'api',
+          environment: nodeEnv,
+          commitSha,
+          route: request.path,
+          method: request.method,
+          status: response.statusCode,
+          durationMs: Math.round(performance.now() - startedAt),
+          requestId,
+        }),
+      );
+    });
+    next();
+  });
   app.enableCors({
     origin: webOrigin ? [webOrigin] : false,
     credentials: true,

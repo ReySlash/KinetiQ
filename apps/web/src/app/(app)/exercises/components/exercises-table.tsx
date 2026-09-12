@@ -59,7 +59,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                       }
                       width={70}
                       height={70}
-                      fallbackSrc="/empty-state-exercises.webp"
+                      fallbackSrc="/assets/empty-state-exercises.webp"
                     />
                   </TableCell>
                   <TableCell>{exercise.name}</TableCell>
@@ -108,7 +108,7 @@ export function ExercisesTable(props: ExercisesTableProps) {
                   alt={exercise.imageAltText ?? "Event cover"}
                   width={70}
                   height={70}
-                  fallbackSrc="/empty-state-exercises.webp"
+                  fallbackSrc="/assets/empty-state-exercises.webp"
                 />
 
                 <div className="text-wrap text-center">

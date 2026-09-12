@@ -8,13 +8,13 @@ import {
 describe("routine image helpers", () => {
   it("matches normalized exact routine names", () => {
     expect(getRoutineCoverSrc("Full Body A")).toBe(
-      "/temp/Covers/full-body-a.webp?v=2",
+      "/assets/Covers/full-body-a.webp?v=2",
     );
     expect(getRoutineCoverSrc("PUSH")).toBe(
-      "/temp/Covers/push.webp?v=2",
+      "/assets/Covers/push.webp?v=2",
     );
     expect(getRoutineCoverSrc("Upper Body")).toBe(
-      "/temp/Covers/upper-body.webp?v=2",
+      "/assets/Covers/upper-body.webp?v=2",
     );
   });
 
@@ -23,6 +23,6 @@ describe("routine image helpers", () => {
   });
 
   it("exposes the existing fallback image", () => {
-    expect(ROUTINE_IMAGE_FALLBACK).toBe("/empty-state-exercises.webp");
+    expect(ROUTINE_IMAGE_FALLBACK).toBe("/assets/empty-state-exercises.webp");
   });
 });

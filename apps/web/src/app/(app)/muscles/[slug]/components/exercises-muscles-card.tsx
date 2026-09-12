@@ -43,7 +43,7 @@ export default function ExercisesMusclesCard(props: ExercisesMusclesCardProps) {
                     }
                     width={70}
                     height={70}
-                    fallbackSrc="/empty-state-exercises.webp"
+                    fallbackSrc="/assets/empty-state-exercises.webp"
                   />
                 </TableCell>
                 <TableCell>{exercise.name}</TableCell>

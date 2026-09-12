@@ -1,0 +1,57 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        COMMIT_SHA: ${COMMIT_SHA:?set COMMIT_SHA to the reviewed Git SHA}
+    env_file:
+      - ./deploy/production.env
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [private]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://kinetiq.reyslash.com
+        NEXT_PUBLIC_SITE_URL: https://kinetiq.reyslash.com
+    env_file:
+      - ./deploy/production.env
+    ports:
+      - "127.0.0.1:3001:3000"
+    networks: [private]
+    restart: unless-stopped
+    mem_limit: 768m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+networks:
+  private:
+    driver: bridge

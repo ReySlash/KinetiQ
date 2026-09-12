@@ -9,6 +9,7 @@ export interface EnvironmentVariables {
   BETTER_AUTH_URL?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
+  COMMIT_SHA?: string;
 }
 
 const validNodeEnvs = new Set<NodeEnv>(['development', 'test', 'production']);
@@ -60,6 +61,8 @@ function parseProductionAuthConfig(
   betterAuthSecret: string | undefined,
   betterAuthUrl: string | undefined,
   webOrigin: string | undefined,
+  resendApiKey: string | undefined,
+  resendFromEmail: string | undefined,
 ): void {
   if (nodeEnv !== 'production') {
     return;
@@ -77,6 +80,14 @@ function parseProductionAuthConfig(
 
   if (!webOrigin) {
     throw new Error('WEB_ORIGIN is required in production.');
+  }
+
+  if (!resendApiKey) {
+    throw new Error('RESEND_API_KEY is required in production.');
+  }
+
+  if (!resendFromEmail) {
+    throw new Error('RESEND_FROM_EMAIL is required in production.');
   }
 
   for (const [name, value] of [
@@ -115,6 +126,8 @@ export function validateEnv(
     typeof config.RESEND_FROM_EMAIL === 'string'
       ? config.RESEND_FROM_EMAIL
       : undefined;
+  const commitSha =
+    typeof config.COMMIT_SHA === 'string' ? config.COMMIT_SHA : undefined;
 
   const parsedNodeEnv = parseNodeEnv(nodeEnv);
   const parsedWebOrigin = parseOptionalUrl('WEB_ORIGIN', webOrigin);
@@ -128,6 +141,8 @@ export function validateEnv(
     betterAuthSecret,
     parsedBetterAuthUrl,
     parsedWebOrigin,
+    resendApiKey,
+    resendFromEmail,
   );
 
   return {
@@ -143,5 +158,6 @@ export function validateEnv(
     BETTER_AUTH_URL: parsedBetterAuthUrl,
     RESEND_API_KEY: resendApiKey,
     RESEND_FROM_EMAIL: resendFromEmail,
+    COMMIT_SHA: commitSha,
   };
 }

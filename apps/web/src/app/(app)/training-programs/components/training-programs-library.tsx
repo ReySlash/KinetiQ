@@ -121,11 +121,11 @@ export function TrainingProgramsLibrary({
                       <TableCell>
                         <ImageWithFallback
                           className="rounded-xl border"
-                          src="/empty-state-exercises.webp"
+                          src="/assets/empty-state-exercises.webp"
                           alt="Training program cover"
                           width={70}
                           height={70}
-                          fallbackSrc="/empty-state-exercises.webp"
+                          fallbackSrc="/assets/empty-state-exercises.webp"
                         />
                       </TableCell>
                       <TableCell className="font-medium">
@@ -157,11 +157,11 @@ export function TrainingProgramsLibrary({
                   <CardContent className="flex flex-row items-center justify-between gap-2 px-1">
                     <ImageWithFallback
                       className="rounded-xl"
-                      src="/empty-state-exercises.webp"
+                      src="/assets/empty-state-exercises.webp"
                       alt="Training program cover"
                       width={70}
                       height={70}
-                      fallbackSrc="/empty-state-exercises.webp"
+                      fallbackSrc="/assets/empty-state-exercises.webp"
                     />
                     <div className="min-w-0 flex-1 text-center">
                       <CardTitle className="truncate">{program.name}</CardTitle>

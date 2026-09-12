@@ -41,7 +41,7 @@ export default async function MuscleGroupPage(props: {
                 alt={muscleDetails.imageAltText ?? "Event cover"}
                 className="z-20 object-cover rounded-3xl"
                 fill
-                fallbackSrc="/empty-state-muscles.webp"
+                fallbackSrc="/assets/empty-state-muscles.webp"
               />
             </CardContent>
           </Card>

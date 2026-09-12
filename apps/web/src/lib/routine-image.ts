@@ -11,7 +11,7 @@ const routineCoverSlugs = new Set([
   "upper-body",
 ]);
 
-export const ROUTINE_IMAGE_FALLBACK = "/empty-state-exercises.webp";
+export const ROUTINE_IMAGE_FALLBACK = "/assets/empty-state-exercises.webp";
 export const ROUTINE_IMAGE_VERSION = "2";
 
 function normalizeRoutineName(name: string): string {
@@ -25,6 +25,6 @@ function normalizeRoutineName(name: string): string {
 export function getRoutineCoverSrc(name: string): string | null {
   const slug = normalizeRoutineName(name);
   return routineCoverSlugs.has(slug)
-    ? `/temp/Covers/${slug}.webp?v=${ROUTINE_IMAGE_VERSION}`
+    ? `/assets/Covers/${slug}.webp?v=${ROUTINE_IMAGE_VERSION}`
     : null;
 }
