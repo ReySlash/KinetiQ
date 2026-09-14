@@ -38,7 +38,7 @@ jobs:
       - name: Build API production image
         run: docker build --file apps/api/Dockerfile --build-arg COMMIT_SHA=${{ github.sha }} --tag kinetiq-api:${{ github.sha }} .
       - name: Build web production image
-        run: docker build --file apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com --build-arg NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com --tag kinetiq-web:${{ github.sha }} .
+        run: docker build --file apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com --build-arg API_PROXY_URL=https://api.kinetiq.reyslash.com --build-arg NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com --tag kinetiq-web:${{ github.sha }} .
 
   verify:
     runs-on: ubuntu-latest
