@@ -21,7 +21,6 @@ import {
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthenticatedPrincipal } from '../../shared/infrastructure/auth/principal';
 import { CurrentPrincipal } from '../../shared/infrastructure/auth/principal';
 import { AddWorkoutExerciseUseCase } from '../application/use-cases/commands/add-workout-exercise.use-case';
@@ -58,7 +57,6 @@ import { toWorkoutSessionsHttpException } from './workout-sessions-exception.map
 @ApiTags('workout-sessions')
 @ApiExtraModels(WorkoutSessionDetailResponseDto)
 @ApiCookieAuth('better-auth.session_token')
-@Throttle({ default: { limit: 60, ttl: 60_000 } })
 export class WorkoutSessionsController {
   constructor(
     private readonly startWorkout: StartWorkoutUseCase,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { parseApiResponse } from "@/lib/api/error";
+import { isRateLimitError, parseApiResponse } from "@/lib/api/error";
 import { clientRequest } from "@/lib/api/client-request";
 
 describe("API boundary", () => {
@@ -59,6 +59,16 @@ describe("API boundary", () => {
         new Response(JSON.stringify({ message: "Unavailable" }), { status: 503 }),
       ),
     ).rejects.toMatchObject({ code: null });
+  });
+
+  it("classifies 429 responses as rate limited", async () => {
+    await expect(
+      parseApiResponse(
+        new Response(JSON.stringify({ message: "Too many requests" }), {
+          status: 429,
+        }),
+      ),
+    ).rejects.toSatisfy((error: unknown) => isRateLimitError(error));
   });
 
   it.each([200, 201, 202])("accepts successful %s responses", async (status) => {

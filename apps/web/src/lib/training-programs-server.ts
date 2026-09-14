@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api/error";
+import { ApiError, type RateLimitedResult } from "@/lib/api/error";
 import { serverRequest } from "@/lib/api/server-request";
 import type {
   TrainingProgramDetail,
@@ -8,7 +8,8 @@ import type {
 
 export type TrainingProgramsFetchResult =
   | { status: "authenticated"; programs: TrainingProgramListItem[] }
-  | { status: "unauthenticated" };
+  | { status: "unauthenticated" }
+  | RateLimitedResult;
 
 export async function fetchTrainingPrograms(query: {
   q?: string;
@@ -34,19 +35,25 @@ export async function fetchTrainingPrograms(query: {
     if (error instanceof ApiError && error.status === 401) {
       return { status: "unauthenticated" };
     }
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
+    }
     throw error;
   }
 }
 
 export async function fetchTrainingProgram(
   slug: string,
-): Promise<TrainingProgramDetail | null> {
+): Promise<TrainingProgramDetail | null | RateLimitedResult> {
   try {
     return await serverRequest<TrainingProgramDetail>(
       `training-programs/${slug}`,
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
+    }
     throw error;
   }
 }

@@ -7,6 +7,8 @@ import {
 } from "./components/filters/exercise-filters";
 import { FiltersToolbar } from "./components/filters/filters-toolbar";
 import { Paginator } from "./components/paginator";
+import { RateLimitedState } from "@/components/rate-limited-state";
+import { isRateLimitedResult } from "@/lib/api/error";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,9 @@ export default async function ExercisesPage({
     laterality: filters.laterality,
     skillLevel: filters.skillLevel,
   });
+  if (isRateLimitedResult(exerciseData)) {
+    return <RateLimitedState title="Exercises are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  }
   const isLastPage = exerciseData.length <= pageSize;
   const visibleExercises = exerciseData.slice(0, pageSize);
 

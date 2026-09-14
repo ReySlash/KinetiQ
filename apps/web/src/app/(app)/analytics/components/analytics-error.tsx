@@ -22,6 +22,11 @@ export function AnalyticsError({ error, onRetry }: { error: Error; onRetry: () =
       </Card>
     );
   }
-  const detail = error instanceof ApiError && error.status === 400 ? error.message : "Check your connection and try again.";
+  const detail =
+    error instanceof ApiError && error.status === 429
+      ? "Too many requests were made. Please wait a moment and try again."
+      : error instanceof ApiError && error.status === 400
+        ? error.message
+        : "Check your connection and try again.";
   return <Alert variant="destructive"><RefreshCw /><AlertTitle>Analytics could not be loaded</AlertTitle><AlertDescription className="flex flex-wrap items-center justify-between gap-2"><span>{detail}</span><Tooltip><TooltipTrigger render={<Button variant="outline" onClick={onRetry}>Retry</Button>} /><TooltipContent>Retry loading analytics</TooltipContent></Tooltip></AlertDescription></Alert>;
 }

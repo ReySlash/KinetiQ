@@ -9,6 +9,23 @@ export class ApiError extends Error {
   }
 }
 
+export type RateLimitedResult = { status: "rate-limited" };
+
+export function isRateLimitError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.status === 429;
+}
+
+export function isRateLimitedResult<T>(
+  value: T | RateLimitedResult,
+): value is RateLimitedResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "status" in value &&
+    value.status === "rate-limited"
+  );
+}
+
 function getApiCode(payload: unknown): string | null {
   if (typeof payload !== "object" || payload === null) return null;
 

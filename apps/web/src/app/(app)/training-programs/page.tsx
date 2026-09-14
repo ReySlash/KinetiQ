@@ -4,6 +4,7 @@ import { fetchActiveAdoptedTrainingProgram } from "@/lib/adopted-training-progra
 import { TrainingProgramsLibrary } from "./components/training-programs-library";
 import { TrainingProgramsTabs } from "./components/training-programs-tabs";
 import SignedOutState from "@/components/signed-out-state";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,9 @@ export default async function TrainingProgramsPage({
         <h1 className="text-lg font-bold leading-none">Training Programs</h1>
       </PageHeader>
       <TrainingProgramsTabs scope={scope}>
-        {result.status === "unauthenticated" ? (
+        {result.status === "rate-limited" || activeResult.status === "rate-limited" ? (
+          <RateLimitedState title="Training programs are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />
+        ) : result.status === "unauthenticated" ? (
           <SignedOutState
             title="Sign in to see your training programs"
             description="Training programs are private multi-week templates saved to your account. Sign in to create and manage them."

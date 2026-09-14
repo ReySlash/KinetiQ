@@ -16,7 +16,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthenticatedPrincipal } from '../../shared/infrastructure/auth/principal';
 import { CurrentPrincipal } from '../../shared/infrastructure/auth/principal';
 import type {
@@ -46,7 +45,6 @@ import { toAdoptedTrainingProgramsHttpException } from './adopted-training-progr
 @Controller('user-training-programs')
 @ApiTags('user-training-programs')
 @ApiCookieAuth('better-auth.session_token')
-@Throttle({ default: { limit: 30, ttl: 60_000 } })
 export class AdoptedTrainingProgramsController {
   constructor(
     private readonly adoptTrainingProgram: AdoptTrainingProgramUseCase,

@@ -13,6 +13,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { fetchActiveAdoptedTrainingProgram } from "@/lib/adopted-training-programs-server";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,10 @@ export const metadata = {
 
 export default async function ActiveTrainingProgramPage() {
   const result = await fetchActiveAdoptedTrainingProgram();
+
+  if (result.status === "rate-limited") {
+    return <RateLimitedState title="Active program is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  }
 
   if (result.status === "authenticated" && result.program) {
     redirect(`/training-programs/adopted/${result.program.id}`);

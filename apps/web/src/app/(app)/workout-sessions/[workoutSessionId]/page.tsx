@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/page-header";
 import { fetchWorkoutSession } from "@/lib/workout-sessions-server";
 import { ActiveWorkoutController } from "./components/active-workout-controller";
 import { WorkoutSessionSummary } from "./components/workout-session-summary";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,7 @@ export async function generateMetadata({
   const session = await fetchWorkoutSession(workoutSessionId);
   return {
     title: session
-      ? `${session.sourceRoutineNameSnapshot ?? "Workout"} | KinetiQ`
+      ? `${!isRateLimitedResult(session) ? session.sourceRoutineNameSnapshot ?? "Workout" : "Workout"} | KinetiQ`
       : "Workout session not found | KinetiQ",
   };
 }
@@ -30,6 +32,7 @@ export default async function WorkoutSessionDetailsPage({
 }) {
   const { workoutSessionId } = await params;
   const session = await fetchWorkoutSession(workoutSessionId);
+  if (isRateLimitedResult(session)) return <RateLimitedState title="Workout session is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
   if (!session) notFound();
 
   const isInProgress = session.status === "IN_PROGRESS";

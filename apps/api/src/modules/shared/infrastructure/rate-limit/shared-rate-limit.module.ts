@@ -6,21 +6,15 @@ import {
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthRateLimitMiddleware } from './auth-rate-limit.middleware';
+import { getStandardRateLimit } from './standard-rate-limit';
 
 @Module({
-  imports: [
-    ThrottlerModule.forRoot([
-      {
-        limit: 120,
-        ttl: 60_000,
-      },
-    ]),
-  ],
+  imports: [ThrottlerModule.forRoot([getStandardRateLimit()])],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
   exports: [ThrottlerModule],
 })
 export class SharedRateLimitModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(AuthRateLimitMiddleware).forRoutes('*');
+    consumer.apply(AuthRateLimitMiddleware).forRoutes('{*path}');
   }
 }

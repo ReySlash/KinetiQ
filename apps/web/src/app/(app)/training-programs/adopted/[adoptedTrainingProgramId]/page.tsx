@@ -15,6 +15,8 @@ import { Progress } from "@/components/ui/progress";
 import { fetchAdoptedTrainingProgram } from "@/lib/adopted-training-programs-server";
 import { AdoptedProgramActions } from "./components/adopted-program-actions";
 import { AdoptedProgramSchedule } from "./components/adopted-program-schedule";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +53,7 @@ export default async function AdoptedTrainingProgramPage({
 }) {
   const { adoptedTrainingProgramId } = await params;
   const program = await fetchAdoptedTrainingProgram(adoptedTrainingProgramId);
+  if (isRateLimitedResult(program)) return <RateLimitedState title="Adopted program is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
   if (!program) notFound();
 
   return (

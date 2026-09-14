@@ -1,11 +1,14 @@
 import { fetchMuscleGroup } from "@/lib/muscle-groups-server";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { notFound } from "next/navigation";
 import { getLocalImageSrc } from "@/lib/local-image";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import MuscleGroupOverviewCard from "../muscle-group-overview-card";
 import HeroCard from "@/components/hero-card";
 import MuscleSCard from "@/app/(app)/exercises/components/muscles-card";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +18,8 @@ export default async function MuscleGroupDetailsPage(props: {
   const { slug } = await props.params;
 
   const muscleGroupDetails = await fetchMuscleGroup(slug);
+  if (isRateLimitedResult(muscleGroupDetails)) return <RateLimitedState title="Muscle group details are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  if (!muscleGroupDetails) notFound();
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">

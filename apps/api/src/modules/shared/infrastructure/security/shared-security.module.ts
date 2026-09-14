@@ -11,6 +11,6 @@ import { OriginCheckMiddleware } from './origin-check.middleware';
 })
 export class SharedSecurityModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(OriginCheckMiddleware).forRoutes('*');
+    consumer.apply(OriginCheckMiddleware).forRoutes('{*path}');
   }
 }

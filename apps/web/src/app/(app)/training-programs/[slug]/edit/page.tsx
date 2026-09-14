@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { fetchRoutines } from "@/lib/routines-server";
 import { fetchTrainingProgram } from "@/lib/training-programs-server";
 import { TrainingProgramBuilder } from "../../new/training-program-builder";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,9 @@ export default async function EditTrainingProgramPage({ params }: { params: Prom
     fetchRoutines({ scope: "my" }),
     fetchRoutines({ scope: "global" }),
   ]);
+  if (isRateLimitedResult(program) || privateRoutines.status === "rate-limited" || globalRoutines.status === "rate-limited") {
+    return <RateLimitedState title="Training program editor is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  }
   if (!program || program.visibility !== "PRIVATE") notFound();
 
   const routines = [

@@ -1,10 +1,11 @@
-import { ApiError } from "@/lib/api/error";
+import { ApiError, type RateLimitedResult } from "@/lib/api/error";
 import { serverRequest } from "@/lib/api/server-request";
 import type { AuthSession } from "@/lib/auth-api";
 
 export type ServerAuthResult =
   | { status: "authenticated"; session: AuthSession }
-  | { status: "unauthenticated" };
+  | { status: "unauthenticated" }
+  | RateLimitedResult;
 
 export async function fetchServerAuthSession(): Promise<ServerAuthResult> {
   try {
@@ -15,6 +16,9 @@ export async function fetchServerAuthSession(): Promise<ServerAuthResult> {
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       return { status: "unauthenticated" };
+    }
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
     }
     throw error;
   }

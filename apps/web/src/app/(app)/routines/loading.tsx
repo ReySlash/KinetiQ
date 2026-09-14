@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Loading() {
   return (
@@ -8,6 +9,12 @@ export default function Loading() {
         <h1 className="text-lg font-bold leading-none">Routines</h1>
       </PageHeader>
       <section className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
+        <Tabs defaultValue="my" className="min-h-0 flex-1">
+          <TabsList aria-label="Routine library">
+            <TabsTrigger value="global" disabled>Global Routines</TabsTrigger>
+            <TabsTrigger value="my" disabled>My Routines</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <div className="flex justify-end border-b border-border/70 bg-background/30 p-1"><Skeleton className="h-9 w-64" /></div>
         <div className="grid gap-4 p-1 md:grid-cols-2 md:p-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <div key={index} className="rounded-xl border border-border/70 p-4 md:rounded-2xl md:p-5"><Skeleton className="h-5 w-2/3" /><Skeleton className="mt-3 h-4 w-full" /><Skeleton className="mt-8 h-4 w-1/2" /></div>)}</div>
       </section>

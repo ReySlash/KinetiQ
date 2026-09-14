@@ -15,6 +15,8 @@ import { fetchTrainingProgram } from "@/lib/training-programs-server";
 import type { TrainingProgramDetail } from "@/types/training-program-types";
 import { TrainingProgramActions } from "./training-program-actions";
 import { AdoptTrainingProgramControl } from "../components/adopt-training-program-control";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +43,7 @@ export default async function TrainingProgramDetailPage({
 }) {
   const { slug } = await params;
   const program = await fetchTrainingProgram(slug);
+  if (isRateLimitedResult(program)) return <RateLimitedState title="Training program is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
   if (!program) notFound();
 
   return (
