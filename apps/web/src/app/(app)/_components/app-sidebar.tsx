@@ -43,6 +43,7 @@ export function AppSidebar() {
     await authApi.signOut();
     setSession(null);
     router.replace("/sign-in");
+    router.refresh();
   }
 
   return (

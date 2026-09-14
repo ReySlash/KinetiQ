@@ -93,6 +93,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           callbackURL: `${window.location.origin}${callbackURL}`,
         });
         router.replace(callbackURL);
+        router.refresh();
       }
     } catch (submissionError) {
       setError(

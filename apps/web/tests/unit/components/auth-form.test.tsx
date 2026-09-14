@@ -5,16 +5,18 @@ import { AuthForm } from "@/app/(auth)/components/auth-form";
 import { authApi } from "@/lib/auth-api";
 
 const replace = vi.fn();
+const refresh = vi.fn();
 const signIn = vi.spyOn(authApi, "signIn");
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace }),
+  useRouter: () => ({ replace, refresh }),
   useSearchParams: () => new URLSearchParams("callbackURL=%2Froutines"),
 }));
 
 describe("AuthForm", () => {
   beforeEach(() => {
     replace.mockReset();
+    refresh.mockReset();
     signIn.mockReset();
   });
 
@@ -50,5 +52,6 @@ describe("AuthForm", () => {
       callbackURL: `${window.location.origin}/routines`,
     });
     expect(replace).toHaveBeenCalledWith("/routines");
+    expect(refresh).toHaveBeenCalledOnce();
   });
 });
