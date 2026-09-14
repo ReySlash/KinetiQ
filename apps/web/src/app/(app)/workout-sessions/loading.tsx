@@ -33,12 +33,24 @@ export default function Loading() {
             <TableBody>
               {Array.from({ length: 8 }, (_, index) => (
                 <TableRow key={index}>
-                  <TableCell><Skeleton className="size-[70px] rounded-xl" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-20 rounded-xl" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-10" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                  <TableCell><Skeleton className="ml-auto h-9 w-9 rounded-xl" /></TableCell>
+                  <TableCell>
+                    <Skeleton className="size-17.5 rounded-xl" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-20 rounded-xl" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-10" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="ml-auto h-9 w-9 rounded-xl" />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -48,7 +60,7 @@ export default function Loading() {
           {Array.from({ length: 8 }, (_, index) => (
             <Card key={index} className="w-full py-1">
               <CardContent className="flex items-center justify-between gap-2 px-1">
-                <Skeleton className="size-[70px] shrink-0 rounded-xl" />
+                <Skeleton className="size-17.5 shrink-0 rounded-xl" />
                 <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
