@@ -49,7 +49,7 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 ### Admin exercise management
 
 - list with active/archive filters
-- create/edit form with sections: Basic information, Classification, Muscle involvement, Capabilities, and Demand and fatigue; optional approved Cloudinary image display is read-only in MVP
+- create/edit form with sections: Basic information, Classification, Muscle involvement, Capabilities, and Demand and fatigue; optional approved local or remote image display is read-only in MVP
 - `MuscleInvolvementEditor`, score controls/legend, equipment multi-select, optional image preview, error summary, unsaved-change dialog
 - Athletic qualities section is not rendered in MVP.
 
@@ -81,7 +81,10 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 
 Public details and initial lists can fetch from the API in server components with explicit revalidation. Interactive filters hydrate or fetch through query hooks. Avoid fetching the same resource independently on server and client without dehydrating or accepting the duplicate request. Authenticated routine pages can be client fetched initially because cookie forwarding and user-specific caching are clearer; add server prefetch only when UX warrants it.
 
-Use the API origin server-side and same-origin `/api` browser-side. Never expose internal container hostnames in client bundles.
+Use same-origin `/api` in the browser. In production, Vercel's Next.js rewrite
+forwards that path to the server-only `API_PROXY_URL` for the Oracle API. Keep
+`NEXT_PUBLIC_API_URL` set to the public web origin and never expose internal
+container hostnames or server-only credentials in client bundles.
 
 ## Forms
 
@@ -103,7 +106,7 @@ Submit buttons disable duplicate submission while preserving keyboard focus. On 
 - Drag-and-drop reorder includes move up/down buttons and announcements.
 - Rating color is supplementary to number and label.
 - Dialog focus is trapped/restored; error summaries link/focus fields.
-- Approved Cloudinary images have meaningful alt text; decorative placeholders use empty alt where appropriate. Upload controls are post-MVP.
+- Approved local or remote images have meaningful alt text; decorative placeholders use empty alt where appropriate. Upload controls are post-MVP.
 - Tables adapt to cards or horizontal scrolling without hiding actions.
 - Target WCAG 2.2 AA for MVP flows.
 

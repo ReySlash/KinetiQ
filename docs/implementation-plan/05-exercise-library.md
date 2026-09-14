@@ -6,7 +6,7 @@ Create a curated, searchable source of exercise identity and stable characterist
 
 ## Scope
 
-The MVP includes global admin-managed exercises, identity text, instructions, common mistakes, stable classifications, equipment and movement patterns, optional Cloudinary-served image URLs when approved assets exist, composed muscle/capability/demand editing, public list/detail pages, pagination, search, filters, and archive-safe deletion behavior. Image uploads are post-MVP.
+The MVP includes global admin-managed exercises, identity text, instructions, common mistakes, stable classifications, equipment and movement patterns, tracked optimized WebP assets with fallbacks, optional approved remote image URLs, composed muscle/capability/demand editing, public list/detail pages, pagination, search, filters, and archive-safe deletion behavior. Image uploads are post-MVP.
 
 ## Out of scope
 
@@ -52,7 +52,7 @@ model Exercise {
 }
 ```
 
-The optional image URL/metadata fields support approved Cloudinary assets but do not imply an MVP upload workflow. When a full image or additional media is introduced, use parallel fields or migrate both assets into `ExerciseMedia` if multiple media has arrived. Do not add empty future columns merely to reserve them.
+The optional image URL/metadata fields support approved remote assets but do not imply an MVP upload workflow. The web also maps known catalog records to tracked local WebP assets. When a full image or additional media is introduced, use parallel fields or migrate both assets into `ExerciseMedia` if multiple media has arrived. Do not add empty future columns merely to reserve them.
 
 Use joins `ExerciseEquipment(exerciseId, equipmentId)` and, when introduced, `ExercisePlane(exerciseId, plane)` because exercises can require multiple equipment items and can be multiplanar. Unique compound keys prevent duplicate assignments.
 
@@ -128,7 +128,7 @@ Duplicate or renamed exercises, slug changes and stale links, no-equipment movem
 1. Seed equipment and movement patterns; add core exercise schema.
 2. Build identity CRUD, list/search/detail API, and basic UI.
 3. Add muscle assignments, capability/demand profiles, and aggregate transactions.
-4. Add Cloudinary asset management after MVP; do not add upload behavior to the MVP creation flow.
+4. Select and add managed-media asset management after MVP; do not add upload behavior to the MVP creation flow.
 5. Protect writes with Better Auth admin authorization before production.
 6. Add final filters, accessibility, and E2E acceptance flow.
 

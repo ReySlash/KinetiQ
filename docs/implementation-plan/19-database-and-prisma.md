@@ -62,7 +62,7 @@ routine plus ordered children, and routine-based workout start plus initial
 `ExercisePerformance` prescription snapshots. Keep transactions short. Later
 set mutations still resolve the owned `WorkoutSession` aggregate and preserve
 child ordering/invariants. Image uploads are post-MVP and must not be introduced
-into MVP aggregate transactions; if a later Cloudinary attachment workflow is
+into MVP aggregate transactions; if a later managed-media attachment workflow is
 approved, define its consistency and cleanup behavior separately. Translate
 known unique/foreign/check violations to stable 409/422 API errors.
 

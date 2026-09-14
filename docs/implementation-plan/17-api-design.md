@@ -6,7 +6,12 @@ Expose a predictable REST API from NestJS with validated DTOs, ownership-aware s
 
 ## Base paths and versioning
 
-Use `/api` externally for the current API. Nginx proxies that prefix to NestJS without changing observable links. API versioning is deferred until a breaking contract requires it; do not put implementation module names in routes.
+Use `/api` externally for the current API. The browser calls that prefix on the
+Vercel frontend origin, whose Next.js rewrite forwards it to
+`https://api.kinetiq.reyslash.com/api`. Nginx on the Oracle VPS terminates HTTPS
+for the API hostname and forwards the path unchanged to NestJS. API versioning
+is deferred until a breaking contract requires it; do not put implementation
+module names in routes.
 
 Recommended early routes:
 

@@ -24,8 +24,9 @@ pnpm dev:api
 ```
 
 The API listens on `http://localhost:3000`. Its global API prefix is `/api`.
-The readiness endpoint is `GET /api/health`, and development Swagger is
-available at `http://localhost:3000/api/docs`.
+Liveness is `GET /api/health/live`; database readiness is
+`GET /api/health/ready`; `GET /api/health` remains a compatibility readiness
+alias. Development Swagger is available at `http://localhost:3000/api/docs`.
 
 The local environment file requires a PostgreSQL `DATABASE_URL`, Better Auth
 configuration, the frontend origin, and the other values described in
@@ -90,6 +91,13 @@ image-script tests. Browser, accessibility, smoke, E2E, and mutation suites
 remain explicit heavier checks and are run by their corresponding CI jobs.
 
 ## API boundaries
+
+The closed-beta API is deployed as a Docker container behind Nginx at
+`https://api.kinetiq.reyslash.com`; the frontend is hosted separately on
+Vercel. CORS and trusted-origin checks allow the configured frontend origin,
+but they are not authentication. Public reference endpoints remain public;
+protected resources continue to require a valid session and server-side
+authorization.
 
 Authenticated resources use the request principal as the owner identity;
 clients must not supply an arbitrary owner ID. Prisma queries enforce

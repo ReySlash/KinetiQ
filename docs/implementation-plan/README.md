@@ -37,17 +37,17 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [07](07-exercise-capabilities.md)                 | Development potential profile                             | MVP                                             |
 | [08](08-exercise-demand-and-fatigue.md)           | Technical, loading, and recovery demand                   | MVP                                             |
 | [09](09-athletic-qualities-and-sport-transfer.md) | General qualities and sport-specific relevance            | General qualities deferred; sport mapping later |
-| [10](10-exercise-media.md)                        | Cloudinary-served exercise and muscle images              | Post-MVP                                        |
+| [10](10-exercise-media.md)                        | Current static assets and future managed media             | Static assets implemented; management post-MVP  |
 | [11](11-routine-builder.md)                       | User-owned reusable workout templates                     | MVP                                             |
 | [12](12-authentication-and-authorization.md)      | Better Auth integration and ownership                     | MVP                                             |
-| [13](13-training-programs.md)                     | Reusable templates plus adopted-program execution       | Implemented; production acceptance remains      |
+| [13](13-training-programs.md)                     | Reusable templates plus adopted-program execution        | Deployed; beta acceptance continues             |
 | [14](14-workout-sessions.md)                      | Historical performed training                             | MVP                                             |
-| [15](15-analytics.md)                             | Deterministic derived metrics and analytics overview    | Implemented; production acceptance remains      |
+| [15](15-analytics.md)                             | Deterministic derived metrics and analytics overview     | Deployed; beta validation continues             |
 | [16](16-testing-strategy.md)                      | Test pyramid, fixtures, and gates                         | MVP                                             |
 | [17](17-api-design.md)                            | REST conventions and contracts                            | MVP                                             |
 | [18](18-frontend-architecture.md)                 | Next.js pages, state, forms, accessibility                | MVP                                             |
 | [19](19-database-and-prisma.md)                   | PostgreSQL/Prisma constraints and migrations              | MVP                                             |
-| [20](20-deployment.md)                            | Docker, Oracle VPS, CI/CD, rollback                       | MVP                                             |
+| [20](20-deployment.md)                            | Vercel web, Oracle API, Neon, CI, rollback                 | Closed beta deployed                            |
 | [21](21-security.md)                              | Threat controls and privacy                               | MVP                                             |
 | [22](22-observability-and-backups.md)             | Logs, health, restore readiness                           | MVP baseline                                    |
 | [23](23-release-plan.md)                          | Small release sequence                                    | Governing                                       |
@@ -58,14 +58,15 @@ When documents disagree, the more specific feature document wins. Changes that a
 
 ## First production MVP boundary
 
-The MVP includes seeded, read-only muscle data; admin-managed global exercises; optional Cloudinary image URLs when approved assets exist; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; reusable and adopted training programs; routine exercise prescriptions; duplication; WorkoutSession performance records; initial explainable analytics; responsive UI; automated backend/frontend tests; and Docker deployment.
+The MVP includes seeded, read-only muscle data; admin-managed global exercises; tracked optimized WebP assets and optional approved remote image URLs; muscle assignments; capability and demand profiles; exercise search/filtering; Better Auth; user-owned routines; reusable and adopted training programs; routine exercise prescriptions; duplication; WorkoutSession performance records; initial explainable analytics; responsive UI; automated backend/frontend tests; a Vercel-hosted web application; and a Dockerized API on Oracle Cloud backed by Neon PostgreSQL.
 
 The MVP explicitly excludes image uploads and image-management workflows, named weekdays, scheduled calendar dates, calendar synchronization, progression recommendations, recovery/fatigue check-ins, AI, nutrition, payments, social features, coach organizations, sport-specific exercise mappings, user-created exercises, and multi-file exercise media.
 
 ## Historical implementation order
 
 This is the sequence used to build the current slices. The live status table
-above is authoritative for what is implemented and what remains before release.
+below is authoritative for what is implemented and what remains after the
+closed-beta release.
 
 1. Establish the monorepo, local Docker services, API/web shells, CI, configuration validation, and test databases.
 2. Add Prisma, migrations, seeded muscles, and read-only muscle API/UI.
@@ -73,13 +74,13 @@ above is authoritative for what is implemented and what remains before release.
 4. Add transactional muscle assignments, then capability and demand profiles.
 5. Integrate Better Auth and protect admin exercise mutations.
 6. Add owned routines and prescriptions, including duplication and ordering.
-7. Harden accessibility, security, observability, backups, and deployment; run the MVP acceptance suite.
+7. Establish the first closed-beta deployment baseline, then continue operational hardening and acceptance work.
 8. Implement reusable training-program templates and relative schedules. *(Implemented.)*
 9. Implement WorkoutSession performance records. *(Implemented.)*
 10. Integrate adopted-program execution and program-origin workout history. *(Implemented.)*
 11. Add the first explainable analytics queries within the MVP boundary. *(Implemented.)*
-12. Complete production acceptance and hardening before adding later-stage features.
-13. After MVP, add Cloudinary image asset management and upload workflows.
+12. Collect closed-beta feedback and complete the remaining production acceptance and operational hardening before adding later-stage features.
+13. After MVP, select a managed-media provider and add image asset-management and upload workflows if beta use justifies them.
 
 Authentication is integrated after public reference-library slices so early work stays small. Before production data exists, admin mutation endpoints must be protected; no insecure production staging period is acceptable.
 
@@ -87,13 +88,13 @@ Authentication is integrated after public reference-library slices so early work
 
 | Phase                        | Current status                                                                                     | Exit condition                                                   |
 | ---------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Foundation                   | Implemented in code and CI; production-environment acceptance remains                              | Web/API/database run locally and in CI                           |
-| Reference library            | Backend and frontend slices implemented; final production acceptance remains                       | Seeded muscles and admin exercise management work end to end     |
-| Routine MVP                  | Backend and frontend slices implemented with ownership tests; production acceptance remains        | Authenticated users manage only their routines                   |
-| Production MVP               | Planned hardening and operational release work                                                     | Security, tests, deployment, backup and restore drill pass       |
-| Training-program templates   | Backend, frontend, seed, and schedule slices implemented; production acceptance remains             | Programs schedule reusable routines by relative week/day         |
-| Adopted-program execution    | Backend and frontend execution implemented with atomic PostgreSQL and journey coverage              | Adoption, progress, and program-origin sessions work atomically  |
-| Workout sessions             | Standalone and program-origin backend/frontend flows implemented; production acceptance remains     | Immutable `WorkoutSession` history supports integrated execution |
-| Analytics                    | Deterministic Phase 9 overview implemented; production acceptance remains                            | Explainable metrics consume stable owned history                 |
-| Recommendations and recovery | Deferred until deterministic analytics are implemented and validated                              | Rules use sufficient real data and expose rationale              |
+| Foundation                   | Deployed in the closed beta; remaining operator controls are tracked in the deployment checklist    | Web/API/database run in the deployed topology                    |
+| Reference library            | Deployed in the closed beta; beta acceptance and admin-security review continue                     | Seeded muscles and admin exercise management work end to end     |
+| Routine MVP                  | Deployed with ownership tests; beta acceptance continues                                            | Authenticated users manage only their routines                   |
+| Production MVP               | Closed-beta baseline deployed on Vercel, Oracle, and Neon; operational hardening remains            | Remaining checklist and acceptance items are closed              |
+| Training-program templates   | Backend, frontend, seed, and schedule slices deployed; beta acceptance continues                    | Programs schedule reusable routines by relative week/day         |
+| Adopted-program execution    | Deployed with atomic PostgreSQL and journey coverage; beta acceptance continues                      | Adoption, progress, and program-origin sessions work atomically  |
+| Workout sessions             | Standalone and program-origin flows deployed; beta acceptance continues                             | Immutable `WorkoutSession` history supports integrated execution |
+| Analytics                    | Deterministic Phase 9 overview deployed; beta validation continues                                  | Explainable metrics consume stable owned history                 |
+| Recommendations and recovery | Deferred until beta data validates the deterministic analytics foundation                          | Rules use sufficient real data and expose rationale              |
 | Coach/athlete                | Exploratory                                                                                        | Tenancy and consent model is validated                           |

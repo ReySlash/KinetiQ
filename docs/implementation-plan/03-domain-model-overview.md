@@ -18,8 +18,8 @@ This document separates the kinds of data KinetiQ stores so the `Exercise` table
 | RoutineExercise           | Ordered prescription in a routine                                     | Same owner through routine                   |
 | TrainingProgram           | Reusable multi-week template scheduling routines by relative week/day | One user or protected platform owner         |
 | TrainingProgramRoutine    | Relative routine placement within a program template                  | Same owner context through program           |
-| AdoptedTrainingProgram    | Planned user adoption and progress through a program template         | One authenticated user owner                 |
-| ProgramWorkoutOccurrence  | Planned copied occurrence of one relative program slot                | Child through an adopted training program    |
+| AdoptedTrainingProgram    | User adoption and progress through a program template                 | One authenticated user owner                 |
+| ProgramWorkoutOccurrence  | Copied occurrence of one relative program slot                        | Child through an adopted training program    |
 | WorkoutSession            | Historical workout occurrence and aggregate root                      | One authenticated user owner                 |
 | ExercisePerformance       | Performed-exercise record plus authoritative prescription snapshot    | Historical child through session             |
 | CompletedSet              | Raw strength/repetition performance fact                              | Historical child through performance/session |
@@ -34,7 +34,7 @@ Muscle ── parent/children
    │
 Exercise ──1:1── CapabilityProfile
    │      └─1:1── DemandProfile
-   │      └─1:N── Media (post-MVP; optional Cloudinary URL references in MVP)
+   │      └─1:N── Media (post-MVP; optional remote URL references in MVP)
    │
    └─< RoutineExercise (order, sets, reps, RIR, rest, tempo)
           >─ Routine ── owner User
@@ -106,7 +106,7 @@ Materialized aggregates are deferred until query measurements show a need. If ca
 - Creating/updating an exercise with assignments and profiles is one transaction.
 - Creating/updating a routine and its prescription children is one transaction when submitted as a full form.
 - Creating/updating a training program and its relative routine schedule is one transaction when submitted as a full form.
-- Media upload is post-MVP. If a staged/finalized Cloudinary workflow is introduced later, keep it separate from PostgreSQL aggregate transactions and define cleanup states explicitly.
+- Media upload is post-MVP. If a staged/finalized provider workflow is introduced later, keep it separate from PostgreSQL aggregate transactions and define cleanup states explicitly.
 - Starting a routine-based session should create the session and its initial
   exercise prescription snapshots atomically where practical. Subsequent child
   mutations resolve and mutate through the owned `WorkoutSession` aggregate.

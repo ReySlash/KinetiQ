@@ -13,7 +13,7 @@ This roadmap prevents the final vision from expanding the first release. Each re
 - Admin-managed exercise identity and stable classifications
 - Exercise–muscle assignments with role and 0–5 involvement
 - Capability and demand profiles with documented 0–5 values
-- Optional Cloudinary-served image URLs when approved assets are available; image upload and image-management workflows are post-MVP
+- Tracked optimized WebP assets with fallbacks and optional approved remote image URLs; image upload and image-management workflows are post-MVP
 - Public exercise list/detail with search, pagination, and useful filters
 - Better Auth sessions, authenticated app shell, and an administrator role
 - Private user-owned routines with ordered prescriptions, duplication, and deletion
@@ -21,7 +21,7 @@ This roadmap prevents the final vision from expanding the first release. Each re
 - WorkoutSession records with completed sets and historical prescription snapshots
 - Initial explainable analytics derived from raw workout history
 - Responsive, accessible UI and proportionate automated tests
-- Docker-based Oracle Cloud VPS production deployment with HTTPS, backups, logs, and rollback runbook
+- Vercel-hosted frontend plus a Dockerized Oracle Cloud VPS API, Neon PostgreSQL, HTTPS, logs, backups, and rollback guidance
 
 ### Excluded
 
@@ -47,7 +47,7 @@ Add transactional muscle assignments, capability profile, demand profile, form s
 
 ### Phase 4 — Media slice (post-MVP)
 
-After MVP, add Cloudinary asset management for generated exercise and muscle images, including approved URL assignment, upload/replace/remove workflows, validation, and lifecycle cleanup. MVP only reads optional Cloudinary URLs; it does not accept image uploads during muscle or exercise creation.
+After MVP, choose a managed-media provider and add asset management for generated exercise and muscle images, including approved URL assignment, upload/replace/remove workflows, validation, and lifecycle cleanup. The beta uses tracked WebP assets and can read optional approved remote URLs; it does not accept image uploads during muscle or exercise creation.
 
 ### Phase 5 — Authentication and routines
 
@@ -55,7 +55,12 @@ Integrate Better Auth with NestJS request authentication. Add private routine CR
 
 ### Phase 6 — Production MVP hardening
 
-Complete accessibility checks, rate limiting, security headers, data backup/restore rehearsal, production Compose/Nginx/Certbot configuration, deployment automation, smoke tests, and operational docs.
+Deploy the closed beta with the Next.js frontend on Vercel, the Dockerized API
+behind Nginx/Certbot on Oracle Cloud, and Neon PostgreSQL. Accessibility checks,
+rate limiting, security headers, health checks, CI builds, and basic operational
+documentation are implemented. Monitoring, external logical backups, restore
+rehearsal, detailed RPO/RTO measurement, and automated API deployment remain
+post-launch hardening.
 
 ### Phase 7 — Training programs and weekly scheduling
 
@@ -139,4 +144,4 @@ Every phase must pass lint, type checks, unit tests, relevant integration tests,
 
 ## Open questions
 
-Commercial scope, initial exercise catalog size, Cloudinary asset workflow, and whether the first VPS database runs in Compose remain decisions recorded in [open decisions](24-open-decisions.md). None expands MVP scope.
+Commercial scope, initial exercise catalog size, and the future managed-media workflow remain decisions recorded in [open decisions](24-open-decisions.md). The deployed database and hosting topology are recorded as accepted decisions there. None expands MVP scope.

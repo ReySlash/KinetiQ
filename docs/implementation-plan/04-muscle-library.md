@@ -6,7 +6,7 @@ Provide a small, consistent anatomical reference that users can browse and admin
 
 ## Scope
 
-The MVP includes seeded records, broad regions/groups, an optional self-referencing hierarchy, optional Cloudinary-served image URLs when approved assets exist, public list/detail endpoints, and list/detail pages. Image uploads and image-management flows are post-MVP. Seed broad groups first and add selected children only where exercise curation benefits.
+The MVP includes seeded records, broad regions/groups, an optional self-referencing hierarchy, tracked optimized WebP assets with fallbacks, optional approved remote image URLs, public list/detail endpoints, and list/detail pages. Image uploads and image-management flows are post-MVP. Seed broad groups first and add selected children only where exercise curation benefits.
 
 ## Out of scope
 
@@ -104,7 +104,7 @@ Handle duplicate seed names, a removed parent, deep or cyclic hierarchies, missi
 3. Write seed manifest/upsert and hierarchy validation.
 4. Add read service/controller and OpenAPI contracts.
 5. Add list/detail pages and selector component.
-6. Use placeholders or approved Cloudinary URLs in MVP; add media management only after the image-generation workflow is ready.
+6. Use tracked assets, placeholders, or approved remote URLs in MVP; add media management only after the image-generation workflow is ready.
 
 Depends on foundation/database. Exercise–muscle work depends on stable muscle IDs.
 

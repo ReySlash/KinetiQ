@@ -2,24 +2,18 @@
 
 ## Purpose and recommendation
 
-Use a TypeScript monorepo containing a Next.js App Router web application and a NestJS modular-monolith API, backed by one PostgreSQL database. Deploy them as separate containers behind Nginx. This is simpler to develop and operate than microservices while keeping browser, API, worker, and storage boundaries explicit.
+Use a TypeScript monorepo containing a Next.js App Router web application and a NestJS modular-monolith API, backed by one PostgreSQL database. The closed beta deploys Next.js on Vercel, the Dockerized API behind Nginx on an Oracle Cloud VPS, and PostgreSQL on Neon. This is simpler to develop and operate than microservices while keeping browser, API, and database boundaries explicit.
 
-## Suggested repository layout
+## Current repository layout
 
 ```text
 apps/
   web/                    # Next.js App Router
   api/                    # NestJS modules and Prisma access
-packages/
-  eslint-config/          # shared tooling only
-  tsconfig/               # shared compiler baselines
-  api-client/             # generated OpenAPI client/types (when introduced)
-infra/
-  docker/
-  nginx/
-  scripts/
+deploy/                   # deployment runbook, environment template, Nginx template
 docs/
   implementation-plan/
+scripts/                  # repository utilities such as image optimization
 ```
 
 Use pnpm workspaces and Turborepo only if task caching becomes useful; pnpm scripts alone are sufficient initially. Do not create `shared-types` or `validation` packages by default. Backend DTOs are the contract and OpenAPI generates client types. Sharing Prisma models or server-side Zod schemas with the browser creates coupling and can leak server assumptions. Share only stable, environment-neutral code with two real consumers.
@@ -28,33 +22,45 @@ Use pnpm workspaces and Turborepo only if task caching becomes useful; pnpm scri
 
 ```text
 Browser
-  │ HTTPS
+  │ HTTPS to kinetiq.reyslash.com
   ▼
-Nginx ───── /api/* ───► NestJS API ───► Prisma ───► PostgreSQL
-  │                           │
-  └──── all other paths ─► Next.js        └──────────► StorageService
-                                                       ├─ local dev files
-                                                       └─ S3-compatible objects
+Vercel Next.js ── same-origin /api rewrite ──► api.kinetiq.reyslash.com
+                                                   │
+                                              Nginx on Oracle VPS
+                                                   │
+                                                NestJS API
+                                                   │
+                                                 Prisma
+                                                   │
+                                             Neon PostgreSQL
 ```
 
-Prefer same-site deployment (`app.example.com` with `/api` proxying) to simplify cookies, CORS, and CSRF posture. Next.js renders pages and owns browser interaction; it must not directly query PostgreSQL. NestJS is the only business-data authority.
+Browser calls remain same-origin through the Vercel `/api` rewrite, while the
+server-only `API_PROXY_URL` identifies the Oracle API origin. The API hostname
+is independently reachable, so every protected route still relies on session,
+role, and ownership authorization rather than CORS or the rewrite. Next.js must
+not query PostgreSQL directly; NestJS remains the business-data authority.
 
-## Current and planned backend modules
+## Current backend modules
 
 - `ConfigModule`: validated environment configuration
 - `SharedInfrastructureModule`: composed shared infrastructure boundary
 - `SharedConfigModule`: validated environment configuration
 - `SharedDatabaseModule`: Prisma client and transaction boundary
 - `SharedAuthModule`: Better Auth request/session integration
-- Future `UsersModule`: application user/profile operations if needed beyond Better Auth
 - `MuscleGroupsModule`: public controlled muscle-group reads and admin writes
 - `MusclesModule`: public controlled reference reads
 - `ExercisesModule`: exercise identity and composed profile operations
-- Future `MediaModule`: post-MVP upload policy and Cloudinary asset management
 - `RoutinesModule`: owned templates and prescriptions
 - `HealthModule`: liveness/readiness
 - `TrainingProgramsModule`: reusable multi-week templates and relative routine schedules
-- Later: `WorkoutSessionsModule`, `AnalyticsModule`
+- `AdoptedTrainingProgramsModule`: owner-scoped adoption, occurrences, and progress
+- `WorkoutSessionsModule`: standalone and program-origin workout execution/history
+- `AnalyticsModule`: deterministic owner-scoped analytics reads
+
+A `UsersModule` or `MediaModule` should be added only if post-beta requirements
+justify application profile operations beyond Better Auth or managed-media
+workflows beyond the current tracked assets.
 
 Modules may share IDs and public service interfaces, but should not reach into one another’s Prisma repositories. Cross-aggregate writes (for example exercise plus muscle assignments and profiles) are coordinated by one application service in one transaction.
 
@@ -159,14 +165,14 @@ Use `.env.example` files without secrets and validate every environment at start
 
 ## Scalability posture
 
-Stateless web/API containers can later scale horizontally if sessions and media are external. CPU-heavy image transformation and Cloudinary asset management are post-MVP concerns; the MVP does not process image uploads.
+Stateless web/API runtimes can later scale horizontally because sessions and the database are external. CPU-heavy image transformation and managed-media asset management are post-MVP concerns; the MVP does not process image uploads.
 
 ## Testing and definition of done
 
 - Architecture checks prevent the web app importing Prisma/server modules.
 - API boots against a clean migrated database.
 - Web/API production builds run in containers as non-root users.
-- A request through Nginx reaches both the web and `/api/health/ready`.
+- The Vercel web health route responds, and a request through the Oracle Nginx proxy reaches `/api/health/ready`.
 - Configuration startup fails clearly when a required variable is absent.
 - OpenAPI output is generated and checked for unexpected changes.
 
