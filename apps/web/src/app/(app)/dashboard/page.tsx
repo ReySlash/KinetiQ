@@ -11,9 +11,10 @@ import {
 } from "@/lib/workout-sessions-server";
 import { DashboardAnalytics } from "./components/dashboard-analytics";
 import { DashboardHeader } from "./components/dashboard-header";
-import { DashboardSignedOutState } from "./components/dashboard-signed-out-state";
 import { TrainingPlanCard } from "./components/training-plan-card";
 import { selectDashboardPrimaryAction } from "./components/dashboard-state";
+import SignedOutState from "@/components/signed-out-state";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +34,16 @@ type DashboardResources =
       authenticated: true;
       userName: string;
       activeProgram: DashboardReadResult<
-        Extract<ActiveAdoptedTrainingProgramResult, { status: "authenticated" }>["program"]
+        Extract<
+          ActiveAdoptedTrainingProgramResult,
+          { status: "authenticated" }
+        >["program"]
       >;
       activeWorkout: DashboardReadResult<
-        Extract<ActiveWorkoutFetchResult, { status: "authenticated" }>["session"]
+        Extract<
+          ActiveWorkoutFetchResult,
+          { status: "authenticated" }
+        >["session"]
       >;
     };
 
@@ -56,7 +63,10 @@ async function readDashboardResources(): Promise<DashboardResources> {
   }
 
   const activeProgram: DashboardReadResult<
-    Extract<ActiveAdoptedTrainingProgramResult, { status: "authenticated" }>["program"]
+    Extract<
+      ActiveAdoptedTrainingProgramResult,
+      { status: "authenticated" }
+    >["program"]
   > =
     programResult.status === "fulfilled" &&
     programResult.value.status === "authenticated"
@@ -110,10 +120,19 @@ export default async function DashboardPage() {
     <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
       {resources.authenticated && action ? (
         <DashboardHeader name={resources.userName} />
-      ) : null}
+      ) : (
+        <PageHeader subtitle="Your personal training dashboard.">
+          <h1 className="text-lg font-bold leading-none">Dashboard</h1>
+        </PageHeader>
+      )}
       <section className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto px-1 py-1 md:px-0">
         {!authenticatedResources || !action ? (
-          <DashboardSignedOutState />
+          <SignedOutState
+            title="Sign in to see your training dashboard"
+            description="Your active workouts, programs, and training history are private to your account."
+            tooltip="Sign in to open your dashboard"
+            page="dashboard"
+          />
         ) : (
           <DashboardAnalytics>
             <TrainingPlanCard

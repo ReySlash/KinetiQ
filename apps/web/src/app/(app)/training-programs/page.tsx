@@ -1,15 +1,9 @@
 import { PageHeader } from "@/components/page-header";
-import StyledLink from "@/components/styled-link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/card";
 import { fetchTrainingPrograms } from "@/lib/training-programs-server";
 import { fetchActiveAdoptedTrainingProgram } from "@/lib/adopted-training-programs-server";
 import { TrainingProgramsLibrary } from "./components/training-programs-library";
 import { TrainingProgramsTabs } from "./components/training-programs-tabs";
+import SignedOutState from "@/components/signed-out-state";
 
 export const dynamic = "force-dynamic";
 
@@ -45,21 +39,12 @@ export default async function TrainingProgramsPage({
       </PageHeader>
       <TrainingProgramsTabs scope={scope}>
         {result.status === "unauthenticated" ? (
-          <Card className="flex min-h-0 flex-1 items-center justify-center border border-border/70 bg-card/80 shadow-sm">
-            <CardContent className="flex max-w-md flex-col items-center gap-3 p-8 text-center">
-              <CardTitle>Sign in to view your training programs</CardTitle>
-              <CardDescription>
-                Training programs are private multi-week templates saved to your
-                account. Sign in to create and manage them.
-              </CardDescription>
-              <StyledLink
-                href={`/sign-in?callbackURL=${encodeURIComponent("/training-programs")}`}
-                size="lg"
-              >
-                Sign in
-              </StyledLink>
-            </CardContent>
-          </Card>
+          <SignedOutState
+            title="Sign in to see your training programs"
+            description="Training programs are private multi-week templates saved to your account. Sign in to create and manage them."
+            tooltip="Sign in to see your training programs"
+            page="training-programs"
+          />
         ) : (
           <TrainingProgramsLibrary
             programs={result.programs}

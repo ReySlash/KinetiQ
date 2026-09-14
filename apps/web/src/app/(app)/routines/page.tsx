@@ -1,14 +1,8 @@
 import { RoutinesLibrary } from "./components/routines-library";
 import { PageHeader } from "@/components/page-header";
 import { fetchRoutines } from "@/lib/routines-server";
-import StyledLink from "@/components/styled-link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/card";
 import { RoutinesTabs } from "./components/routines-tabs";
+import SignedOutState from "@/components/signed-out-state";
 
 export const dynamic = "force-dynamic";
 
@@ -37,21 +31,12 @@ export default async function RoutinesPage({
       </PageHeader>
       <RoutinesTabs scope={scope}>
         {result.status === "unauthenticated" ? (
-          <Card className="flex min-h-0 flex-1 items-center justify-center border border-border/70 bg-card/80 shadow-sm">
-            <CardContent className="flex max-w-md flex-col items-center gap-3 p-8 text-center">
-              <CardTitle>Sign in to view your routines</CardTitle>
-              <CardDescription>
-                Routines are private workout templates saved to your account.
-                Sign in to create and manage them.
-              </CardDescription>
-              <StyledLink
-                href={`/sign-in?callbackURL=${encodeURIComponent("/routines")}`}
-                size="lg"
-              >
-                Sign in
-              </StyledLink>
-            </CardContent>
-          </Card>
+          <SignedOutState
+            title="Sign in to see your routines"
+            description="Routines are private workout templates saved to your account. Sign in to create and manage them."
+            tooltip="Sign in to see your routines"
+            page="routines"
+          />
         ) : (
           <RoutinesLibrary routines={result.routines} scope={scope} />
         )}

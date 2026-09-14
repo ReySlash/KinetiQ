@@ -70,7 +70,7 @@ export function RoutineExercisePicker({
             variant="outline"
             size="lg"
             className={cn(
-              "h-10 cursor-pointer !border-primary/50 bg-primary/5 text-primary hover:!border-primary hover:!bg-primary hover:!text-black",
+              "h-10 cursor-pointer border-primary/50! bg-primary/5 text-primary hover:border-primary! hover:bg-primary! hover:text-black!",
               className,
             )}
           />
@@ -114,28 +114,29 @@ export function RoutineExercisePicker({
                 Unable to load exercises.
               </p>
             )}
-            {debouncedSearch.length >= 3 && exercises.data?.map((exercise) => {
-              const isSelected = selected.has(exercise.slug);
-              return (
-                <Button
-                  key={exercise.slug}
-                  type="button"
-                  variant="ghost"
-                  className="h-auto justify-start py-2 text-left"
-                  disabled={isSelected}
-                  onClick={() => handleAdd(exercise)}
-                >
-                  <span className="min-w-0 flex-1 truncate">
-                    {exercise.name}
-                  </span>
-                  {isSelected ? (
-                    <span className="text-xs text-muted-foreground">
-                      Added
+            {debouncedSearch.length >= 3 &&
+              exercises.data?.map((exercise) => {
+                const isSelected = selected.has(exercise.slug);
+                return (
+                  <Button
+                    key={exercise.slug}
+                    type="button"
+                    variant="ghost"
+                    className="h-auto justify-start py-2 text-left"
+                    disabled={isSelected}
+                    onClick={() => handleAdd(exercise)}
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {exercise.name}
                     </span>
-                  ) : null}
-                </Button>
-              );
-            })}
+                    {isSelected ? (
+                      <span className="text-xs text-muted-foreground">
+                        Added
+                      </span>
+                    ) : null}
+                  </Button>
+                );
+              })}
             {debouncedSearch.length >= 3 &&
             exercises.data?.length === 0 &&
             !exercises.isLoading ? (
