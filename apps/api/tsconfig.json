@@ -21,8 +21,7 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,
-    "noFallthroughCasesInSwitch": true,
-    "rewriteRelativeImportExtensions": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist", "generated"]

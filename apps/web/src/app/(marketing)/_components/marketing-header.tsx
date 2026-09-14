@@ -18,7 +18,7 @@ export function MarketingHeader() {
           aria-label="KinetiQ home"
           className="shrink-0 text-lg font-semibold tracking-[0.16em] text-foreground"
         >
-          <span className="text-primary">KINET</span>IQ
+          <span className="text-primary">Kinet</span>iQ
         </Link>
 
         <nav aria-label="Marketing navigation" className="hidden md:block">

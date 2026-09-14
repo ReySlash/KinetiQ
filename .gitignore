@@ -20,9 +20,9 @@ coverage/
 
 # env and secrets
 .env
+*.env
 .env.*
 !.env.example
-deploy/production.env
 
 # logs
 logs/
