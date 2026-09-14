@@ -16,8 +16,10 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY apps/web apps/web
 ARG NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com
+ARG API_PROXY_URL=https://api.kinetiq.reyslash.com
 ARG NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV API_PROXY_URL=${API_PROXY_URL}
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 RUN pnpm --filter web build
 

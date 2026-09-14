@@ -31,6 +31,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://kinetiq.reyslash.com
+        API_PROXY_URL: https://api.kinetiq.reyslash.com
         NEXT_PUBLIC_SITE_URL: https://kinetiq.reyslash.com
     env_file:
       - ./deploy/production.env
