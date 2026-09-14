@@ -1,5 +1,8 @@
 import { getLocalImageSrc } from "@/lib/local-image";
 import { fetchExercise } from "@/lib/exercises-server";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -20,6 +23,8 @@ export default async function ExerciseDetailsPage(props: {
   const { slug } = await props.params;
 
   const exerciseDetails = await fetchExercise(slug);
+  if (isRateLimitedResult(exerciseDetails)) return <RateLimitedState title="Exercise details are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  if (!exerciseDetails) notFound();
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">

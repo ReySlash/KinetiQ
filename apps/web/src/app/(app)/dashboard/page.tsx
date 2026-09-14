@@ -15,6 +15,8 @@ import { TrainingPlanCard } from "./components/training-plan-card";
 import { selectDashboardPrimaryAction } from "./components/dashboard-state";
 import SignedOutState from "@/components/signed-out-state";
 import { PageHeader } from "@/components/page-header";
+import { RateLimitedState } from "@/components/rate-limited-state";
+import { isRateLimitError } from "@/lib/api/error";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +31,10 @@ type DashboardReadResult<T> = {
 };
 
 type DashboardResources =
-  | { authenticated: false }
+  | { status: "unauthenticated" }
+  | { status: "rate-limited" }
   | {
+      status: "authenticated";
       authenticated: true;
       userName: string;
       activeProgram: DashboardReadResult<
@@ -55,11 +59,24 @@ async function readDashboardResources(): Promise<DashboardResources> {
   ]);
 
   if (authResult.status === "rejected") {
+    if (isRateLimitError(authResult.reason)) return { status: "rate-limited" };
     throw authResult.reason;
   }
 
   if (authResult.value.status === "unauthenticated") {
-    return { authenticated: false };
+    return { status: "unauthenticated" };
+  }
+  if (authResult.value.status === "rate-limited") {
+    return { status: "rate-limited" };
+  }
+
+  if (
+    (programResult.status === "fulfilled" && programResult.value.status === "rate-limited") ||
+    (workoutResult.status === "fulfilled" && workoutResult.value.status === "rate-limited") ||
+    (programResult.status === "rejected" && isRateLimitError(programResult.reason)) ||
+    (workoutResult.status === "rejected" && isRateLimitError(workoutResult.reason))
+  ) {
+    return { status: "rate-limited" };
   }
 
   const activeProgram: DashboardReadResult<
@@ -93,6 +110,7 @@ async function readDashboardResources(): Promise<DashboardResources> {
         };
 
   return {
+    status: "authenticated",
     authenticated: true,
     userName: authResult.value.session.user.name,
     activeProgram,
@@ -106,7 +124,20 @@ function toError(reason: unknown): Error {
 
 export default async function DashboardPage() {
   const resources = await readDashboardResources();
-  const authenticatedResources = resources.authenticated ? resources : null;
+  if ("status" in resources && resources.status === "rate-limited") {
+    return (
+      <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2">
+        <PageHeader subtitle="Your personal training dashboard.">
+          <h1 className="text-lg font-bold leading-none">Dashboard</h1>
+        </PageHeader>
+        <section className="flex min-h-0 flex-1 flex-col overflow-auto px-1 py-1 md:px-0">
+          <RateLimitedState title="Dashboard is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />
+        </section>
+      </main>
+    );
+  }
+  const authenticatedResources =
+    resources.status === "authenticated" ? resources : null;
   const action = authenticatedResources
     ? selectDashboardPrimaryAction({
         activeWorkout: authenticatedResources.activeWorkout.value,
@@ -118,8 +149,8 @@ export default async function DashboardPage() {
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
-      {resources.authenticated && action ? (
-        <DashboardHeader name={resources.userName} />
+      {authenticatedResources && action ? (
+        <DashboardHeader name={authenticatedResources.userName} />
       ) : (
         <PageHeader subtitle="Your personal training dashboard.">
           <h1 className="text-lg font-bold leading-none">Dashboard</h1>

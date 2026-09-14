@@ -42,7 +42,7 @@ export function DashboardAnalytics({ children }: { children: ReactNode }) {
   if (query.error && !query.data) {
     return (
       <div className="flex flex-col gap-2">
-        <DashboardAnalyticsError onRetry={() => void query.refetch()} />
+        <DashboardAnalyticsError error={query.error} onRetry={() => void query.refetch()} />
         {children}
       </div>
     );

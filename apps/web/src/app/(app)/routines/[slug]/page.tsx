@@ -20,6 +20,8 @@ import {
 } from "@/lib/routine-image";
 
 import { RoutineActions } from "./routine-actions";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +33,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const routine = await fetchRoutine(slug);
 
-  if (!routine) return { title: "Routine not found | KinetiQ" };
+  if (!routine || isRateLimitedResult(routine)) return { title: "Routine | KinetiQ" };
   return {
     title: `${routine.name} routine | KinetiQ`,
     description:
@@ -52,6 +54,7 @@ export default async function RoutineDetailsPage({
 }) {
   const { slug } = await params;
   const routine = await fetchRoutine(slug);
+  if (isRateLimitedResult(routine)) return <RateLimitedState title="Routine is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
   if (!routine) notFound();
 
   const activeExercises = routine.exercises.filter(

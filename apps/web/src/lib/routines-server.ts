@@ -1,10 +1,11 @@
-import { ApiError } from "@/lib/api/error";
+import { ApiError, type RateLimitedResult } from "@/lib/api/error";
 import { serverRequest } from "@/lib/api/server-request";
 import type { RoutineDetail, RoutineListItem } from "@/types/routine-types";
 
 export type RoutinesFetchResult =
   | { status: "authenticated"; routines: RoutineListItem[] }
-  | { status: "unauthenticated" };
+  | { status: "unauthenticated" }
+  | RateLimitedResult;
 
 export async function fetchRoutines(
   query: { q?: string; sort?: string; scope: "my" | "global" },
@@ -28,15 +29,23 @@ export async function fetchRoutines(
     if (error instanceof ApiError && error.status === 401) {
       return { status: "unauthenticated" };
     }
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
+    }
     throw error;
   }
 }
 
-export async function fetchRoutine(slug: string): Promise<RoutineDetail | null> {
+export async function fetchRoutine(
+  slug: string,
+): Promise<RoutineDetail | null | RateLimitedResult> {
   try {
     return await serverRequest<RoutineDetail>(`routines/${slug}`);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
+    }
     throw error;
   }
 }

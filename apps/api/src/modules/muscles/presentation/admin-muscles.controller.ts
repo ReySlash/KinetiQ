@@ -8,7 +8,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Roles } from '@thallesp/nestjs-better-auth';
-import { Throttle } from '@nestjs/throttler';
 import { CreateMuscleUseCase } from '../application/use-cases/commands/create-muscle.use-case';
 import { DeactivateMuscleUseCase } from '../application/use-cases/commands/deactivate-muscle.use-case';
 import { UpdateMuscleUseCase } from '../application/use-cases/commands/update-muscle.use-case';
@@ -20,7 +19,6 @@ import { toMusclesHttpException } from './muscles-exception.mapper';
 @ApiTags('admin/muscles')
 @ApiCookieAuth('better-auth.session_token')
 @Roles(['ADMIN'])
-@Throttle({ default: { limit: 30, ttl: 60_000 } })
 export class AdminMusclesController {
   constructor(
     private readonly createMuscle: CreateMuscleUseCase,

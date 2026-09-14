@@ -7,10 +7,8 @@ export default function DashboardLoading() {
       <PageHeader subtitle="Your next workout and recent training at a glance.">
         <h1 className="text-lg font-bold leading-none">Dashboard</h1>
       </PageHeader>
-      <section className="grid gap-2 p-1 xl:grid-cols-2">
-        <Skeleton className="h-56 rounded-xl" />
-        <Skeleton className="h-56 rounded-xl" />
-        <Skeleton className="h-28 rounded-xl xl:col-span-2" />
+      <section className="p-1 h-full">
+        <Skeleton className="h-full rounded-xl" />
       </section>
     </main>
   );

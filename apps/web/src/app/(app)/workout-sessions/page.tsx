@@ -5,6 +5,7 @@ import { fetchWorkoutSessions } from "@/lib/workout-sessions-server";
 import { WorkoutSessionsLibrary } from "./components/workout-sessions-library";
 import type { WorkoutSessionStatus } from "@/types/workout-session-types";
 import SignedOutState from "@/components/signed-out-state";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,9 @@ export default async function WorkoutSessionsPage({
         <h1 className="text-lg leading-none font-bold">Workout sessions</h1>
       </PageHeader>
       <section className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto px-1 py-1 md:px-0">
-        {result.status === "unauthenticated" ? (
+        {result.status === "rate-limited" || routinesResult.status === "rate-limited" ? (
+          <RateLimitedState title="Workout sessions are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />
+        ) : result.status === "unauthenticated" ? (
           <SignedOutState
             title="Sign in to see your workouts"
             description="Your workout history is private and belongs to your account."

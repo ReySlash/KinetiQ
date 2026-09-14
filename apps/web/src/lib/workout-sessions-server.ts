@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api/error";
+import { ApiError, type RateLimitedResult } from "@/lib/api/error";
 import { serverRequest } from "@/lib/api/server-request";
 import type {
   WorkoutSession,
@@ -8,11 +8,13 @@ import type {
 
 export type WorkoutSessionsFetchResult =
   | { status: "authenticated"; sessions: WorkoutSessionListItem[] }
-  | { status: "unauthenticated" };
+  | { status: "unauthenticated" }
+  | RateLimitedResult;
 
 export type ActiveWorkoutFetchResult =
   | { status: "authenticated"; session: WorkoutSession | null }
-  | { status: "unauthenticated" };
+  | { status: "unauthenticated" }
+  | RateLimitedResult;
 
 export async function fetchActiveWorkoutSession(): Promise<ActiveWorkoutFetchResult> {
   try {
@@ -25,6 +27,9 @@ export async function fetchActiveWorkoutSession(): Promise<ActiveWorkoutFetchRes
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       return { status: "unauthenticated" };
+    }
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
     }
     throw error;
   }
@@ -52,19 +57,25 @@ export async function fetchWorkoutSessions(
     if (error instanceof ApiError && error.status === 401) {
       return { status: "unauthenticated" };
     }
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
+    }
     throw error;
   }
 }
 
 export async function fetchWorkoutSession(
   workoutSessionId: string,
-): Promise<WorkoutSession | null> {
+): Promise<WorkoutSession | null | RateLimitedResult> {
   try {
     return await serverRequest<WorkoutSession>(
       `workout-sessions/${workoutSessionId}`,
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "rate-limited" };
+    }
     throw error;
   }
 }

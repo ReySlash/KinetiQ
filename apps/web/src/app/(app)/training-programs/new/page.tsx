@@ -3,6 +3,7 @@ import StyledLink from "@/components/styled-link";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { fetchRoutines } from "@/lib/routines-server";
 import { TrainingProgramBuilder } from "./training-program-builder";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,10 @@ export default async function NewTrainingProgramPage() {
     fetchRoutines({ scope: "global" }),
     fetchRoutines({ scope: "my" }),
   ]);
+
+  if (globalResult.status === "rate-limited" || privateResult.status === "rate-limited") {
+    return <RateLimitedState title="Training program creation is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  }
 
   if (privateResult.status === "unauthenticated") {
     return (

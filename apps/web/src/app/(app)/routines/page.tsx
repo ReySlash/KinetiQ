@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { fetchRoutines } from "@/lib/routines-server";
 import { RoutinesTabs } from "./components/routines-tabs";
 import SignedOutState from "@/components/signed-out-state";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,9 @@ export default async function RoutinesPage({
         <h1 className="text-lg font-bold leading-none">Routines</h1>
       </PageHeader>
       <RoutinesTabs scope={scope}>
-        {result.status === "unauthenticated" ? (
+        {result.status === "rate-limited" ? (
+          <RateLimitedState title="Routines are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />
+        ) : result.status === "unauthenticated" ? (
           <SignedOutState
             title="Sign in to see your routines"
             description="Routines are private workout templates saved to your account. Sign in to create and manage them."

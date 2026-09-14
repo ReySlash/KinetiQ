@@ -7,6 +7,9 @@ import MuscleOverviewCard from "./components/muscle-overview-card";
 import ExercisesMusclesCard from "./components/exercises-muscles-card";
 import { getLocalImageSrc } from "@/lib/local-image";
 import { ChevronRight } from "lucide-react";
+import { notFound } from "next/navigation";
+import { isRateLimitedResult } from "@/lib/api/error";
+import { RateLimitedState } from "@/components/rate-limited-state";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +19,8 @@ export default async function MuscleGroupPage(props: {
   const { slug } = await props.params;
 
   const muscleDetails = await fetchMuscle(slug);
+  if (isRateLimitedResult(muscleDetails)) return <RateLimitedState title="Muscle details are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  if (!muscleDetails) notFound();
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 overflow-hidden px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
