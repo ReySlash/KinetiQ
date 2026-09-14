@@ -7,7 +7,7 @@ import { PrimaryMetrics } from "./primary-metrics";
 import { RecentWorkouts } from "./recent-workouts";
 import { WeeklyPanel } from "./weekly-panel";
 import type { ExerciseSortMetric } from "./exercise-analytics-utils";
-import SignedOutState from "@/components/signed-out-state";
+import { EmptyState } from "./empty-state";
 
 export function AnalyticsContent({
   overview,
@@ -22,14 +22,7 @@ export function AnalyticsContent({
     overview.totals.completedWorkouts === 0 &&
     overview.exercises.length === 0
   )
-    return (
-      <SignedOutState
-        title="Sign in to see your analytics"
-        description="Your training performance is private to your account."
-        tooltip="Sign in to open your analytics"
-        page="analytics"
-      />
-    );
+    return <EmptyState />;
   return (
     <>
       <PrimaryMetrics overview={overview} />

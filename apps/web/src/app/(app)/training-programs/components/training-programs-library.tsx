@@ -83,23 +83,25 @@ export function TrainingProgramsLibrary({
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-1 md:p-2">
         {programs.length === 0 ? (
-          <section className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <div className="rounded-2xl bg-primary/10 p-3 text-primary">
-              <CalendarRange className="size-6" />
-            </div>
-            <div>
-              <p className="font-medium">
-                {scope === "global"
-                  ? "No global programs found"
-                  : "No training programs yet"}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {scope === "global"
-                  ? "Try adjusting your search or filters."
-                  : "Create your first training program and structure your training over time."}
-              </p>
-            </div>
-          </section>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+                <CalendarRange className="size-6" />
+              </div>
+              <div>
+                <p className="font-medium">
+                  {scope === "global"
+                    ? "No global programs found"
+                    : "No training programs yet"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {scope === "global"
+                    ? "Try adjusting your search or filters."
+                    : "Create your first training program and structure your training over time."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <>
             <div className="hidden md:block">
