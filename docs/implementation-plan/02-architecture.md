@@ -129,7 +129,7 @@ module shape and scope.
 
 ## Frontend architecture
 
-Use server components for public, read-oriented page shells and metadata where useful. Use client components for TanStack Query interactions, filters, forms, ordering, and authenticated mutations. Route groups should separate public library, authenticated app, and admin surfaces. React Hook Form plus Zod handles immediate browser feedback; Nest DTO validation remains authoritative.
+Use Server Components for page-level reads and metadata where useful. Use Server Actions for form and command workflows, and client components with focused local React state for browser-only interactions. Route groups should separate public library, authenticated app, and admin surfaces. React Hook Form plus Zod handles immediate browser feedback; Nest DTO validation remains authoritative.
 
 ## Request flow
 

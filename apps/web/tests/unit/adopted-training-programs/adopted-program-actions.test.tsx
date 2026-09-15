@@ -1,18 +1,12 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AdoptedProgramActions } from "@/app/(app)/training-programs/adopted/[adoptedTrainingProgramId]/components/adopted-program-actions";
-import { ApiError } from "@/lib/api/error";
 import type { AdoptedTrainingProgram } from "@/types/adopted-training-program-types";
 
 const api = vi.hoisted(() => ({
-  pause: vi.fn(),
-  resume: vi.fn(),
-  cancel: vi.fn(),
-  skip: vi.fn(),
-  start: vi.fn(),
+  update: vi.fn(),
   push: vi.fn(),
   refresh: vi.fn(),
 }));
@@ -21,12 +15,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: api.push, refresh: api.refresh }),
 }));
 
-vi.mock("@/lib/adopted-training-programs-api", () => ({
-  pauseAdoptedTrainingProgram: api.pause,
-  resumeAdoptedTrainingProgram: api.resume,
-  cancelAdoptedTrainingProgram: api.cancel,
-  skipProgramWorkout: api.skip,
-  startProgramWorkout: api.start,
+vi.mock("@/app/(app)/training-programs/training-program-server-actions", () => ({
+  updateAdoptedProgramAction: api.update,
 }));
 
 function fixture(overrides: Partial<AdoptedTrainingProgram> = {}): AdoptedTrainingProgram {
@@ -70,12 +60,7 @@ function fixture(overrides: Partial<AdoptedTrainingProgram> = {}): AdoptedTraini
 }
 
 function renderActions(program = fixture()) {
-  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <AdoptedProgramActions program={program} />
-    </QueryClientProvider>,
-  );
+  return render(<AdoptedProgramActions program={program} />);
 }
 
 describe("AdoptedProgramActions", () => {
@@ -127,8 +112,7 @@ describe("AdoptedProgramActions", () => {
     await user.click(screen.getByRole("button", { name: /keep workout/i }));
     await user.click(screen.getByRole("button", { name: /cancel program/i }));
     expect(screen.getByRole("heading", { name: /cancel this program/i })).toBeInTheDocument();
-    expect(api.skip).not.toHaveBeenCalled();
-    expect(api.cancel).not.toHaveBeenCalled();
+    expect(api.update).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -136,7 +120,7 @@ describe("AdoptedProgramActions", () => {
     ["ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT", /refreshed it with the latest progress/i],
     ["ADOPTED_TRAINING_PROGRAM_SOURCE_INTEGRITY_FAILED", /could not safely start/i],
   ])("handles stable mutation code %s", async (code, message) => {
-    api.start.mockRejectedValue(new ApiError("unsafe backend detail", 409, code));
+    api.update.mockResolvedValue({ ok: false, status: 409, code, message: "unsafe backend detail" });
     const user = userEvent.setup();
     renderActions();
     await user.click(screen.getAllByRole("button", { name: /start workout/i })[0]);

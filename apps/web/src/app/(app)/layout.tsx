@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/app/(app)/_components/app-sidebar";
 import { MobileBottomNav } from "@/app/(app)/_components/mobile-bottom-nav";
-import { QueryProvider } from "@/app/(app)/_components/query-provider";
+import { TimezoneSynchronizer } from "@/app/(app)/_components/timezone-synchronizer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteUrl } from "@/lib/site";
@@ -34,15 +34,14 @@ export default function AppLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <QueryProvider>
-              <div className="h-dvh overflow-hidden">
-                <SidebarProvider>
-                  <AppSidebar />
-                  <SidebarInset>{children}</SidebarInset>
-                  <MobileBottomNav />
-                </SidebarProvider>
-              </div>
-            </QueryProvider>
+            <TimezoneSynchronizer />
+            <div className="h-dvh overflow-hidden">
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset>{children}</SidebarInset>
+                <MobileBottomNav />
+              </SidebarProvider>
+            </div>
           </TooltipProvider>
         </ThemeProvider>
       </body>

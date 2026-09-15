@@ -1,9 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import StyledLink from "@/components/styled-link";
 import { Button } from "@/components/ui/button";
@@ -16,20 +15,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { deleteTrainingProgram } from "@/lib/training-programs-api";
+import { deleteTrainingProgramAction } from "../training-program-server-actions";
 
 export function TrainingProgramActions({ slug }: { slug: string }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteTrainingProgram(slug),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["training-programs"] });
-      router.push("/training-programs");
-    },
-  });
+  function remove() {
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteTrainingProgramAction(slug);
+      if (result.ok) return router.push("/training-programs");
+      setError(result.message);
+    });
+  }
 
   return (
     <>
@@ -42,15 +43,15 @@ export function TrainingProgramActions({ slug }: { slug: string }) {
           variant="destructive"
           size="lg"
           onClick={() => setDeleteOpen(true)}
-          disabled={deleteMutation.isPending}
+          disabled={isPending}
         >
           <Trash2 />
           Delete program
         </Button>
       </div>
-      {deleteMutation.isError && (
+      {error && (
         <p role="alert" className="text-sm text-destructive">
-          {deleteMutation.error.message}
+          {error}
         </p>
       )}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -65,10 +66,10 @@ export function TrainingProgramActions({ slug }: { slug: string }) {
             <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
             <Button
               variant="destructive"
-              onClick={() => deleteMutation.mutate()}
-              disabled={deleteMutation.isPending}
+              onClick={remove}
+              disabled={isPending}
             >
-              {deleteMutation.isPending ? "Deleting…" : "Delete program"}
+              {isPending ? "Deleting…" : "Delete program"}
             </Button>
           </DialogFooter>
         </DialogContent>

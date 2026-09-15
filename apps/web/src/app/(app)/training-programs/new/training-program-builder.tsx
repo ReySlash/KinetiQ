@@ -1,12 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { useState } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "@/components/page-header";
@@ -37,11 +36,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  createTrainingProgram,
-  updateTrainingProgram,
-  type TrainingProgramCreateInput,
-} from "@/lib/training-programs-api";
+import type { TrainingProgramCreateInput } from "@/types/training-program-types";
+import { saveTrainingProgramAction } from "../training-program-server-actions";
 import type { RoutineListItem } from "@/types/routine-types";
 import type { TrainingProgramDetail } from "@/types/training-program-types";
 
@@ -93,7 +89,8 @@ export function TrainingProgramBuilder({
   program?: TrainingProgramDetail;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(trainingProgramSchema),
     defaultValues: {
@@ -110,16 +107,8 @@ export function TrainingProgramBuilder({
     },
   });
   const fields = useFieldArray({ control: form.control, name: "schedule" });
-  const mutation = useMutation({
-    mutationFn: (input: TrainingProgramCreateInput) =>
-      program
-        ? updateTrainingProgram(program.slug, input)
-        : createTrainingProgram(input),
-  });
-
   function onSubmit(values: FormValues) {
-    mutation.mutate(
-      {
+    const input: TrainingProgramCreateInput = {
         name: values.name,
         description: values.description?.trim() || null,
         durationWeeks: values.durationWeeks,
@@ -127,16 +116,16 @@ export function TrainingProgramBuilder({
           ...entry,
           notes: entry.notes?.trim() || null,
         })),
-      },
-      {
-        onSuccess: async ({ slug }) => {
-          await queryClient.invalidateQueries({
-            queryKey: ["training-programs"],
-          });
-          router.push(`/training-programs/${slug}`);
-        },
-      },
-    );
+      };
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await saveTrainingProgramAction(input, program?.slug);
+      if (result.ok) {
+        router.push(`/training-programs/${result.data.slug}`);
+        return;
+      }
+      setSubmitError(result.message);
+    });
   }
 
   return (
@@ -390,9 +379,9 @@ export function TrainingProgramBuilder({
             </CardContent>
           </Card>
 
-          {mutation.isError && (
+          {submitError && (
             <p role="alert" className="text-sm text-destructive">
-              {mutation.error.message}
+              {submitError}
             </p>
           )}
           <div className="flex justify-center gap-2 md:justify-end">
@@ -403,8 +392,8 @@ export function TrainingProgramBuilder({
             >
               Cancel
             </StyledLink>
-            <Button size="lg" type="submit" disabled={mutation.isPending}>
-              {mutation.isPending
+            <Button size="lg" type="submit" disabled={isPending}>
+              {isPending
                 ? program
                   ? "Saving…"
                   : "Creating…"

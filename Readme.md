@@ -7,7 +7,7 @@ The product milestone remains intentionally focused: a realistic single-develope
 ## Stack and deployment
 
 - Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui
-- React Hook Form, Zod, TanStack Query
+- React Hook Form and Zod
 - NestJS, TypeScript, Better Auth
 - Prisma ORM and PostgreSQL
 - Vitest, React Testing Library, Jest, Supertest, Playwright where appropriate

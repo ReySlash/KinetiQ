@@ -1,4 +1,4 @@
-import type { AnalyticsOverviewRequest } from "@/lib/analytics-api";
+import type { AnalyticsOverviewRequest } from "@/types/analytics-types";
 import type { AnalyticsRange } from "@/types/analytics-types";
 
 const CLIENT_CLOCK_SKEW_MILLISECONDS = 60_000;

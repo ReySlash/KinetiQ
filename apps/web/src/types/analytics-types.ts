@@ -77,3 +77,8 @@ export type AnalyticsOverview = {
 
 export type AnalyticsRange = "1w" | "2w" | "4w" | "26w" | "52w";
 export type AnalyticsMetric = "workouts" | "sets" | "repetitions" | "volume";
+export type AnalyticsOverviewRequest = {
+  timezone: string;
+  from?: string;
+  to?: string;
+};

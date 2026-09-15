@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import { Play } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,14 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { startProgramWorkout } from "@/lib/adopted-training-programs-api";
-import { ApiError } from "@/lib/api/error";
-
-function startErrorMessage(error: unknown): string {
-  return error instanceof ApiError
-    ? error.message
-    : "We could not start this workout. Check your connection and try again.";
-}
+import { updateAdoptedProgramAction } from "../../training-programs/training-program-server-actions";
 
 export function DashboardStartWorkoutButton({
   adoptedTrainingProgramId,
@@ -27,24 +20,32 @@ export function DashboardStartWorkoutButton({
   occurrenceId: string;
 }) {
   const router = useRouter();
-  const mutation = useMutation({
-    mutationFn: () =>
-      startProgramWorkout(adoptedTrainingProgramId, occurrenceId, {
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }),
-    onSuccess: (result) => {
-      router.push(`/workout-sessions/${result.workoutSessionId}`);
-    },
-  });
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function startWorkout() {
+    setError(null);
+    startTransition(async () => {
+      const result = await updateAdoptedProgramAction(adoptedTrainingProgramId, {
+        type: "start",
+        occurrenceId,
+      });
+      if (result.ok && "workoutSessionId" in result.data) {
+        router.push(`/workout-sessions/${result.data.workoutSessionId}`);
+        return;
+      }
+      if (!result.ok) setError(result.message);
+    });
+  }
 
   return (
     <>
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+            <Button disabled={isPending} onClick={startWorkout}>
               <Play data-icon="inline-start" />
-              {mutation.isPending ? "Starting..." : "Start workout"}
+              {isPending ? "Starting..." : "Start workout"}
             </Button>
           }
         />
@@ -52,12 +53,12 @@ export function DashboardStartWorkoutButton({
           Start the next workout in your active program
         </TooltipContent>
       </Tooltip>
-      {mutation.isError ? (
+      {error ? (
         <p
           role="alert"
           className="col-span-2 text-xs text-destructive md:basis-full md:text-right"
         >
-          {startErrorMessage(mutation.error)}
+          {error}
         </p>
       ) : null}
     </>

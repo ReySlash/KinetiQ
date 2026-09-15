@@ -2,7 +2,7 @@
 
 ## Purpose and recommendation
 
-Build a responsive Next.js App Router application with clear public, authenticated, and admin surfaces. Use server rendering for public discovery where it improves first load/metadata, and TanStack Query client state for interactive filters, forms, authenticated resources, and mutations.
+Build a responsive Next.js App Router application with clear public, authenticated, and admin surfaces. Use Server Components for page-level reads, Server Actions for form and command workflows, and focused local React state for interactive client-only flows.
 
 ## Route structure
 
@@ -30,7 +30,7 @@ Route-group names are illustrative; final URLs remain `/exercises`, `/muscles`, 
 ## Data ownership and state
 
 - URL search parameters own public list filters, search, sort, and page so results are linkable/back-button safe.
-- TanStack Query owns remote client cache. Query keys are centralized factories such as `exerciseKeys.list(filters)` and `routineKeys.detail(id)`.
+- Server-rendered data is refreshed through navigation and Server Action revalidation. Client-only requests use explicit local loading, error, retry, and cancellation state without a global remote-data cache.
 - React Hook Form owns in-progress form state; Zod gives immediate presentation validation.
 - Local component state owns ephemeral UI (dialog open, active form section).
 - Do not add Redux/global state without a demonstrated cross-cutting client-state problem.

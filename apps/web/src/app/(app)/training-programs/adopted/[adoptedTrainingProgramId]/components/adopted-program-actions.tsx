@@ -1,9 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CirclePlay, Pause, Play, RotateCcw, SkipForward, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import StyledLink from "@/components/styled-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,42 +17,27 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  cancelAdoptedTrainingProgram,
-  pauseAdoptedTrainingProgram,
-  resumeAdoptedTrainingProgram,
-  skipProgramWorkout,
-  startProgramWorkout,
-} from "@/lib/adopted-training-programs-api";
-import { ApiError } from "@/lib/api/error";
 import type { AdoptedTrainingProgram } from "@/types/adopted-training-program-types";
 import { getMobileProgramAction } from "./adopted-program-action-priority";
+import {
+  updateAdoptedProgramAction,
+  type AdoptedProgramCommand as Command,
+} from "../../../training-program-server-actions";
 
-type Command =
-  | { type: "pause" }
-  | { type: "resume" }
-  | { type: "cancel" }
-  | { type: "start"; occurrenceId: string }
-  | { type: "skip"; occurrenceId: string };
-
-function mutationMessage(error: unknown) {
-  if (!(error instanceof ApiError)) {
-    return "We could not update this program. Check your connection and try again.";
-  }
-
-  if (error.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_INTEGRITY_FAILED") {
+function mutationMessage(code: string | null, message: string) {
+  if (code === "ADOPTED_TRAINING_PROGRAM_SOURCE_INTEGRITY_FAILED") {
     return "We could not safely start this workout. Please try again later.";
   }
 
-  if (error.code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT") {
+  if (code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT") {
     return "This program changed in another request. We refreshed it with the latest progress.";
   }
 
-  if (error.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE") {
+  if (code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE") {
     return "This routine is no longer available. The schedule has been refreshed.";
   }
 
-  return error.message;
+  return message;
 }
 
 export function AdoptedProgramActions({
@@ -62,7 +46,7 @@ export function AdoptedProgramActions({
   program: AdoptedTrainingProgram;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
   const [skipOpen, setSkipOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -72,48 +56,25 @@ export function AdoptedProgramActions({
   )?.activeSessionId;
   const mobileAction = getMobileProgramAction(program);
 
-  const mutation = useMutation({
-    mutationFn: async (command: Command) => {
-      if (command.type === "pause") {
-        return pauseAdoptedTrainingProgram(program.id);
+  function run(command: Command) {
+    setFeedback(null);
+    startTransition(async () => {
+      const result = await updateAdoptedProgramAction(program.id, command);
+      if (!result.ok) {
+        setFeedback(mutationMessage(result.code, result.message));
+        if (
+          result.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE" ||
+          result.code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT"
+        ) router.refresh();
+        return;
       }
-      if (command.type === "resume") {
-        return resumeAdoptedTrainingProgram(program.id);
-      }
-      if (command.type === "cancel") {
-        return cancelAdoptedTrainingProgram(program.id);
-      }
-      if (command.type === "skip") {
-        return skipProgramWorkout(program.id, command.occurrenceId);
-      }
-      return startProgramWorkout(program.id, command.occurrenceId, {
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      });
-    },
-    onSuccess: async (result, command) => {
       setFeedback(null);
-      await queryClient.invalidateQueries({ queryKey: ["adopted-training-programs"] });
-      if (command.type === "start" && "workoutSessionId" in result) {
-        router.push(`/workout-sessions/${result.workoutSessionId}`);
+      if (command.type === "start" && "workoutSessionId" in result.data) {
+        router.push(`/workout-sessions/${result.data.workoutSessionId}`);
         return;
       }
       router.refresh();
-    },
-    onError: (error) => {
-      setFeedback(mutationMessage(error));
-      if (
-        error instanceof ApiError &&
-        (error.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE" ||
-          error.code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT")
-      ) {
-        router.refresh();
-      }
-    },
-  });
-
-  function run(command: Command) {
-    setFeedback(null);
-    mutation.mutate(command);
+    });
   }
 
   function primaryButton(
@@ -138,7 +99,7 @@ export function AdoptedProgramActions({
         <Button
           size="lg"
           className={actionClassName}
-          disabled={mutation.isPending}
+          disabled={isPending}
           onClick={() => run({ type: "resume" })}
         >
           <RotateCcw data-icon="inline-start" />
@@ -150,7 +111,7 @@ export function AdoptedProgramActions({
       <Button
         size="lg"
         className={actionClassName}
-        disabled={mutation.isPending}
+        disabled={isPending}
         onClick={() => run({ type: "start", occurrenceId: action.occurrenceId })}
       >
         <Play data-icon="inline-start" />
@@ -179,7 +140,7 @@ export function AdoptedProgramActions({
           {program.actions.canStartNext && nextOccurrence ? (
             <Button
               size="lg"
-              disabled={mutation.isPending}
+              disabled={isPending}
               onClick={() => run({ type: "start", occurrenceId: nextOccurrence.id })}
             >
               <Play data-icon="inline-start" />
@@ -189,7 +150,7 @@ export function AdoptedProgramActions({
           {program.actions.canResume ? (
             <Button
               size="lg"
-              disabled={mutation.isPending}
+              disabled={isPending}
               onClick={() => run({ type: "resume" })}
             >
               <RotateCcw data-icon="inline-start" />
@@ -220,7 +181,7 @@ export function AdoptedProgramActions({
               <Button
                 variant="outline"
                 size="lg"
-                disabled={mutation.isPending}
+                disabled={isPending}
                 onClick={() => run({ type: "pause" })}
               >
                 <Pause data-icon="inline-start" />
@@ -261,7 +222,7 @@ export function AdoptedProgramActions({
             <AlertDialogCancel>Keep workout</AlertDialogCancel>
             <AlertDialogAction
               variant="outline"
-              disabled={mutation.isPending || !nextOccurrence}
+              disabled={isPending || !nextOccurrence}
               onClick={() => {
                 if (!nextOccurrence) return;
                 setSkipOpen(false);
@@ -286,7 +247,7 @@ export function AdoptedProgramActions({
             <AlertDialogCancel>Keep program</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              disabled={mutation.isPending}
+              disabled={isPending}
               onClick={() => {
                 setCancelOpen(false);
                 run({ type: "cancel" });

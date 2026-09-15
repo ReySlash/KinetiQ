@@ -1,46 +1,42 @@
-"use client";
-
 import type { AnalyticsOverview } from "@/types/analytics-types";
-import { ExerciseDistributionPanel } from "./exercise-distribution-panel";
-import { ExercisePanel } from "./exercise-panel";
+import type { AnalyticsRange } from "@/types/analytics-types";
+import { AnalyticsInteractiveContent } from "./analytics-interactive-content";
 import { PrimaryMetrics } from "./primary-metrics";
 import { RecentWorkouts } from "./recent-workouts";
-import { WeeklyPanel } from "./weekly-panel";
 import type { ExerciseSortMetric } from "./exercise-analytics-utils";
-import { EmptyState } from "./empty-state";
 
 export function AnalyticsContent({
   overview,
-  metric,
+  initialMetric,
+  range,
   timezone,
 }: {
   overview: AnalyticsOverview;
-  metric: ExerciseSortMetric;
+  initialMetric: ExerciseSortMetric;
+  range: AnalyticsRange;
   timezone: string;
 }) {
-  if (
+  const isEmpty =
     overview.totals.completedWorkouts === 0 &&
-    overview.exercises.length === 0
-  )
-    return <EmptyState />;
+    overview.exercises.length === 0;
+
   return (
-    <>
-      <PrimaryMetrics overview={overview} />
-      <div className="grid gap-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <WeeklyPanel overview={overview} metric={metric} timezone={timezone} />
-        <ExerciseDistributionPanel overview={overview} metric={metric} />
-      </div>
-      <div className="grid gap-2">
-        <ExercisePanel
-          exercises={overview.exercises}
-          timezone={timezone}
-          metric={metric}
-        />
-        <RecentWorkouts
-          workouts={overview.recentWorkouts}
-          timezone={timezone}
-        />
-      </div>
-    </>
+    <AnalyticsInteractiveContent
+      overview={overview}
+      initialMetric={initialMetric}
+      range={range}
+      timezone={timezone}
+      isEmpty={isEmpty}
+      footer={
+        !isEmpty ? (
+          <RecentWorkouts
+            workouts={overview.recentWorkouts}
+            timezone={timezone}
+          />
+        ) : null
+      }
+    >
+      {!isEmpty && <PrimaryMetrics overview={overview} />}
+    </AnalyticsInteractiveContent>
   );
 }

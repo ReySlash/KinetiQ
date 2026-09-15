@@ -1,9 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { AuthRequiredDialog } from "@/app/(auth)/components/auth-required-dialog";
 import StyledLink from "@/components/styled-link";
@@ -18,10 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  deleteRoutine,
-  duplicateRoutine,
-} from "@/lib/routines-api";
-import { ApiError as RoutineApiError } from "@/lib/api/error";
+  deleteRoutineAction,
+  duplicateRoutineAction,
+} from "../routine-server-actions";
 
 export function RoutineActions({
   routineSlug,
@@ -31,50 +29,46 @@ export function RoutineActions({
   visibility: "PRIVATE" | "GLOBAL";
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteRoutine(routineSlug),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["routines"] });
-      router.push("/routines");
-    },
-  });
-  const duplicateMutation = useMutation({
-    mutationFn: () => duplicateRoutine(routineSlug),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["routines"] });
-      router.push("/routines");
-    },
-    onError: (error) => {
-      if (error instanceof RoutineApiError && error.status === 401) {
-        setAuthOpen(true);
-      }
-    },
-  });
+  function duplicate() {
+    setError(null);
+    startTransition(async () => {
+      const result = await duplicateRoutineAction(routineSlug);
+      if (result.ok) return router.push("/routines");
+      if (result.status === 401) setAuthOpen(true);
+      else setError(result.message);
+    });
+  }
+
+  function remove() {
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteRoutineAction(routineSlug);
+      if (result.ok) return router.push("/routines");
+      setError(result.message);
+    });
+  }
 
   if (visibility === "GLOBAL") {
     return (
       <>
         <Button
           size="lg"
-          onClick={() => duplicateMutation.mutate()}
-          disabled={duplicateMutation.isPending}
+          onClick={duplicate}
+          disabled={isPending}
         >
           <Copy />
-          {duplicateMutation.isPending
+          {isPending
             ? "Copying…"
             : "Copy to my routines"}
         </Button>
-        {duplicateMutation.isError &&
-          !(
-            duplicateMutation.error instanceof RoutineApiError &&
-            duplicateMutation.error.status === 401
-          ) && (
+        {error && (
             <p role="alert" className="text-sm text-destructive">
-              {duplicateMutation.error.message}
+              {error}
             </p>
           )}
         <AuthRequiredDialog open={authOpen} onOpenChange={setAuthOpen} />
@@ -92,25 +86,25 @@ export function RoutineActions({
         <Button
           variant="outline"
           size="lg"
-          onClick={() => duplicateMutation.mutate()}
-          disabled={duplicateMutation.isPending || deleteMutation.isPending}
+          onClick={duplicate}
+          disabled={isPending}
         >
           <Copy />
-          {duplicateMutation.isPending ? "Duplicating…" : "Duplicate"}
+          {isPending ? "Working…" : "Duplicate"}
         </Button>
         <Button
           variant="destructive"
           size="lg"
           onClick={() => setDeleteOpen(true)}
-          disabled={duplicateMutation.isPending || deleteMutation.isPending}
+          disabled={isPending}
         >
           <Trash2 />
           Delete routine
         </Button>
       </div>
-      {(duplicateMutation.isError || deleteMutation.isError) && (
+      {error && (
         <p role="alert" className="text-sm text-destructive">
-          {(duplicateMutation.error ?? deleteMutation.error)?.message}
+          {error}
         </p>
       )}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -126,10 +120,10 @@ export function RoutineActions({
             <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
             <Button
               variant="destructive"
-              onClick={() => deleteMutation.mutate()}
-              disabled={deleteMutation.isPending}
+              onClick={remove}
+              disabled={isPending}
             >
-              {deleteMutation.isPending ? "Deleting…" : "Delete routine"}
+              {isPending ? "Deleting…" : "Delete routine"}
             </Button>
           </DialogFooter>
         </DialogContent>

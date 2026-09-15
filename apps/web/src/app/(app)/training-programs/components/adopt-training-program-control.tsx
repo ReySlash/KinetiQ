@@ -1,9 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dumbbell } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { AuthRequiredDialog } from "@/app/(auth)/components/auth-required-dialog";
 import StyledLink from "@/components/styled-link";
@@ -20,8 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { adoptTrainingProgram } from "@/lib/adopted-training-programs-api";
-import { ApiError } from "@/lib/api/error";
+import { adoptTrainingProgramAction } from "../training-program-server-actions";
 
 export function AdoptTrainingProgramControl({
   slug,
@@ -35,58 +33,50 @@ export function AdoptTrainingProgramControl({
   scheduledWorkoutCount: number;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showActiveLink, setShowActiveLink] = useState(false);
 
-  const mutation = useMutation({
-    mutationFn: () => adoptTrainingProgram(slug),
-    onSuccess: async (result) => {
-      await queryClient.invalidateQueries({ queryKey: ["adopted-training-programs"] });
-      router.push(`/training-programs/adopted/${result.id}`);
-    },
-    onError: (error) => {
+  function adopt() {
+    setFeedback(null);
+    startTransition(async () => {
+      const result = await adoptTrainingProgramAction(slug);
+      if (result.ok) return router.push(`/training-programs/adopted/${result.data.id}`);
       setConfirmOpen(false);
-      if (error instanceof ApiError && error.status === 401) {
+      if (result.status === 401) {
         setAuthOpen(true);
         return;
       }
-      if (
-        error instanceof ApiError &&
-        error.code === "ADOPTED_TRAINING_PROGRAM_ALREADY_NON_TERMINAL"
-      ) {
+      if (result.code === "ADOPTED_TRAINING_PROGRAM_ALREADY_NON_TERMINAL") {
         setFeedback("You already have an active or paused training program.");
         setShowActiveLink(true);
         return;
       }
       if (
-        error instanceof ApiError &&
-        error.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_INTEGRITY_FAILED"
+        result.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_INTEGRITY_FAILED"
       ) {
         setFeedback("We could not safely adopt this program. Please try again later.");
         return;
       }
       if (
-        error instanceof ApiError &&
-        error.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE"
+        result.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE"
       ) {
         setFeedback("A scheduled routine is no longer available. We refreshed the program details.");
         router.refresh();
         return;
       }
       if (
-        error instanceof ApiError &&
-        error.code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT"
+        result.code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT"
       ) {
         setFeedback("This program changed while you were adopting it. We refreshed the latest version.");
         router.refresh();
         return;
       }
-      setFeedback(error instanceof Error ? error.message : "We could not adopt this program. Please try again.");
-    },
-  });
+      setFeedback(result.message);
+    });
+  }
 
   if (scheduledWorkoutCount === 0) {
     return (
@@ -135,10 +125,10 @@ export function AdoptTrainingProgramControl({
           <AlertDialogFooter>
             <AlertDialogCancel>Not now</AlertDialogCancel>
             <AlertDialogAction
-              disabled={mutation.isPending}
-              onClick={() => mutation.mutate()}
+              disabled={isPending}
+              onClick={adopt}
             >
-              {mutation.isPending ? "Adopting…" : "Adopt program"}
+              {isPending ? "Adopting…" : "Adopt program"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,16 +12,15 @@ import type { AdoptedTrainingProgram } from "@/types/adopted-training-program-ty
 const navigation = vi.hoisted(() => ({
   push: vi.fn(),
   refresh: vi.fn(),
-  startProgramWorkout: vi.fn(),
+  updateAdoptedProgram: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navigation.push, refresh: navigation.refresh }),
 }));
 
-vi.mock("@/lib/adopted-training-programs-api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/adopted-training-programs-api")>()),
-  startProgramWorkout: navigation.startProgramWorkout,
+vi.mock("@/app/(app)/training-programs/training-program-server-actions", () => ({
+  updateAdoptedProgramAction: navigation.updateAdoptedProgram,
 }));
 
 const overview = {
@@ -184,24 +182,17 @@ describe("dashboard components", () => {
 
   it("starts the next occurrence and opens the returned workout session", async () => {
     const user = userEvent.setup();
-    const queryClient = new QueryClient({
-      defaultOptions: { mutations: { retry: false } },
-    });
-    navigation.startProgramWorkout.mockResolvedValue({
-      workoutSessionId: "session-2",
-      occurrenceId: "occurrence-1",
-      sessionStatus: "IN_PROGRESS",
-      occurrenceStatus: "IN_PROGRESS",
-    });
+    navigation.updateAdoptedProgram.mockResolvedValue({ ok: true, data: {
+      workoutSessionId: "session-2", occurrenceId: "occurrence-1",
+      sessionStatus: "IN_PROGRESS", occurrenceStatus: "IN_PROGRESS",
+    } });
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <TrainingPlanCard
-          action={{ kind: "program", adoptedTrainingProgramId: activeProgram.id }}
-          activeWorkout={null}
-          activeProgram={activeProgram}
-        />
-      </QueryClientProvider>,
+      <TrainingPlanCard
+        action={{ kind: "program", adoptedTrainingProgramId: activeProgram.id }}
+        activeWorkout={null}
+        activeProgram={activeProgram}
+      />,
     );
 
     const routineLink = screen.getByRole("link", { name: "Push" });
@@ -217,10 +208,9 @@ describe("dashboard components", () => {
       screen.getByText("Strength Base · Week 1, day 1", { exact: true }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Start workout" }));
-    expect(navigation.startProgramWorkout).toHaveBeenCalledWith(
+    expect(navigation.updateAdoptedProgram).toHaveBeenCalledWith(
       "program-1",
-      "occurrence-1",
-      expect.objectContaining({ timezone: expect.any(String) }),
+      { type: "start", occurrenceId: "occurrence-1" },
     );
     await waitFor(() => {
       expect(navigation.push).toHaveBeenCalledWith("/workout-sessions/session-2");

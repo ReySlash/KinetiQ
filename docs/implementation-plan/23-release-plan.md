@@ -69,7 +69,7 @@ This work may begin earlier and must be complete before any shared environment e
 
 ## R8 — Routine editing and duplication polish
 
-**Deliver:** edit/reorder, duplicate, archived-exercise warnings, unsaved-change handling, query cache behavior, accessible reorder.
+**Deliver:** edit/reorder, duplicate, archived-exercise warnings, unsaved-change handling, server revalidation behavior, accessible reorder.
 
 **Acceptance:** duplicate is independent; reorder canonical; mutation rollback works; keyboard/mobile Playwright workflow passes.
 
