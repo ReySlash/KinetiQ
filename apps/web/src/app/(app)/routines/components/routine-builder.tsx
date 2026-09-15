@@ -1,13 +1,12 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { BookOpen, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
-import { createRoutine, updateRoutine } from "@/lib/routines-api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,6 +29,7 @@ import StyledLink from "@/components/styled-link";
 import type { RoutineCreateInput, RoutineDetail } from "@/types/routine-types";
 import Link from "next/link";
 import { RoutineExercisePicker } from "./routine-exercise-picker";
+import { saveRoutineAction } from "../routine-server-actions";
 
 const optionalInteger = (min: number, max: number) =>
   z.preprocess(
@@ -134,20 +134,15 @@ export function RoutineBuilder({
   initialExerciseSlug?: string;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(routineSchema),
     defaultValues: getDefaults(routine, initialExerciseSlug),
   });
   const fields = useFieldArray({ control: form.control, name: "exercises" });
-  const mutation = useMutation({
-    mutationFn: (input: RoutineCreateInput) =>
-      routine ? updateRoutine(routine.slug, input) : createRoutine(input),
-  });
-
   function onSubmit(values: FormValues) {
-    mutation.mutate(
-      {
+    const input: RoutineCreateInput = {
         name: values.name,
         description: values.description?.trim() || null,
         exercises: values.exercises.map((exercise) => ({
@@ -157,14 +152,16 @@ export function RoutineBuilder({
           tempo: exercise.tempo?.trim() || null,
           notes: exercise.notes?.trim() || null,
         })),
-      },
-      {
-        onSuccess: async () => {
-          await queryClient.invalidateQueries({ queryKey: ["routines"] });
+      };
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await saveRoutineAction(input, routine?.slug);
+      if (result.ok) {
           router.push("/routines");
-        },
-      },
-    );
+          return;
+      }
+      setSubmitError(result.message);
+    });
   }
 
   function addExercise(exerciseSlug: string) {
@@ -406,17 +403,17 @@ export function RoutineBuilder({
             </CardContent>
           </Card>
 
-          {mutation.isError && (
+          {submitError && (
             <p role="alert" className="text-sm text-destructive">
-              {mutation.error.message}
+              {submitError}
             </p>
           )}
           <div className="flex  gap-2 sm:flex-row justify-center md:justify-end">
             <StyledLink size="lg" href="/routines" variant="outline">
               Cancel
             </StyledLink>
-            <Button size="lg" type="submit" disabled={mutation.isPending}>
-              {mutation.isPending
+            <Button size="lg" type="submit" disabled={isPending}>
+              {isPending
                 ? "Saving…"
                 : routine
                   ? "Save changes"

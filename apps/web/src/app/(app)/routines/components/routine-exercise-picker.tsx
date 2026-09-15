@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -32,20 +31,44 @@ export function RoutineExercisePicker({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [exercises, setExercises] = useState<ExerciseOption[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      setDebouncedSearch(search.trim());
+      const nextSearch = search.trim();
+      setDebouncedSearch(nextSearch);
+      if (open && nextSearch.length >= 3) {
+        setIsLoading(true);
+        setError(null);
+      }
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [search]);
+  }, [open, search]);
 
-  const exercises = useQuery({
-    queryKey: ["routine-exercise-picker", debouncedSearch],
-    queryFn: () => listExercises(debouncedSearch),
-    enabled: open && debouncedSearch.length >= 3,
-  });
+  useEffect(() => {
+    if (!open || debouncedSearch.length < 3) return;
+
+    const controller = new AbortController();
+    void listExercises(debouncedSearch, { signal: controller.signal })
+      .then(setExercises)
+      .catch((reason: unknown) => {
+        if (!controller.signal.aborted) {
+          setExercises([]);
+          setError(
+            reason instanceof Error ? reason.message : "Unable to load exercises.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [debouncedSearch, open, retryKey]);
   const selected = new Set(selectedExerciseSlugs);
 
   function handleAdd(exercise: ExerciseOption) {
@@ -58,7 +81,26 @@ export function RoutineExercisePicker({
     if (!nextOpen) {
       setSearch("");
       setDebouncedSearch("");
+      setExercises([]);
+      setError(null);
+      setIsLoading(false);
     }
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    if (value.trim().length < 3) {
+      setDebouncedSearch("");
+      setExercises([]);
+      setError(null);
+      setIsLoading(false);
+    }
+  }
+
+  function retry() {
+    setIsLoading(true);
+    setError(null);
+    setRetryKey((value) => value + 1);
   }
 
   return (
@@ -91,7 +133,7 @@ export function RoutineExercisePicker({
             aria-label="Search exercises"
             placeholder="Search exercises"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => handleSearchChange(event.target.value)}
           />
           <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
             {!search.trim() && (
@@ -104,18 +146,21 @@ export function RoutineExercisePicker({
                 Enter at least 3 characters to search.
               </p>
             )}
-            {debouncedSearch.length >= 3 && exercises.isLoading && (
+            {debouncedSearch.length >= 3 && isLoading && (
               <p className="py-4 text-sm text-muted-foreground">
                 Loading exercises…
               </p>
             )}
-            {debouncedSearch.length >= 3 && exercises.isError && (
-              <p role="alert" className="py-4 text-sm text-destructive">
-                Unable to load exercises.
-              </p>
+            {debouncedSearch.length >= 3 && error && (
+              <div className="flex items-center justify-between gap-2 py-4">
+                <p role="alert" className="text-sm text-destructive">{error}</p>
+                <Button type="button" variant="outline" size="sm" onClick={retry}>
+                  Retry
+                </Button>
+              </div>
             )}
             {debouncedSearch.length >= 3 &&
-              exercises.data?.map((exercise) => {
+              exercises.map((exercise) => {
                 const isSelected = selected.has(exercise.slug);
                 return (
                   <Button
@@ -138,8 +183,9 @@ export function RoutineExercisePicker({
                 );
               })}
             {debouncedSearch.length >= 3 &&
-            exercises.data?.length === 0 &&
-            !exercises.isLoading ? (
+            exercises.length === 0 &&
+            !isLoading &&
+            !error ? (
               <p className="py-4 text-sm text-muted-foreground">
                 No exercises match your search.
               </p>

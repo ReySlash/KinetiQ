@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -14,14 +13,28 @@ describe("WorkoutExercisePicker", () => {
       ),
     );
     const onAddExercise = vi.fn();
-    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const user = userEvent.setup();
 
-    render(<QueryClientProvider client={queryClient}><WorkoutExercisePicker onAddExercise={onAddExercise} /></QueryClientProvider>);
+    render(<WorkoutExercisePicker onAddExercise={onAddExercise} />);
     await user.click(screen.getByRole("button", { name: /add exercise/i }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Bench Press" })).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: "Bench Press" }));
 
     expect(onAddExercise).toHaveBeenCalledWith("exercise-1");
+  });
+
+  it("does not load exercises before the dialog opens", async () => {
+    const requests = vi.fn();
+    server.use(
+      http.get("http://localhost:3000/api/exercises", () => {
+        requests();
+        return HttpResponse.json([]);
+      }),
+    );
+
+    render(<WorkoutExercisePicker onAddExercise={() => undefined} />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(requests).not.toHaveBeenCalled();
   });
 });

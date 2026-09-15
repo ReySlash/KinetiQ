@@ -24,8 +24,14 @@ pnpm dev:web
 
 The web application runs at `http://localhost:3001`. The local environment
 expects `NEXT_PUBLIC_API_URL=http://localhost:3000` and
-`NEXT_PUBLIC_SITE_URL=http://localhost:3001`. For a production build,
-`NEXT_PUBLIC_SITE_URL` must be set to the public application URL.
+`API_PROXY_URL=http://localhost:3000`, with
+`NEXT_PUBLIC_SITE_URL=http://localhost:3001`.
+
+The closed-beta frontend runs on Vercel at
+`https://kinetiq.reyslash.com`. Browser requests target same-origin `/api`;
+the Next.js rewrite uses the server-only `API_PROXY_URL` to forward them to
+`https://api.kinetiq.reyslash.com`. `API_PROXY_URL` must not be exposed through
+a `NEXT_PUBLIC_` variable.
 
 The API must be running separately for authenticated and data-backed pages.
 Start it with `pnpm dev:api` after completing the API setup described in the
@@ -41,7 +47,8 @@ pnpm --filter web build
 ```
 
 The root shortcuts `pnpm dev:web`, `pnpm lint:web`, and `pnpm build:web` are
-also available. The production build requires a valid `NEXT_PUBLIC_SITE_URL`.
+also available. The production build requires valid `NEXT_PUBLIC_SITE_URL`,
+`NEXT_PUBLIC_API_URL`, and server-side `API_PROXY_URL` values in Vercel.
 
 ## Tests
 

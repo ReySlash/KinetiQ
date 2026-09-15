@@ -53,7 +53,7 @@ Follow standard Next.js and NestJS conventions while keeping implementations sim
 - Keep future roadmap features in mind without building speculative abstractions.
 - Organize NestJS by domain feature, with shared infrastructure modules for concerns such as Prisma, authentication, configuration, and logging.
 - Keep route-specific Next.js code colocated with routes and reusable domain code in feature folders.
-- Use Server Components, direct fetching, and TanStack Query according to the feature’s interaction needs.
+- Use Server Components for page reads, Server Actions for form and command workflows, and focused client fetching only for highly interactive flows.
 - Share only stable API contracts. Do not expose Prisma models or backend internals to the frontend.
 - NestJS services may access Prisma directly for simple operations. Introduce repositories for complex, reused, or independently testable query logic.
 - `TrainingProgramsModule` is the approved, isolated pilot for a lean Clean Architecture/DDD vertical slice. Keep its domain and application layers framework-independent, implement Prisma behind feature-specific repository ports, and do not use the pilot as authorization to refactor existing modules without separate approval.

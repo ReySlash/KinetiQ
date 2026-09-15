@@ -1,14 +1,5 @@
 import type { Metadata } from "next";
 
-import { fetchServerAuthSession } from "@/lib/auth-server";
-import {
-  fetchActiveAdoptedTrainingProgram,
-  type ActiveAdoptedTrainingProgramResult,
-} from "@/lib/adopted-training-programs-server";
-import {
-  fetchActiveWorkoutSession,
-  type ActiveWorkoutFetchResult,
-} from "@/lib/workout-sessions-server";
 import { DashboardAnalytics } from "./components/dashboard-analytics";
 import { DashboardHeader } from "./components/dashboard-header";
 import { TrainingPlanCard } from "./components/training-plan-card";
@@ -16,7 +7,8 @@ import { selectDashboardPrimaryAction } from "./components/dashboard-state";
 import SignedOutState from "@/components/signed-out-state";
 import { PageHeader } from "@/components/page-header";
 import { RateLimitedState } from "@/components/rate-limited-state";
-import { isRateLimitError } from "@/lib/api/error";
+import { ApiError } from "@/lib/api/error";
+import { readDashboardResources } from "./dashboard-resources";
 
 export const dynamic = "force-dynamic";
 
@@ -24,103 +16,6 @@ export const metadata: Metadata = {
   title: "Dashboard",
   robots: { index: false, follow: false },
 };
-
-type DashboardReadResult<T> = {
-  value: T | null;
-  error: Error | null;
-};
-
-type DashboardResources =
-  | { status: "unauthenticated" }
-  | { status: "rate-limited" }
-  | {
-      status: "authenticated";
-      authenticated: true;
-      userName: string;
-      activeProgram: DashboardReadResult<
-        Extract<
-          ActiveAdoptedTrainingProgramResult,
-          { status: "authenticated" }
-        >["program"]
-      >;
-      activeWorkout: DashboardReadResult<
-        Extract<
-          ActiveWorkoutFetchResult,
-          { status: "authenticated" }
-        >["session"]
-      >;
-    };
-
-async function readDashboardResources(): Promise<DashboardResources> {
-  const [authResult, programResult, workoutResult] = await Promise.allSettled([
-    fetchServerAuthSession(),
-    fetchActiveAdoptedTrainingProgram(),
-    fetchActiveWorkoutSession(),
-  ]);
-
-  if (authResult.status === "rejected") {
-    if (isRateLimitError(authResult.reason)) return { status: "rate-limited" };
-    throw authResult.reason;
-  }
-
-  if (authResult.value.status === "unauthenticated") {
-    return { status: "unauthenticated" };
-  }
-  if (authResult.value.status === "rate-limited") {
-    return { status: "rate-limited" };
-  }
-
-  if (
-    (programResult.status === "fulfilled" && programResult.value.status === "rate-limited") ||
-    (workoutResult.status === "fulfilled" && workoutResult.value.status === "rate-limited") ||
-    (programResult.status === "rejected" && isRateLimitError(programResult.reason)) ||
-    (workoutResult.status === "rejected" && isRateLimitError(workoutResult.reason))
-  ) {
-    return { status: "rate-limited" };
-  }
-
-  const activeProgram: DashboardReadResult<
-    Extract<
-      ActiveAdoptedTrainingProgramResult,
-      { status: "authenticated" }
-    >["program"]
-  > =
-    programResult.status === "fulfilled" &&
-    programResult.value.status === "authenticated"
-      ? { value: programResult.value.program, error: null }
-      : {
-          value: null,
-          error:
-            programResult.status === "rejected"
-              ? toError(programResult.reason)
-              : new Error("Active program authentication state is unknown."),
-        };
-  const activeWorkout: DashboardReadResult<
-    Extract<ActiveWorkoutFetchResult, { status: "authenticated" }>["session"]
-  > =
-    workoutResult.status === "fulfilled" &&
-    workoutResult.value.status === "authenticated"
-      ? { value: workoutResult.value.session, error: null }
-      : {
-          value: null,
-          error:
-            workoutResult.status === "rejected"
-              ? toError(workoutResult.reason)
-              : new Error("Active workout authentication state is unknown."),
-        };
-
-  return {
-    status: "authenticated",
-    authenticated: true,
-    userName: authResult.value.session.user.name,
-    activeProgram,
-    activeWorkout,
-  };
-}
-
-function toError(reason: unknown): Error {
-  return reason instanceof Error ? reason : new Error("Dashboard read failed.");
-}
 
 export default async function DashboardPage() {
   const resources = await readDashboardResources();
@@ -165,7 +60,16 @@ export default async function DashboardPage() {
             page="dashboard"
           />
         ) : (
-          <DashboardAnalytics>
+          <DashboardAnalytics
+            overview={authenticatedResources.analytics.value}
+            timezone={authenticatedResources.timezone}
+            failure={authenticatedResources.analytics.error ? {
+              status: authenticatedResources.analytics.error instanceof ApiError
+                ? authenticatedResources.analytics.error.status
+                : 500,
+              message: authenticatedResources.analytics.error.message,
+            } : undefined}
+          >
             <TrainingPlanCard
               action={action}
               activeWorkout={authenticatedResources.activeWorkout.value}

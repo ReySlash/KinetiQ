@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -16,17 +15,11 @@ const exercise = {
 };
 
 function renderPicker(selectedExerciseSlugs: string[] = []) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-
   return render(
-    <QueryClientProvider client={queryClient}>
-      <RoutineExercisePicker
-        selectedExerciseSlugs={selectedExerciseSlugs}
-        onAddExercise={() => undefined}
-      />
-    </QueryClientProvider>,
+    <RoutineExercisePicker
+      selectedExerciseSlugs={selectedExerciseSlugs}
+      onAddExercise={() => undefined}
+    />,
   );
 }
 

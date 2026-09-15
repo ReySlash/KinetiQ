@@ -49,9 +49,9 @@ Translate the roadmap into small, independently verifiable releases suitable for
 
 ## R5 — Exercise and muscle media (post-MVP)
 
-**Deliver:** Cloudinary asset assignment and, if still needed, admin-only upload/replace/remove workflows for generated exercise and muscle images. Add validation, alt text, CDN/cache policy, and lifecycle cleanup.
+**Deliver:** the beta already includes tracked optimized WebP assets and fallbacks. After MVP, choose a managed-media provider and, if still needed, add admin-only assignment/upload/replace/remove workflows with validation, alt text, CDN/cache policy, and lifecycle cleanup.
 
-**Acceptance:** approved Cloudinary assets render safely; missing assets use placeholders; no provider credentials or internal paths leak; post-MVP upload/provider failures preserve prior metadata and cleanup behavior.
+**Acceptance:** approved static or remote assets render safely; missing assets use placeholders; no provider credentials or internal paths leak; any later upload/provider failures preserve prior metadata and cleanup behavior.
 
 ## R6 — Authentication and admin hardening
 
@@ -69,15 +69,15 @@ This work may begin earlier and must be complete before any shared environment e
 
 ## R8 — Routine editing and duplication polish
 
-**Deliver:** edit/reorder, duplicate, archived-exercise warnings, unsaved-change handling, query cache behavior, accessible reorder.
+**Deliver:** edit/reorder, duplicate, archived-exercise warnings, unsaved-change handling, server revalidation behavior, accessible reorder.
 
 **Acceptance:** duplicate is independent; reorder canonical; mutation rollback works; keyboard/mobile Playwright workflow passes.
 
-## R9 — Production MVP hardening and launch
+## R9 — Production MVP baseline and hardening
 
-**Deliver:** production images/Compose/Nginx/Certbot, chosen PostgreSQL/object storage, full CI gates, security headers/rate limits, structured logs/alerts, backups, runbooks, restoration and rollback rehearsal.
+**Deliver:** Vercel-hosted Next.js, a Dockerized NestJS API behind Nginx on Oracle Cloud, Neon PostgreSQL, HTTPS, full CI gates, security headers/rate limits, structured logs, health checks, tracked production assets, backups, and rollback guidance.
 
-**Acceptance:** production-like deploy/smoke, two-user security suite, admin exercise lifecycle, routine lifecycle, HTTPS renewal test, off-host backup and isolated restore meet RPO/RTO. This establishes the production baseline; the current MVP product target continues through the implemented adopted-program and basic analytics slices.
+**Acceptance:** the closed-beta baseline is deployed. Remaining acceptance work includes completing the public HTTPS journey, verifying operator-side controls and branch protection, exercising certificate renewal and rollback, and rehearsing backup restoration. External logical backups, alerting, detailed RPO/RTO measurement, and exhaustive incident runbooks are post-launch hardening rather than blockers for the initial beta.
 
 ## Historical roadmap after the production baseline
 
@@ -107,10 +107,11 @@ media assets.
 
 ## Recommended next implementation task
 
-Implement R9 production MVP hardening and launch readiness. The product slices
-through R13 are implemented; the next work should establish production-like
-deployment, security, observability, backup/restore, rollback, and final MVP
-acceptance gates before adding recommendations or recovery features.
+Use the closed beta to validate the implemented slices through R13 while
+closing the remaining operator-side deployment checklist. Prioritize public
+acceptance, branch protection, Neon backup verification, rollback and restore
+rehearsal, then monitoring and alerts. Do not begin recommendations or recovery
+features until beta data and the analytics foundation are trustworthy.
 
 ## Status tracking
 
@@ -118,17 +119,17 @@ At plan creation all releases are `PLANNED`. Update this table when work begins;
 
 | Release                         | Status                                                                                                           | Depends on                    |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| R0 Foundation                   | Implemented in code and CI; production-environment verification remains                                          | —                             |
-| R1 Muscles                      | Implemented in backend/UI; final production acceptance remains                                                   | R0                            |
-| R2 Exercise identity            | Implemented in backend/UI; final admin production-security acceptance remains                                    | R1                            |
-| R3 Muscle assignments           | Implemented in backend/UI; final production acceptance remains                                                   | R2                            |
-| R4 Profiles                     | Implemented in backend/UI; final production acceptance remains                                                   | R3                            |
-| R5 Media                        | Deferred until post-MVP image generation is ready                                                                | R2, Cloudinary decisions      |
-| R6 Auth/admin hardening         | Backend/web authentication and HTTP authorization tests implemented; production cookie/revocation acceptance remains | R0; gates shared R2–R5     |
-| R7–R8 Routines                  | Implemented in backend/UI slices; final MVP acceptance and production hardening remain                           | R2, R6                        |
-| R9 Production MVP               | Next implementation: deployment, security, observability, backup/restore, rollback, and acceptance hardening   | R0–R8                         |
-| R10 Training-program templates  | Backend and frontend template/schedule slices implemented; release acceptance remains                            | R9                            |
-| R11 Standalone sessions         | Backend and frontend routine/freestyle slice implemented; acceptance remains                                     | Auth + routines               |
-| R12 Adopted-program execution   | Backend/frontend integration implemented with ownership, concurrency, rollback, and journey coverage             | R10, R11                      |
-| R13 Analytics overview          | Implemented deterministic read-only overview; production acceptance remains                                    | R12 stable integrated history |
+| R0 Foundation                   | Deployed in the closed beta; remaining operator controls are tracked separately                                  | —                             |
+| R1 Muscles                      | Deployed; beta acceptance continues                                                                              | R0                            |
+| R2 Exercise identity            | Deployed; final admin production-security acceptance remains                                                     | R1                            |
+| R3 Muscle assignments           | Deployed; beta acceptance continues                                                                              | R2                            |
+| R4 Profiles                     | Deployed; beta acceptance continues                                                                              | R3                            |
+| R5 Media                        | Tracked optimized assets and fallbacks implemented; upload/management remains post-MVP                           | R2                            |
+| R6 Auth/admin hardening         | Deployed with HTTP authorization tests; cookie, revocation, and public acceptance continue                       | R0; gates shared R2–R5        |
+| R7–R8 Routines                  | Deployed with ownership coverage; beta acceptance continues                                                      | R2, R6                        |
+| R9 Production MVP               | Closed-beta baseline deployed on Vercel, Oracle, and Neon; operational hardening remains                         | R0–R8                         |
+| R10 Training-program templates  | Deployed; beta acceptance continues                                                                              | R9                            |
+| R11 Standalone sessions         | Deployed; beta acceptance continues                                                                              | Auth + routines               |
+| R12 Adopted-program execution   | Deployed with ownership, concurrency, rollback, and journey coverage; beta acceptance continues                 | R10, R11                      |
+| R13 Analytics overview          | Deterministic read-only overview deployed; beta validation continues                                             | R12 stable integrated history |
 | R14+ Heuristics and later phases | Deferred                                                                                                        | R13 validated                 |

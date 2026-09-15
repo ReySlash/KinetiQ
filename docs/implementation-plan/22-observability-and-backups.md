@@ -2,11 +2,11 @@
 
 ## Purpose
 
-A single developer needs enough signal to detect broken deployments, diagnose requests, and recover data without operating a large observability platform. Start with structured logs, health checks, resource alerts, and verified off-host backups.
+A single developer needs enough signal to detect broken deployments, diagnose requests, and recover data without operating a large observability platform. The closed-beta baseline starts with API request logs, health checks, Vercel deployment visibility, bounded VPS logs, and Neon backups/PITR. Alerts, portable off-provider backups, and restore rehearsal remain post-launch hardening.
 
 ## Logging
 
-NestJS and Next.js emit structured JSON in production to stdout/stderr. Nginx emits structured access/error logs where feasible. Every incoming request gets a request ID (accept only valid IDs from trusted proxy, otherwise generate one); forward it across Nginx, web/API calls, logs, error responses, and audit records.
+NestJS emits structured request JSON to stdout/stderr. The Oracle Nginx proxy emits structured access logs for API traffic, while Vercel provides frontend deployment and runtime logs. Nginx supplies a request ID and the API validates or generates one, returns it in the response, and includes it in API request logs. End-to-end correlation through Vercel and future audit records remains follow-up work.
 
 Recommended API log fields: timestamp, level, service, environment, version/commit, requestId, method, route template, status, durationMs, authenticated actor ID only when needed, and safe error code. Do not log query strings containing search if privacy policy treats them as sensitive, raw request/response bodies, cookies, authorization headers, database URLs, storage keys where sensitive, passwords, tokens, notes, or upload bytes.
 
@@ -16,8 +16,8 @@ Use size/time rotation at the host log driver or ship to a managed service. Set 
 
 - API `/api/health/live`: process/event loop alive; no dependency calls.
 - API `/api/health/ready`: database connectivity and completed critical startup state with short timeout.
-- Web health: server can render/respond.
-- Nginx/Compose use readiness to route/restart appropriately.
+- Web `/health`: the deployed Next.js application can respond.
+- The API container uses liveness/readiness probes; Vercel owns frontend runtime health and replacement.
 
 Object storage should be monitored through a periodic synthetic check, not every readiness probe, so provider degradation does not restart a healthy API repeatedly. Health responses expose a status and request ID, not credentials, SQL, hostnames, or detailed dependency versions.
 
@@ -44,11 +44,9 @@ An external error tracker is recommended if its cost and data region are accepta
 
 ### PostgreSQL
 
-- Daily logical `pg_dump` in custom format for MVP, compressed and encrypted before/at upload to off-host object storage.
-- Retention example: 7 daily, 4 weekly, 3 monthly; adjust to privacy and cost.
-- Back up Better Auth/application schemas consistently in the same database snapshot.
-- For managed PostgreSQL, enable automated backups/PITR and still understand/export a portable backup periodically where appropriate.
-- Database-on-VPS additionally benefits from block-volume snapshots, but snapshots do not replace logical/off-host backups.
+- Neon automated backups/PITR are the first-beta recovery baseline and must be verified against the selected production plan.
+- A portable encrypted logical backup outside Neon and the VPS is post-launch hardening.
+- When introduced, back up Better Auth and application schemas consistently in the same snapshot and document retention and key custody.
 
 ### Media
 
@@ -68,11 +66,10 @@ Define RPO/RTO. Private MVP recommendation: 24-hour RPO and 4-hour RTO. Tighten 
 
 Create concise runbooks for deploy failure, database unavailable, full disk, expired certificate, object storage outage, backup failure, secret rotation, compromised account, and restore. Each identifies detection, immediate containment, safe diagnosis, recovery, verification, and escalation/provider links.
 
-## Testing and definition of done
+## Testing and current acceptance
 
-Use tests for health response behavior and dependency timeouts, log redaction, request-ID propagation, backup job failure notification, and orphan cleanup metrics. Before launch, trigger a synthetic 5xx, readiness failure, backup alert, certificate check, and full restore drill. Done means failures are detected off-host, logs correlate without exposing secrets, retention prevents disk exhaustion, and measured restore meets targets.
+Automated tests cover health behavior, dependency timeout, and API request-ID propagation. The remaining operational acceptance is to verify Neon recovery settings, certificate renewal, log retention, off-host alerting, and an isolated restore. The stronger standard remains that failures are detected off-host, logs correlate without exposing secrets, retention prevents disk exhaustion, and measured restore meets the approved targets.
 
 ## Future extensions and open questions
 
-OpenTelemetry traces, Prometheus/Grafana, centralized log search, database PITR, and SLO/error-budget practices can follow usage. Choose monitoring/error providers, retention, alert channel, backup bucket/region, encryption key custody, and drill frequency before production.
-
+OpenTelemetry traces, Prometheus/Grafana, centralized log search, and SLO/error-budget practices can follow usage. Choose monitoring/error providers, retention, alert channel, backup bucket/region, encryption key custody, and drill frequency during post-launch hardening.

@@ -93,7 +93,7 @@ ownership but no runtime progress status. Editing its name, duration, or
 schedule changes the template only. It never pauses, completes, or advances,
 and template changes do not mutate an already copied adopted schedule.
 
-### Planned `AdoptedTrainingProgram` lifecycle
+### Implemented `AdoptedTrainingProgram` lifecycle
 
 ```text
 ACTIVE
@@ -119,7 +119,7 @@ PAUSED
 - Cancelling preserves the adopted program, its copied schedule, progress, and
   session attempts as history; it is not a hard delete.
 
-### Planned `ProgramWorkoutOccurrence` lifecycle
+### Implemented `ProgramWorkoutOccurrence` lifecycle
 
 ```text
 PENDING
@@ -828,7 +828,7 @@ API problem/error conventions:
 Do not log session tokens, full mutation payloads, private notes, or Prisma
 errors containing sensitive parameters.
 
-## Planned adopted-program application and API contract
+## Implemented adopted-program application and API contract
 
 ### Adopted-program use cases
 
@@ -1039,8 +1039,9 @@ The implemented adopted-program slice includes domain lifecycle and
 next-occurrence tests; application authorization and transition tests; real
 PostgreSQL partial-index, conditional-update, concurrency, rollback,
 referential-action, API ownership, and complete-journey tests. Frontend
-active-program, session-context, retry, skip, and progress tests remain pending.
-The exhaustive scenario list and browser critical path are maintained in
+active-program, session-context, retry, skip, and progress tests are implemented
+across unit, mocked-browser, accessibility, smoke, and API E2E coverage. The
+exhaustive scenario list and browser critical path are maintained in
 [testing strategy](16-testing-strategy.md).
 
 ## Implemented template-slice sequence and verification
@@ -1054,8 +1055,9 @@ The routine delete path translates a `TrainingProgramRoutine` foreign-key
 restriction into the stable template-in-use `409` response. This integration
 fix is implemented and covered by repository, mapper, and HTTP E2E tests.
 
-The next implementation sequence is the Phase 8.5 adopted-program integration
-described in [workout sessions](14-workout-sessions.md).
+The Phase 8.5 adopted-program integration described in
+[workout sessions](14-workout-sessions.md) is implemented. Remaining work is
+closed-beta acceptance and feedback, not another adopted-program build slice.
 
 ## Deferred decisions
 

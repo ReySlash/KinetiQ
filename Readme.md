@@ -4,30 +4,27 @@ KinetiQ is a full-stack fitness development platform for building a high-quality
 
 The product milestone remains intentionally focused: a realistic single-developer MVP with controlled exercise data, muscle relationships, exercise profiles, authentication, user-owned routines, reusable and adopted training programs, workout performance history, and basic analytics. More advanced features such as progression recommendations, recovery tracking, coach workflows, nutrition, payments, and social features remain later phases.
 
-## Planned Stack
+## Stack and deployment
 
 - Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui
-- React Hook Form, Zod, TanStack Query
+- React Hook Form and Zod
 - NestJS, TypeScript, Better Auth
 - Prisma ORM and PostgreSQL
 - Vitest, React Testing Library, Jest, Supertest, Playwright where appropriate
 - Docker, Docker Compose, Nginx, HTTPS with Certbot
-- Oracle Cloud VPS deployment
+- Vercel-hosted Next.js frontend
+- Dockerized NestJS API on an Oracle Cloud VPS
+- Neon PostgreSQL
 
-## Repository Shape
+## Repository shape
 
-The intended monorepo structure is:
+The current monorepo structure is:
 
 ```text
 apps/
   web/
   api/
 
-packages/
-  shared-types/
-  validation/
-  eslint-config/
-  tsconfig/
 ```
 
 Shared packages should be added only when they carry stable contracts or remove real duplication. Frontend code should not depend on Prisma models or backend internals.
@@ -38,7 +35,7 @@ The first production MVP includes:
 
 - Seeded muscle reference library
 - Exercise library with detailed exercise records
-- Optional Cloudinary-served exercise and muscle image URLs when approved assets are available
+- Tracked optimized WebP assets with fallbacks, plus optional remote image URLs when approved assets are available
 - Exercise-to-muscle relationships with role and involvement score
 - Exercise capability and demand profiles
 - Exercise filtering and search
@@ -51,7 +48,7 @@ The first production MVP includes:
 - Initial explainable, read-only analytics derived from completed workouts
 - Responsive UI
 - Backend and frontend tests
-- Docker-based deployment
+- Vercel web deployment and Dockerized Oracle VPS API deployment
 
 The MVP does not include image uploads or image-management workflows, advanced analytics or opaque recommendations, progression guidance, recovery/fatigue tracking, AI, nutrition, payments, coach organizations, social features, or calendar scheduling/synchronization.
 
@@ -84,9 +81,9 @@ Exercise ratings are editorial classifications, not precise scientific measureme
 
 ## Current Status
 
-The repository has implemented reference-library, routine, training-program, adopted-program, workout-session, and basic analytics slices. PostgreSQL runs through Docker Compose for local development; the API has Prisma migrations, validated configuration, Better Auth wiring, owner-scoped session and analytics queries, public muscle/exercise endpoints, and a database readiness endpoint; the web app has responsive pages, active-workout and program execution flows, analytics, and the shared application shell.
+The closed beta is deployed with the Next.js frontend on Vercel, the Dockerized NestJS API behind HTTPS on an Oracle Cloud VPS, and Neon PostgreSQL. Browser API calls use same-origin `/api` URLs that Vercel rewrites server-side to `https://api.kinetiq.reyslash.com`; the API origin remains independently reachable for intentionally public reference endpoints and enforces authentication and authorization for protected resources.
 
-The next product slice is MVP hardening: complete authentication/admin acceptance, ownership/security verification, accessibility, observability, backups, and deployment readiness. Advanced analytics, progression, recovery, calendar scheduling, and coach workflows remain deferred according to the implementation plan.
+Reference-library, routine, training-program, adopted-program, workout-session, dashboard, and basic analytics slices are implemented. The next work is closed-beta feedback and post-launch hardening: production acceptance gaps, monitoring, backup/restore rehearsal, and operational documentation. Advanced analytics, progression, recovery, calendar scheduling, and coach workflows remain deferred.
 
 ### Local verification
 
@@ -101,6 +98,6 @@ pnpm dev:api
 pnpm dev:web
 ```
 
-The API is available at `http://localhost:3000/api`, readiness is checked at `/api/health`, and development Swagger is available at `/api/docs`. Application containers are intentionally not part of the development Compose file; the API and web run directly from the workspace for fast iteration.
+The API is available at `http://localhost:3000/api`; liveness and readiness are checked at `/api/health/live` and `/api/health/ready`; development Swagger is available at `/api/docs`. Application containers are intentionally not part of the development Compose file; the API and web run directly from the workspace for fast iteration.
 
 Run the repository checks with `pnpm check`.

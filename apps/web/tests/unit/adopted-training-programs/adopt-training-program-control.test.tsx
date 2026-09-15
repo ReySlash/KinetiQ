@@ -1,10 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AdoptTrainingProgramControl } from "@/app/(app)/training-programs/components/adopt-training-program-control";
-import { ApiError } from "@/lib/api/error";
 
 const { adopt, push, refresh } = vi.hoisted(() => ({
   adopt: vi.fn(),
@@ -17,23 +15,18 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, refresh }),
 }));
 
-vi.mock("@/lib/adopted-training-programs-api", () => ({
-  adoptTrainingProgram: adopt,
+vi.mock("@/app/(app)/training-programs/training-program-server-actions", () => ({
+  adoptTrainingProgramAction: adopt,
 }));
 
 function renderControl(scheduleCount = 4) {
-  const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false } },
-  });
   return render(
-    <QueryClientProvider client={queryClient}>
-      <AdoptTrainingProgramControl
-        slug="strength-base"
-        name="Strength Base"
-        durationWeeks={2}
-        scheduledWorkoutCount={scheduleCount}
-      />
-    </QueryClientProvider>,
+    <AdoptTrainingProgramControl
+      slug="strength-base"
+      name="Strength Base"
+      durationWeeks={2}
+      scheduledWorkoutCount={scheduleCount}
+    />,
   );
 }
 
@@ -71,7 +64,7 @@ describe("AdoptTrainingProgramControl", () => {
   });
 
   it("navigates to the adopted program after success", async () => {
-    adopt.mockResolvedValue({ id: "adopted-id", status: "ACTIVE" });
+    adopt.mockResolvedValue({ ok: true, data: { id: "adopted-id", status: "ACTIVE" } });
     const user = userEvent.setup();
     renderControl();
     await user.click(screen.getByRole("button", { name: /adopt program/i }));
@@ -82,13 +75,7 @@ describe("AdoptTrainingProgramControl", () => {
   });
 
   it("offers the canonical active-program route after an adoption race", async () => {
-    adopt.mockRejectedValue(
-      new ApiError(
-        "Already active",
-        409,
-        "ADOPTED_TRAINING_PROGRAM_ALREADY_NON_TERMINAL",
-      ),
-    );
+    adopt.mockResolvedValue({ ok: false, status: 409, code: "ADOPTED_TRAINING_PROGRAM_ALREADY_NON_TERMINAL", message: "Already active" });
     const user = userEvent.setup();
     renderControl();
     await user.click(screen.getByRole("button", { name: /adopt program/i }));
@@ -100,13 +87,7 @@ describe("AdoptTrainingProgramControl", () => {
   });
 
   it("refreshes and safely explains a newly unavailable source", async () => {
-    adopt.mockRejectedValue(
-      new ApiError(
-        "internal source details",
-        422,
-        "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE",
-      ),
-    );
+    adopt.mockResolvedValue({ ok: false, status: 422, code: "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE", message: "internal source details" });
     const user = userEvent.setup();
     renderControl();
     await user.click(screen.getByRole("button", { name: /adopt program/i }));

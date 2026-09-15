@@ -1,5 +1,17 @@
 export type TrainingProgramScope = "my" | "global";
 
+export type TrainingProgramCreateInput = {
+  name: string;
+  description?: string | null;
+  durationWeeks: number;
+  schedule: {
+    routineSlug: string;
+    weekNumber: number;
+    dayNumber: number;
+    notes?: string | null;
+  }[];
+};
+
 export type TrainingProgramSort =
   | "updatedAt:asc"
   | "updatedAt:desc"

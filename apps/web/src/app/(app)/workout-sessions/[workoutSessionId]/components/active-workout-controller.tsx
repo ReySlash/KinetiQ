@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { ActiveWorkout } from "./active-workout";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -17,10 +17,7 @@ import {
   recordWorkoutSet,
   updateWorkoutSet,
 } from "@/lib/workout-sessions-api";
-import type {
-  RecordWorkoutSetInput,
-  WorkoutSession,
-} from "@/types/workout-session-types";
+import type { WorkoutSession } from "@/types/workout-session-types";
 import {
   getProgramReturnHref,
   WorkoutProgramContextCard,
@@ -32,60 +29,46 @@ export function ActiveWorkoutController({
   session: WorkoutSession;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: ({
-      performanceId,
-      input,
-    }: {
-      performanceId: string;
-      input: RecordWorkoutSetInput;
-    }) => recordWorkoutSet(session.id, performanceId, input),
-  });
-  const finishMutation = useMutation({
-    mutationFn: () => completeWorkout(session.id),
-  });
-  const cancelMutation = useMutation({
-    mutationFn: () => cancelWorkout(session.id),
-  });
-  const deleteMutation = useMutation({
-    mutationFn: ({
-      performanceId,
-      setId,
-    }: {
-      performanceId: string;
-      setId: string;
-    }) => deleteWorkoutSet(session.id, performanceId, setId),
-  });
-  const updateMutation = useMutation({
-    mutationFn: ({
-      performanceId,
-      setId,
-      input,
-    }: {
-      performanceId: string;
-      setId: string;
-      input: Parameters<typeof updateWorkoutSet>[3];
-    }) => updateWorkoutSet(session.id, performanceId, setId, input),
-  });
+  const setOperationInFlight = useRef(false);
+  const lifecycleInFlight = useRef(false);
+  const [setPending, setSetPending] = useState(false);
+  const [setError, setSetError] = useState<string | null>(null);
+  const [lifecyclePending, setLifecyclePending] = useState<"complete" | "cancel" | null>(null);
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   const programReturnHref = getProgramReturnHref(session.provenance);
 
-  async function refresh() {
-    await queryClient.invalidateQueries({ queryKey: ["workout-sessions"] });
-    router.refresh();
+  async function runSetMutation(operation: () => Promise<unknown>) {
+    if (setOperationInFlight.current || lifecycleInFlight.current) return;
+    setOperationInFlight.current = true;
+    setSetPending(true);
+    setSetError(null);
+    try {
+      await operation();
+      router.refresh();
+    } catch (error) {
+      setSetError(error instanceof Error ? error.message : "Workout set update failed.");
+    } finally {
+      setOperationInFlight.current = false;
+      setSetPending(false);
+    }
   }
 
   async function finishAndNavigate(command: "complete" | "cancel") {
-    if (command === "complete") await finishMutation.mutateAsync();
-    else await cancelMutation.mutateAsync();
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["workout-sessions"] }),
-      queryClient.invalidateQueries({
-        queryKey: ["adopted-training-programs"],
-      }),
-    ]);
-    if (programReturnHref) router.push(programReturnHref);
-    else router.refresh();
+    if (lifecycleInFlight.current || setOperationInFlight.current) return;
+    lifecycleInFlight.current = true;
+    setLifecyclePending(command);
+    setLifecycleError(null);
+    try {
+      if (command === "complete") await completeWorkout(session.id);
+      else await cancelWorkout(session.id);
+      if (programReturnHref) router.push(programReturnHref);
+      else router.refresh();
+    } catch (error) {
+      setLifecycleError(error instanceof Error ? error.message : "Workout update failed.");
+    } finally {
+      lifecycleInFlight.current = false;
+      setLifecyclePending(null);
+    }
   }
 
   return (
@@ -93,19 +76,10 @@ export function ActiveWorkoutController({
       <WorkoutProgramContextCard provenance={session.provenance} />
       <ActiveWorkout
         session={session}
-        isSubmitting={
-          mutation.isPending ||
-          deleteMutation.isPending ||
-          updateMutation.isPending
-        }
-        error={
-          mutation.error?.message ??
-          deleteMutation.error?.message ??
-          updateMutation.error?.message
-        }
+        isSubmitting={setPending}
+        error={setError}
         onRecordSet={async (performanceId, input) => {
-          await mutation.mutateAsync({ performanceId, input });
-          await refresh();
+          await runSetMutation(() => recordWorkoutSet(session.id, performanceId, input));
         }}
         onDeleteSet={async (setId) => {
           const performance = session.performances.find((item) =>
@@ -114,11 +88,7 @@ export function ActiveWorkoutController({
             ),
           );
           if (!performance) return;
-          await deleteMutation.mutateAsync({
-            performanceId: performance.id,
-            setId,
-          });
-          await refresh();
+          await runSetMutation(() => deleteWorkoutSet(session.id, performance.id, setId));
         }}
         onUpdateSet={async (setId, input) => {
           const performance = session.performances.find((item) =>
@@ -127,19 +97,14 @@ export function ActiveWorkoutController({
             ),
           );
           if (!performance) return;
-          await updateMutation.mutateAsync({
-            performanceId: performance.id,
-            setId,
-            input,
-          });
-          await refresh();
+          await runSetMutation(() => updateWorkoutSet(session.id, performance.id, setId, input));
         }}
       />
-      {finishMutation.isError || cancelMutation.isError ? (
+      {lifecycleError ? (
         <Alert variant="destructive">
           <AlertTitle>Workout update failed</AlertTitle>
           <AlertDescription>
-            {finishMutation.error?.message ?? cancelMutation.error?.message}
+            {lifecycleError}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -152,7 +117,7 @@ export function ActiveWorkoutController({
                 onClick={() =>
                   void finishAndNavigate("cancel").catch(() => undefined)
                 }
-                disabled={finishMutation.isPending || cancelMutation.isPending}
+                disabled={Boolean(lifecyclePending) || setPending}
               />
             }
           >
@@ -167,11 +132,11 @@ export function ActiveWorkoutController({
                 onClick={() =>
                   void finishAndNavigate("complete").catch(() => undefined)
                 }
-                disabled={finishMutation.isPending || cancelMutation.isPending}
+                disabled={Boolean(lifecyclePending) || setPending}
               />
             }
           >
-            {finishMutation.isPending ? "Finishing…" : "Finish workout"}
+            {lifecyclePending === "complete" ? "Finishing…" : "Finish workout"}
           </TooltipTrigger>
           <TooltipContent>Finish workout</TooltipContent>
         </Tooltip>
