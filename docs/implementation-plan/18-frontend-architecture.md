@@ -2,30 +2,33 @@
 
 ## Purpose and recommendation
 
-Build a responsive Next.js App Router application with clear public, authenticated, and admin surfaces. Use Server Components for page-level reads, Server Actions for form and command workflows, and focused local React state for interactive client-only flows.
+Build a responsive Next.js App Router application with clear marketing, authentication, and application surfaces. Use Server Components for page-level reads, Server Actions for form and command workflows, and focused local React state for interactive client-only flows.
 
 ## Route structure
 
 ```text
 app/
-  (public)/
-    exercises/page.tsx
-    exercises/[slug]/page.tsx
-    muscles/page.tsx
-    muscles/[slug]/page.tsx
+  (marketing)/
+    page.tsx
   (auth)/
     sign-in/page.tsx
     sign-up/page.tsx
+    forgot-password/page.tsx
+    reset-password/page.tsx
   (app)/
-    app/layout.tsx
-    app/page.tsx
-    app/routines/...
-  (admin)/
-    admin/layout.tsx
-    admin/exercises/...
+    layout.tsx
+    dashboard/page.tsx
+    exercises/...
+    muscle-groups/...
+    routines/...
+    training-programs/...
+    workout-sessions/...
+    analytics/page.tsx
+    progress/page.tsx
+    calendar/page.tsx
 ```
 
-Route-group names are illustrative; final URLs remain `/exercises`, `/muscles`, `/app/routines`, and `/admin/exercises`. Layout guards are UX only. API authorization remains decisive.
+Route groups are organizational and do not appear in URLs. The implemented application routes include `/dashboard`, `/exercises`, `/muscle-groups`, `/routines`, `/training-programs`, `/workout-sessions`, `/analytics`, `/progress`, and `/calendar`. Layout guards are UX only; API authorization remains decisive. An admin frontend surface is not currently implemented.
 
 ## Data ownership and state
 
@@ -39,14 +42,14 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 
 ## Page and component plan
 
-### Public library
+### Reference library
 
 - `ExerciseLibraryPage`, `ExerciseFilters`, cards/list, pagination, empty/error/loading states
 - `ExerciseDetailPage`, instructions, muscle groups, capability/demand scales and caveats
 - `MuscleLibraryPage`, region/group filters, hierarchy cards
 - `MuscleDetailPage`, parent/child navigation and image fallback
 
-### Admin exercise management
+### Deferred admin exercise management
 
 - list with active/archive filters
 - create/edit form with sections: Basic information, Classification, Muscle involvement, Capabilities, and Demand and fatigue; optional approved local or remote image display is read-only in MVP
@@ -79,7 +82,7 @@ Backend DTO validation is authoritative. Client Zod schemas may mirror user-faci
 
 ## Server versus client fetching
 
-Public details and initial lists can fetch from the API in server components with explicit revalidation. Interactive filters hydrate or fetch through query hooks. Avoid fetching the same resource independently on server and client without dehydrating or accepting the duplicate request. Authenticated routine pages can be client fetched initially because cookie forwarding and user-specific caching are clearer; add server prefetch only when UX warrants it.
+Page reads currently use Server Components and server-side loaders, including authenticated routines and training programs. These loaders forward request cookies and return explicit authentication, rate-limit, outage, and validation states. Interactive filters update URL search parameters, while forms and commands use focused client components and Server Actions where appropriate. Avoid fetching the same resource independently on server and client without dehydrating or accepting the duplicate request.
 
 Use same-origin `/api` in the browser. In production, Vercel's Next.js rewrite
 forwards that path to the server-only `API_PROXY_URL` for the Oracle API. Keep
