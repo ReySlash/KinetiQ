@@ -8,6 +8,8 @@ import {
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import ImageWithFallback from "@/components/image-with-fallback";
+import { MoreLink } from "@/components/more-link";
 import {
   Card,
   CardContent,
@@ -24,6 +26,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import {
+  getRoutineCoverSrc,
+  ROUTINE_IMAGE_FALLBACK,
+} from "@/lib/routine-image";
 import type {
   AdoptedTrainingProgram,
   ProgramWorkoutOccurrence,
@@ -180,33 +186,54 @@ export function AdoptedProgramSchedule({
                 {occurrences.map((occurrence) => {
                   const isNext =
                     occurrence.id === program.nextPendingOccurrence?.id;
+                  const coverSrc = getRoutineCoverSrc(
+                    occurrence.routineNameSnapshot,
+                  );
                   return (
                     <article
                       key={occurrence.id}
                       className={cn(
-                        "flex flex-col gap-2 rounded-lg border border-border/70 p-3",
+                        "flex flex-row items-center gap-2 rounded-lg border border-border/70 p-1",
                         isNext && "border-primary/60 bg-primary/5",
                       )}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">
-                            Day {occurrence.dayNumber}
-                          </p>
-                          <p className="truncate font-medium">
-                            {occurrence.routineNameSnapshot}
-                          </p>
-                        </div>
-                        <OccurrenceStatus occurrence={occurrence} />
-                      </div>
-                      {occurrence.programSlotNotesSnapshot ? (
-                        <p className="text-sm text-muted-foreground">
-                          {occurrence.programSlotNotesSnapshot}
+                      <ImageWithFallback
+                        className="size-17.5 shrink-0 rounded-xl object-cover"
+                        src={coverSrc ?? ROUTINE_IMAGE_FALLBACK}
+                        alt="Routine cover"
+                        width={70}
+                        height={70}
+                        fallbackSrc={ROUTINE_IMAGE_FALLBACK}
+                      />
+                      <div className="min-w-0 flex-1 text-center">
+                        {isNext ? (
+                          <Badge className="mb-1" variant="default">
+                            Next workout
+                          </Badge>
+                        ) : null}
+                        <p className="text-xs text-muted-foreground">
+                          Day {occurrence.dayNumber}
                         </p>
-                      ) : null}
-                      {isNext ? (
-                        <Badge variant="outline">Next workout</Badge>
-                      ) : null}
+                        <p className="truncate font-medium">
+                          {occurrence.routineNameSnapshot}
+                        </p>
+                        {occurrence.programSlotNotesSnapshot ? (
+                          <p className="truncate text-xs text-muted-foreground">
+                            {occurrence.programSlotNotesSnapshot}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <OccurrenceStatus occurrence={occurrence} />
+                        {occurrence.sourceRoutineAvailable &&
+                        occurrence.sourceRoutineSlug ? (
+                          <MoreLink
+                            href={`/routines/${occurrence.sourceRoutineSlug}`}
+                            tooltip="Open routine details"
+                            ariaLabel={`Open ${occurrence.routineNameSnapshot} details`}
+                          />
+                        ) : null}
+                      </div>
                     </article>
                   );
                 })}
