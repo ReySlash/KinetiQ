@@ -112,6 +112,7 @@ export default function MarketingPage() {
                   className="h-10 min-w-0 flex-1 rounded-lg px-3 text-xs sm:h-11 sm:flex-none sm:px-5 sm:text-sm sm:w-48"
                 >
                   Get started
+                  <ArrowRight aria-hidden="true" />
                 </StyledLink>
                 <StyledLink
                   href="/exercises"

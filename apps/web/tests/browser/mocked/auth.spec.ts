@@ -38,6 +38,9 @@ test.describe("mocked browser auth flows", () => {
     await expect(page).toHaveURL(/\/routines$/, { timeout: 15_000 });
 
     await page.goto("/sign-in");
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await page.context().clearCookies();
+    await page.goto("/sign-in");
     await page.waitForTimeout(750);
     await page.getByLabel("Email").fill("wrong@example.com");
     await page.locator("#password").fill("wrong-password");
