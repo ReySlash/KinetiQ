@@ -43,9 +43,18 @@ test.describe("mocked dashboard", () => {
     await expect(
       page.getByText("Open your full training analytics", { exact: true }),
     ).toBeVisible();
-    await page.getByRole("link", { name: "Upper A" }).first().hover();
+    const routineLink = page.getByRole("link", { name: "Upper A", exact: true });
+    await expect(routineLink).toHaveAttribute("href", "/routines/upper-a");
+    const routineTooltipTrigger = page
+      .locator('[data-slot="tooltip-trigger"]')
+      .filter({ has: routineLink });
+    await expect(routineTooltipTrigger).toHaveCount(1);
+    await routineTooltipTrigger.hover();
     await expect(
-      page.getByText("Open Upper A routine details", { exact: true }),
+      page
+        .locator('[data-slot="tooltip-content"]:visible')
+        .filter({ hasText: "Open Upper A routine details" })
+        .first(),
     ).toBeVisible();
   });
 
