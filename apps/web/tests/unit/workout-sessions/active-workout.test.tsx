@@ -111,13 +111,17 @@ describe("ActiveWorkout", () => {
     expect(screen.getAllByText("Incline Dumbbell Press").length).toBeGreaterThan(0);
     expect(screen.getByText(/30 kg × 10 reps/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /edit set/i }));
-    const repetitionsInput = screen.getByLabelText("Repetitions");
+    const editDialog = screen.getByRole("dialog");
+    expect(editDialog).toHaveTextContent("Edit set");
+    const repetitionsInput = within(editDialog).getByLabelText("Repetitions");
     await user.clear(repetitionsInput);
     await user.type(repetitionsInput, "9");
-    await user.click(screen.getByRole("button", { name: /save set/i }));
+    await user.click(
+      within(editDialog).getByRole("button", { name: "Save changes" }),
+    );
     expect(onUpdateSet).toHaveBeenCalledWith(
       "423e4567-e89b-12d3-a456-426614174000",
-      { repetitions: 9 },
+      { repetitions: 9, load: "30", loadUnit: "KG" },
     );
     await user.click(screen.getByRole("button", { name: /delete set/i }));
     expect(screen.getByRole("alertdialog")).toBeVisible();
@@ -145,14 +149,17 @@ describe("ActiveWorkout", () => {
       screen.getByRole("button", { name: /incline dumbbell press/i }),
     );
     await user.click(screen.getByRole("button", { name: /edit set/i }));
-    const loadInput = screen.getByLabelText("Load (kg)");
+    const editDialog = screen.getByRole("dialog");
+    const loadInput = within(editDialog).getByLabelText("Load (kg)");
     await user.clear(loadInput);
     await user.type(loadInput, "32.5");
-    await user.click(screen.getByRole("button", { name: /save set/i }));
+    await user.click(
+      within(editDialog).getByRole("button", { name: "Save changes" }),
+    );
 
     expect(onUpdateSet).toHaveBeenCalledWith(
       "423e4567-e89b-12d3-a456-426614174000",
-      { load: "32.5", loadUnit: "KG" },
+      { repetitions: 10, load: "32.5", loadUnit: "KG" },
     );
   });
 });

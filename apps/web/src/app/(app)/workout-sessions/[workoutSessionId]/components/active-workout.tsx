@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DeleteSetDialog } from "./delete-set-dialog";
+import { EditSetDialog } from "./edit-set-dialog";
 import type {
   RecordWorkoutSetInput,
   WorkoutSession,
@@ -53,9 +54,9 @@ export function ActiveWorkout({
   const performance = session.performances[performanceIndex];
   const [repetitions, setRepetitions] = useState("");
   const [load, setLoad] = useState("");
-  const [editingSetId, setEditingSetId] = useState<string | null>(null);
-  const [originalEdit, setOriginalEdit] = useState<{
-    repetitions: string;
+  const [editingSet, setEditingSet] = useState<{
+    id: string;
+    repetitions: number;
     load: string;
   } | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -83,19 +84,6 @@ export function ActiveWorkout({
     }
 
     setValidationError(null);
-    if (editingSetId && onUpdateSet) {
-      const changes: Partial<RecordWorkoutSetInput> = {};
-      if (!originalEdit || repetitions !== originalEdit.repetitions)
-        changes.repetitions = Number(repetitions);
-      if (!originalEdit || load.trim() !== originalEdit.load) {
-        changes.load = load.trim();
-        changes.loadUnit = "KG";
-      }
-      void onUpdateSet(editingSetId, changes);
-      setEditingSetId(null);
-      setOriginalEdit(null);
-      return;
-    }
     void onRecordSet(performance.id, {
       repetitions: Number(repetitions),
       load: load.trim(),
@@ -218,17 +206,11 @@ export function ActiveWorkout({
                                 size="icon-sm"
                                 aria-label="Edit set"
                                 onClick={() => {
-                                  setEditingSetId(completedSet.id);
-                                  setOriginalEdit({
-                                    repetitions: String(
-                                      completedSet.repetitions,
-                                    ),
+                                  setEditingSet({
+                                    id: completedSet.id,
+                                    repetitions: completedSet.repetitions,
                                     load: completedSet.loadKg,
                                   });
-                                  setRepetitions(
-                                    String(completedSet.repetitions),
-                                  );
-                                  setLoad(completedSet.loadKg);
                                 }}
                                 disabled={isSubmitting}
                               />
@@ -291,20 +273,14 @@ export function ActiveWorkout({
                       type="submit"
                       variant="outline"
                       disabled={isSubmitting}
-                      aria-label={editingSetId ? "Save set" : "Record set"}
+                      aria-label="Record set"
                       className="border-primary! text-primary hover:bg-primary! hover:text-black!"
                     />
                   }
                 >
-                  {isSubmitting
-                    ? "Saving set…"
-                    : editingSetId
-                      ? "Save set"
-                      : "Record set"}
+                  {isSubmitting ? "Saving set…" : "Record set"}
                 </TooltipTrigger>
-                <TooltipContent>
-                  {editingSetId ? "Save set" : "Record set"}
-                </TooltipContent>
+                <TooltipContent>Record set</TooltipContent>
               </Tooltip>
             </div>
           </form>
@@ -321,6 +297,22 @@ export function ActiveWorkout({
           setDeleteSetId(null);
         }}
       />
+      {editingSet ? (
+        <EditSetDialog
+          key={editingSet.id}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditingSet(null);
+          }}
+          repetitions={editingSet.repetitions}
+          load={editingSet.load}
+          isSubmitting={isSubmitting}
+          onConfirm={(input) => {
+            if (!onUpdateSet) return;
+            return onUpdateSet(editingSet.id, input);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
