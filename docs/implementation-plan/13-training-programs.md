@@ -10,9 +10,12 @@ delete. The corresponding frontend library, builder, list, and detail screens
 are also implemented. Create and update persist the complete aggregate,
 including its optional schedule, in one transaction. List supports the approved
 visibility scopes, search, sorting, limit, and offset through a bounded read
-projection. The routes are documented with Swagger. Seeds, adoption/progress,
-calendar placement, and duplication are not part of the current template
-slice. Workout-session history exists as a separate implemented feature.
+projection. The routes are documented with Swagger. Seeds, calendar placement,
+and a standalone duplicate-program endpoint are not part of the current
+template slice. Adoption and progress are implemented by the separate
+adopted-program feature, including automatic private copies when a user adopts
+a global program. Workout-session history exists as a separate implemented
+feature.
 
 The template hierarchy is:
 
@@ -227,12 +230,19 @@ routine pattern. Keeping `RoutineVisibility` and `TrainingProgramVisibility`
 separate avoids an unnecessary repository-wide rename and lets future policies
 evolve independently.
 
-A future duplicate-program operation creates a `PRIVATE` program owned by the
-requesting user. When the source is `GLOBAL`, duplication must deep-copy every
-referenced routine and its `RoutineExercise` prescriptions into independent
-private routines, then schedule those copies in the private program. The copy
-must not leave the user's program permanently dependent on mutable or removable
-global routine templates. Duplication is not implemented in this slice.
+Adopting a `GLOBAL` program automatically creates a `PRIVATE` program owned by
+the requesting user. The adoption transaction deep-copies every distinct
+scheduled routine and its ordered `RoutineExercise` prescriptions into
+independent private routines, schedules those copies in the private program,
+and adopts that private program. A routine used by multiple schedule slots is
+copied once per adoption and reused by those copied slots. Every later adoption
+creates another fresh copy using numbered names such as `(Copy)` and `(Copy 2)`.
+
+The personal copies are ordinary editable private templates and intentionally
+store no provenance back to the global templates. The adopted program points to
+the new private program because that copy is its execution source. Adopting an
+existing private program does not duplicate it. A standalone duplicate-program
+endpoint remains unimplemented.
 
 Create derives `ownerId` from the authenticated principal and verifies every
 attached routine in the same transaction. A private program may schedule a
@@ -479,9 +489,11 @@ separate account export/deletion/retention policy defines an explicit purge.
 ### Snapshot stages and authority
 
 Activation copies the program name, declared duration, week number, day number,
-routine name, program-slot notes, and nullable provenance IDs into the adopted
-program and occurrences. Later template schedule edits do not rewrite those
-values.
+routine name, program-slot notes, and nullable execution-source IDs into the
+adopted program and occurrences. For global adoption, those source IDs identify
+the newly created private program, schedule entries, and routines rather than
+the global templates. Later private-template schedule edits do not rewrite the
+adopted schedule values.
 
 The adopted schedule is stable after activation, but the routine prescription
 remains live until its occurrence starts. At start, the current routine is
@@ -783,9 +795,9 @@ Mutations follow the existing feedback-only convention:
 A private program may reference GLOBAL routines from the KinetiQ library and
 PRIVATE routines owned by the same user. It may not reference another user's
 PRIVATE routine. This direct global reference is intentional for manually
-created private programs. It does not change the separate future duplication
-rule: duplicating a GLOBAL program must deep-copy its routines so the duplicate
-is independent.
+created private programs. It does not change global adoption behavior:
+adoption deep-copies the scheduled routines so the automatically created
+personal program is independent.
 
 When any submitted routine is missing, inaccessible, or otherwise ineligible,
 return one generic 422 error such as “One or more scheduled routines are
@@ -832,7 +844,7 @@ errors containing sensitive parameters.
 
 ### Adopted-program use cases
 
-The planned `adopted-training-programs` feature exposes transport-neutral use
+The implemented `adopted-training-programs` feature exposes transport-neutral use
 cases with owner identity supplied by the authenticated principal:
 
 ```text
@@ -848,10 +860,14 @@ SkipProgramWorkoutOccurrence
 
 Activation accepts an accessible `GLOBAL` template or a `PRIVATE` template
 owned by the principal. Another user's private template remains concealed as
-not found. Activation rejects an empty schedule and atomically creates the
-`ACTIVE` adopted program plus every copied occurrence. Owner IDs are never
-accepted from request bodies, and occurrence commands resolve through the owned
-`AdoptedTrainingProgram` rather than authorizing a child ID independently.
+not found. For a global source, one serializable transaction validates every
+scheduled routine and active exercise, creates the independent private routines
+and program, then creates the `ACTIVE` adopted program and its occurrences.
+Empty, inaccessible, inactive, or malformed source content rejects the entire
+operation without leaving personal-library copies. A private source is adopted
+directly without duplication. Owner IDs are never accepted from request bodies,
+and occurrence commands resolve through the owned `AdoptedTrainingProgram`
+rather than authorizing a child ID independently.
 
 ### Canonical routes
 

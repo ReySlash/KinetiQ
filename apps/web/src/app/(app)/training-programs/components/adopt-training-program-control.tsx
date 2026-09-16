@@ -24,11 +24,13 @@ import { adoptTrainingProgramAction } from "../training-program-server-actions";
 export function AdoptTrainingProgramControl({
   slug,
   name,
+  visibility,
   durationWeeks,
   scheduledWorkoutCount,
 }: {
   slug: string;
   name: string;
+  visibility: "PRIVATE" | "GLOBAL";
   durationWeeks: number;
   scheduledWorkoutCount: number;
 }) {
@@ -119,7 +121,7 @@ export function AdoptTrainingProgramControl({
             <AlertDialogMedia><Dumbbell /></AlertDialogMedia>
             <AlertDialogTitle>Adopt {name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This program runs for {durationWeeks} {durationWeeks === 1 ? "week" : "weeks"} and contains {scheduledWorkoutCount} scheduled workouts. KinetiQ creates an independent snapshot, so later template changes will not alter your plan. You can have only one active or paused program at a time.
+              This program runs for {durationWeeks} {durationWeeks === 1 ? "week" : "weeks"} and contains {scheduledWorkoutCount} scheduled workouts. {visibility === "GLOBAL" ? "KinetiQ will add a fully editable copy to My Programs and copy its routines into My Routines." : "This will start your existing personal program without creating another copy."} You can have only one active or paused program at a time.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -62,7 +62,10 @@ export async function adoptTrainingProgramAction(
       body: JSON.stringify({ sourceProgramSlug }),
     }),
   );
-  if (result.ok) refreshPrograms(result.data.id, sourceProgramSlug);
+  if (result.ok) {
+    refreshPrograms(result.data.id, sourceProgramSlug);
+    revalidatePath("/routines");
+  }
   return result;
 }
 

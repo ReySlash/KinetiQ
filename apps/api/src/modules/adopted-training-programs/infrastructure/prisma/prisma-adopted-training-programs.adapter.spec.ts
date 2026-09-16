@@ -27,6 +27,81 @@ const occurrenceId = '33333333-3333-4333-8333-333333333333';
 const routineId = '44444444-4444-4444-8444-444444444444';
 const exerciseId = '55555555-5555-4555-8555-555555555555';
 
+type RoutineCreateArgs = {
+  data: {
+    id: string;
+    ownerId: string;
+    name: string;
+    description: string | null;
+    visibility: string;
+    exercises: {
+      create: Array<{
+        exerciseSlug: string;
+        order: number;
+        sets: number;
+        minReps: number;
+        maxReps: number;
+        targetRir: number | null;
+        restSeconds: number | null;
+        notes: string | null;
+      }>;
+    };
+  };
+};
+
+type TrainingProgramCreateArgs = {
+  data: {
+    id: string;
+    ownerId: string;
+    name: string;
+    description: string | null;
+    visibility: string;
+    routines: {
+      create: Array<{ weekNumber: number; dayNumber: number }>;
+    };
+  };
+};
+
+function globalSourceRow(isActive = true) {
+  return {
+    id: programId,
+    name: 'Strength Base',
+    description: 'Build strength twice per week.',
+    visibility: 'GLOBAL',
+    durationWeeks: 2,
+    routines: [
+      {
+        id: occurrenceId,
+        weekNumber: 1,
+        dayNumber: 1,
+        notes: 'Controlled reps.',
+        routine: {
+          id: routineId,
+          name: 'Upper A',
+          description: 'Primary upper-body session.',
+          ownerId,
+          visibility: 'GLOBAL',
+          exercises: [
+            {
+              id: '77777777-7777-4777-8777-777777777777',
+              exerciseSlug: 'bench-press',
+              order: 0,
+              sets: 3,
+              minReps: 8,
+              maxReps: 10,
+              targetRir: 2,
+              restSeconds: 120,
+              tempo: null,
+              notes: 'Pause briefly.',
+              exercise: { isActive },
+            },
+          ],
+        },
+      },
+    ],
+  };
+}
+
 describe('PrismaAdoptedTrainingProgramsAdapter', () => {
   const adoptedProgramCreate = jest.fn<Promise<unknown>, [{ data: unknown }]>();
   const adoptedProgramFindFirst = jest.fn<
@@ -53,7 +128,14 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
   const occurrenceCount = jest.fn();
   const workoutSessionCreate = jest.fn<Promise<unknown>, [{ data: unknown }]>();
   const routineFindFirst = jest.fn();
+  const routineFindMany = jest.fn();
+  const routineCreate = jest.fn<Promise<unknown>, [RoutineCreateArgs]>();
   const trainingProgramFindFirst = jest.fn();
+  const trainingProgramFindMany = jest.fn();
+  const trainingProgramCreate = jest.fn<
+    Promise<unknown>,
+    [TrainingProgramCreateArgs]
+  >();
   const transaction = jest.fn(
     async (work: (client: object) => Promise<unknown>) =>
       work({
@@ -69,8 +151,16 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
           updateMany: occurrenceUpdateMany,
           count: occurrenceCount,
         },
-        routine: { findFirst: routineFindFirst },
-        trainingProgram: { findFirst: trainingProgramFindFirst },
+        routine: {
+          findFirst: routineFindFirst,
+          findMany: routineFindMany,
+          create: routineCreate,
+        },
+        trainingProgram: {
+          findFirst: trainingProgramFindFirst,
+          findMany: trainingProgramFindMany,
+          create: trainingProgramCreate,
+        },
         workoutSession: { create: workoutSessionCreate },
       }),
   );
@@ -95,8 +185,16 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
               updateMany: occurrenceUpdateMany,
               count: occurrenceCount,
             },
-            trainingProgram: { findFirst: trainingProgramFindFirst },
-            routine: { findFirst: routineFindFirst },
+            trainingProgram: {
+              findFirst: trainingProgramFindFirst,
+              findMany: trainingProgramFindMany,
+              create: trainingProgramCreate,
+            },
+            routine: {
+              findFirst: routineFindFirst,
+              findMany: routineFindMany,
+              create: routineCreate,
+            },
             workoutSession: { create: workoutSessionCreate },
             $transaction: transaction,
           },
@@ -121,8 +219,16 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
             updateMany: occurrenceUpdateMany,
             count: occurrenceCount,
           },
-          routine: { findFirst: routineFindFirst },
-          trainingProgram: { findFirst: trainingProgramFindFirst },
+          routine: {
+            findFirst: routineFindFirst,
+            findMany: routineFindMany,
+            create: routineCreate,
+          },
+          trainingProgram: {
+            findFirst: trainingProgramFindFirst,
+            findMany: trainingProgramFindMany,
+            create: trainingProgramCreate,
+          },
           workoutSession: { create: workoutSessionCreate },
         }),
     );
@@ -162,6 +268,8 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     trainingProgramFindFirst.mockResolvedValue({
       id: programId,
       name: 'Strength Base',
+      description: null,
+      visibility: 'PRIVATE',
       durationWeeks: 2,
       routines: [
         {
@@ -197,6 +305,209 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       expect.any(Function),
       expect.objectContaining({ isolationLevel: 'Serializable' }),
     );
+  });
+
+  it('deep-copies a global program and each distinct scheduled routine before adoption', async () => {
+    trainingProgramFindFirst.mockResolvedValue({
+      id: programId,
+      name: 'Strength Base',
+      description: 'Build strength twice per week.',
+      visibility: 'GLOBAL',
+      durationWeeks: 2,
+      routines: [
+        {
+          id: occurrenceId,
+          weekNumber: 1,
+          dayNumber: 1,
+          notes: 'Controlled reps.',
+          routine: {
+            id: routineId,
+            name: 'Upper A',
+            description: 'Primary upper-body session.',
+            ownerId,
+            visibility: 'GLOBAL',
+            exercises: [
+              {
+                id: '77777777-7777-4777-8777-777777777777',
+                exerciseSlug: 'bench-press',
+                order: 0,
+                sets: 3,
+                minReps: 8,
+                maxReps: 10,
+                targetRir: 2,
+                restSeconds: 120,
+                tempo: null,
+                notes: 'Pause briefly.',
+                exercise: { isActive: true },
+              },
+            ],
+          },
+        },
+        {
+          id: '88888888-8888-4888-8888-888888888888',
+          weekNumber: 2,
+          dayNumber: 1,
+          notes: null,
+          routine: {
+            id: routineId,
+            name: 'Upper A',
+            description: 'Primary upper-body session.',
+            ownerId,
+            visibility: 'GLOBAL',
+            exercises: [
+              {
+                id: '77777777-7777-4777-8777-777777777777',
+                exerciseSlug: 'bench-press',
+                order: 0,
+                sets: 3,
+                minReps: 8,
+                maxReps: 10,
+                targetRir: 2,
+                restSeconds: 120,
+                tempo: null,
+                notes: 'Pause briefly.',
+                exercise: { isActive: true },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    routineFindMany.mockResolvedValue([]);
+    trainingProgramFindMany.mockResolvedValue([]);
+    routineCreate.mockResolvedValue(undefined);
+    trainingProgramCreate.mockResolvedValue(undefined);
+    adoptedProgramCreate.mockResolvedValue(undefined);
+
+    await adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' });
+
+    expect(routineCreate).toHaveBeenCalledTimes(1);
+    expect(routineCreate.mock.calls[0]?.[0].data).toMatchObject({
+      ownerId,
+      name: 'Upper A (Copy)',
+      description: 'Primary upper-body session.',
+      visibility: 'PRIVATE',
+      exercises: {
+        create: [
+          {
+            exerciseSlug: 'bench-press',
+            order: 0,
+            sets: 3,
+            minReps: 8,
+            maxReps: 10,
+            targetRir: 2,
+            restSeconds: 120,
+            notes: 'Pause briefly.',
+          },
+        ],
+      },
+    });
+    expect(trainingProgramCreate).toHaveBeenCalledTimes(1);
+    expect(trainingProgramCreate.mock.calls[0]?.[0].data).toMatchObject({
+      ownerId,
+      name: 'Strength Base (Copy)',
+      description: 'Build strength twice per week.',
+      visibility: 'PRIVATE',
+      routines: {
+        create: [
+          { weekNumber: 1, dayNumber: 1 },
+          { weekNumber: 2, dayNumber: 1 },
+        ],
+      },
+    });
+
+    const copiedProgramId = trainingProgramCreate.mock.calls[0]?.[0].data.id;
+    const copiedRoutineId = routineCreate.mock.calls[0]?.[0].data.id;
+    expect(adoptedProgramCreate.mock.calls[0]?.[0].data).toMatchObject({
+      sourceTrainingProgram: { connect: { id: copiedProgramId } },
+      occurrences: {
+        create: [
+          expect.objectContaining({ sourceRoutineId: copiedRoutineId }),
+          expect.objectContaining({ sourceRoutineId: copiedRoutineId }),
+        ],
+      },
+    });
+  });
+
+  it('does not copy a private program during adoption', async () => {
+    trainingProgramFindFirst.mockResolvedValue({
+      id: programId,
+      name: 'My Strength Base',
+      description: null,
+      visibility: 'PRIVATE',
+      durationWeeks: 2,
+      routines: [
+        {
+          id: occurrenceId,
+          weekNumber: 1,
+          dayNumber: 1,
+          notes: null,
+          routine: {
+            id: routineId,
+            name: 'Upper A',
+            description: null,
+            ownerId,
+            visibility: 'PRIVATE',
+            exercises: [],
+          },
+        },
+      ],
+    });
+    adoptedProgramCreate.mockResolvedValue(undefined);
+
+    await adapter.adopt({ ownerId, sourceProgramSlug: 'my-strength-base' });
+
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate.mock.calls[0]?.[0].data).toMatchObject({
+      sourceTrainingProgram: { connect: { id: programId } },
+    });
+  });
+
+  it('numbers routine and program copy names against the owner library', async () => {
+    trainingProgramFindFirst.mockResolvedValue(globalSourceRow());
+    routineFindMany.mockResolvedValue([{ name: 'Upper A (Copy)' }]);
+    trainingProgramFindMany.mockResolvedValue([
+      { name: 'Strength Base (Copy)' },
+    ]);
+    routineCreate.mockResolvedValue(undefined);
+    trainingProgramCreate.mockResolvedValue(undefined);
+    adoptedProgramCreate.mockResolvedValue(undefined);
+
+    await adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' });
+
+    expect(routineCreate.mock.calls[0]?.[0].data).toMatchObject({
+      name: 'Upper A (Copy 2)',
+    });
+    expect(trainingProgramCreate.mock.calls[0]?.[0].data).toMatchObject({
+      name: 'Strength Base (Copy 2)',
+    });
+  });
+
+  it('rejects an inactive exercise before creating any personal copies', async () => {
+    trainingProgramFindFirst.mockResolvedValue(globalSourceRow(false));
+
+    await expect(
+      adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' }),
+    ).rejects.toBeInstanceOf(AdoptedTrainingProgramSourceUnavailableError);
+
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed source prescriptions before creating any copies', async () => {
+    const source = globalSourceRow();
+    source.routines[0].routine.exercises[0].sets = 0;
+    trainingProgramFindFirst.mockResolvedValue(source);
+
+    await expect(
+      adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' }),
+    ).rejects.toBeInstanceOf(AdoptedTrainingProgramSourceIntegrityError);
+
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate).not.toHaveBeenCalled();
   });
 
   it('creates the aggregate through Prisma nested writes', async () => {

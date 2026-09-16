@@ -90,6 +90,7 @@ export default async function TrainingProgramDetailPage({
                 <AdoptTrainingProgramControl
                   slug={program.slug}
                   name={program.name}
+                  visibility={program.visibility}
                   durationWeeks={program.durationWeeks}
                   scheduledWorkoutCount={program.schedule.length}
                 />

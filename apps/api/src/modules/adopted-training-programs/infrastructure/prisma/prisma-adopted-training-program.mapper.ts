@@ -135,6 +135,8 @@ export function toDomain(
 export const adoptedTrainingProgramSourceSelect = {
   id: true,
   name: true,
+  description: true,
+  visibility: true,
   durationWeeks: true,
   routines: {
     orderBy: [{ weekNumber: 'asc' }, { dayNumber: 'asc' }],
@@ -144,7 +146,29 @@ export const adoptedTrainingProgramSourceSelect = {
       dayNumber: true,
       notes: true,
       routine: {
-        select: { id: true, name: true, ownerId: true, visibility: true },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          ownerId: true,
+          visibility: true,
+          exercises: {
+            orderBy: { order: 'asc' },
+            select: {
+              id: true,
+              exerciseSlug: true,
+              order: true,
+              sets: true,
+              minReps: true,
+              maxReps: true,
+              targetRir: true,
+              restSeconds: true,
+              tempo: true,
+              notes: true,
+              exercise: { select: { isActive: true } },
+            },
+          },
+        },
       },
     },
   },
@@ -161,6 +185,8 @@ export function toSource(
   return {
     id: row.id,
     name: row.name,
+    description: row.description,
+    visibility: row.visibility,
     durationWeeks: row.durationWeeks,
     schedule: row.routines.map((entry) => ({
       id: entry.id,

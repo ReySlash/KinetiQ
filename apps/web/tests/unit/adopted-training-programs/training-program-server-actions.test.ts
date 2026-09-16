@@ -37,6 +37,24 @@ describe("training-program Server Actions", () => {
     expect(mocks.revalidate).not.toHaveBeenCalled();
   });
 
+  it("revalidates personal programs and routines after successful adoption", async () => {
+    mocks.request.mockResolvedValue({
+      id: "adopted-id",
+      status: "ACTIVE",
+      startedAt: "2026-09-16T10:00:00.000Z",
+    });
+
+    await expect(adoptTrainingProgramAction("strength-base")).resolves.toMatchObject({
+      ok: true,
+    });
+
+    expect(mocks.revalidate).toHaveBeenCalledWith("/training-programs");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/routines");
+    expect(mocks.revalidate).toHaveBeenCalledWith(
+      "/training-programs/adopted/adopted-id",
+    );
+  });
+
   it("starts a scheduled workout using the validated timezone and revalidates its program", async () => {
     mocks.timezone.mockResolvedValue("Asia/Qatar");
     mocks.request.mockResolvedValue({ workoutSessionId: "workout-id" });

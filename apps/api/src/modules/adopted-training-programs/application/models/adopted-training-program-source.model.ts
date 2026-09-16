@@ -1,6 +1,8 @@
 export type AdoptedTrainingProgramSource = {
   id: string;
   name: string;
+  description: string | null;
+  visibility: 'PRIVATE' | 'GLOBAL';
   durationWeeks: number;
   readonly schedule: readonly AdoptedTrainingProgramSourceScheduleItem[];
 };
