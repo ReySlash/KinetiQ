@@ -118,9 +118,15 @@ export class PrismaAdoptedTrainingProgramsAdapter
           if (!sourceRow) {
             throw new AdoptedTrainingProgramSourceNotFoundError();
           }
+          if (sourceRow.routines.some((entry) => !entry.routine)) {
+            throw new AdoptedTrainingProgramSourceIntegrityError();
+          }
           let source = toSource(sourceRow, input.ownerId);
           if (source.schedule.length === 0) {
             throw new AdoptedTrainingProgramEmptyScheduleError();
+          }
+          if (source.schedule.some((entry) => entry.routineId === null)) {
+            throw new AdoptedTrainingProgramSourceUnavailableError();
           }
           if (source.visibility === 'GLOBAL') {
             source = await this.copyGlobalSource(
@@ -169,6 +175,7 @@ export class PrismaAdoptedTrainingProgramsAdapter
     sourceRow: AdoptedTrainingProgramSourceRow,
     ownerId: string,
   ): Promise<AdoptedTrainingProgramSource> {
+    validateGlobalSourceContent(sourceRow, ownerId);
     const distinctSourceRoutines = [
       ...new Map(
         sourceRow.routines.map((entry) => [entry.routine.id, entry.routine]),
@@ -958,6 +965,46 @@ function createCopyName(
     const candidate = `${sourceName.slice(0, 120 - suffix.length).trimEnd()}${suffix}`;
     if (!occupiedNames.has(candidate)) return candidate;
     copyNumber += 1;
+  }
+}
+
+function validateGlobalSourceContent(
+  sourceRow: AdoptedTrainingProgramSourceRow,
+  ownerId: string,
+): void {
+  try {
+    for (const entry of sourceRow.routines) {
+      Routine.create({
+        ownerId,
+        name: entry.routine.name,
+        description: entry.routine.description,
+        exercises: entry.routine.exercises.map((exercise) => ({
+          exerciseSlug: exercise.exerciseSlug,
+          sets: exercise.sets,
+          minReps: exercise.minReps,
+          maxReps: exercise.maxReps,
+          targetRir: exercise.targetRir,
+          restSeconds: exercise.restSeconds,
+          tempo: exercise.tempo,
+          notes: exercise.notes,
+        })),
+      });
+    }
+
+    TrainingProgram.create({
+      ownerId,
+      name: sourceRow.name,
+      description: sourceRow.description,
+      durationWeeks: sourceRow.durationWeeks,
+      schedule: sourceRow.routines.map((entry) => ({
+        routineSlug: entry.routine.name,
+        weekNumber: entry.weekNumber,
+        dayNumber: entry.dayNumber,
+        notes: entry.notes,
+      })),
+    });
+  } catch {
+    throw new AdoptedTrainingProgramSourceIntegrityError();
   }
 }
 

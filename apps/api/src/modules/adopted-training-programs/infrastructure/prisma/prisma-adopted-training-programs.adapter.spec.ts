@@ -57,7 +57,11 @@ type TrainingProgramCreateArgs = {
     description: string | null;
     visibility: string;
     routines: {
-      create: Array<{ weekNumber: number; dayNumber: number }>;
+      create: Array<{
+        id: string;
+        weekNumber: number;
+        dayNumber: number;
+      }>;
     };
   };
 };
@@ -308,6 +312,8 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
   });
 
   it('deep-copies a global program and each distinct scheduled routine before adoption', async () => {
+    // Failure modes: BC-06, BV-09
+    // Arrange
     trainingProgramFindFirst.mockResolvedValue({
       id: programId,
       name: 'Strength Base',
@@ -379,8 +385,10 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
     trainingProgramCreate.mockResolvedValue(undefined);
     adoptedProgramCreate.mockResolvedValue(undefined);
 
+    // Act
     await adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' });
 
+    // Assert
     expect(routineCreate).toHaveBeenCalledTimes(1);
     expect(routineCreate.mock.calls[0]?.[0].data).toMatchObject({
       ownerId,
@@ -418,12 +426,24 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
 
     const copiedProgramId = trainingProgramCreate.mock.calls[0]?.[0].data.id;
     const copiedRoutineId = routineCreate.mock.calls[0]?.[0].data.id;
+    const copiedSchedule =
+      trainingProgramCreate.mock.calls[0]?.[0].data.routines.create;
     expect(adoptedProgramCreate.mock.calls[0]?.[0].data).toMatchObject({
       sourceTrainingProgram: { connect: { id: copiedProgramId } },
       occurrences: {
         create: [
-          expect.objectContaining({ sourceRoutineId: copiedRoutineId }),
-          expect.objectContaining({ sourceRoutineId: copiedRoutineId }),
+          {
+            sourceTrainingProgramRoutineId: copiedSchedule[0]?.id,
+            sourceRoutineId: copiedRoutineId,
+            weekNumber: 1,
+            dayNumber: 1,
+          },
+          {
+            sourceTrainingProgramRoutineId: copiedSchedule[1]?.id,
+            sourceRoutineId: copiedRoutineId,
+            weekNumber: 2,
+            dayNumber: 1,
+          },
         ],
       },
     });
@@ -505,6 +525,100 @@ describe('PrismaAdoptedTrainingProgramsAdapter', () => {
       adapter.adopt({ ownerId, sourceProgramSlug: 'strength-base' }),
     ).rejects.toBeInstanceOf(AdoptedTrainingProgramSourceIntegrityError);
 
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate).not.toHaveBeenCalled();
+  });
+
+  it('classifies invalid copied source text as source integrity failure', async () => {
+    // Failure modes: BC-07, BV-11
+    // Arrange
+    const source = globalSourceRow();
+    source.routines[0].routine.description = 'x'.repeat(2001);
+    trainingProgramFindFirst.mockResolvedValue(source);
+    routineFindMany.mockResolvedValue([]);
+    trainingProgramFindMany.mockResolvedValue([]);
+
+    // Act
+    const result = adapter.adopt({
+      ownerId,
+      sourceProgramSlug: 'strength-base',
+    });
+
+    // Assert
+    await expect(result).rejects.toBeInstanceOf(
+      AdoptedTrainingProgramSourceIntegrityError,
+    );
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects an inaccessible routine in a private program before adoption', async () => {
+    // Failure modes: EC-04, BV-10
+    // Arrange
+    const source = globalSourceRow();
+    source.visibility = 'PRIVATE';
+    source.routines[0].routine.ownerId = '66666666-6666-4666-8666-666666666666';
+    source.routines[0].routine.visibility = 'PRIVATE';
+    trainingProgramFindFirst.mockResolvedValue(source);
+
+    // Act
+    const result = adapter.adopt({
+      ownerId,
+      sourceProgramSlug: 'strength-base',
+    });
+
+    // Assert
+    await expect(result).rejects.toBeInstanceOf(
+      AdoptedTrainingProgramSourceUnavailableError,
+    );
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate).not.toHaveBeenCalled();
+  });
+
+  it('classifies malformed global schedule positions as source integrity failure', async () => {
+    // Failure mode: EC-05
+    // Arrange
+    const source = globalSourceRow();
+    source.routines.push({ ...source.routines[0] });
+    trainingProgramFindFirst.mockResolvedValue(source);
+    routineFindMany.mockResolvedValue([]);
+    trainingProgramFindMany.mockResolvedValue([]);
+
+    // Act
+    const result = adapter.adopt({
+      ownerId,
+      sourceProgramSlug: 'strength-base',
+    });
+
+    // Assert
+    await expect(result).rejects.toBeInstanceOf(
+      AdoptedTrainingProgramSourceIntegrityError,
+    );
+    expect(routineCreate).not.toHaveBeenCalled();
+    expect(trainingProgramCreate).not.toHaveBeenCalled();
+    expect(adoptedProgramCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty global routine with the unavailable-source contract', async () => {
+    // Failure mode: NE-07
+    // Arrange
+    const source = globalSourceRow();
+    source.routines[0].routine.exercises = [];
+    trainingProgramFindFirst.mockResolvedValue(source);
+
+    // Act
+    const result = adapter.adopt({
+      ownerId,
+      sourceProgramSlug: 'strength-base',
+    });
+
+    // Assert
+    await expect(result).rejects.toBeInstanceOf(
+      AdoptedTrainingProgramSourceUnavailableError,
+    );
     expect(routineCreate).not.toHaveBeenCalled();
     expect(trainingProgramCreate).not.toHaveBeenCalled();
     expect(adoptedProgramCreate).not.toHaveBeenCalled();
