@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { ActiveWorkout } from "./active-workout";
+import { CancelWorkoutDialog } from "./cancel-workout-dialog";
+import { FinishWorkoutDialog } from "./finish-workout-dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -35,6 +37,8 @@ export function ActiveWorkoutController({
   const [setError, setSetError] = useState<string | null>(null);
   const [lifecyclePending, setLifecyclePending] = useState<"complete" | "cancel" | null>(null);
   const [lifecycleError, setLifecycleError] = useState<string | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [finishOpen, setFinishOpen] = useState(false);
   const programReturnHref = getProgramReturnHref(session.provenance);
 
   async function runSetMutation(operation: () => Promise<unknown>) {
@@ -114,9 +118,7 @@ export function ActiveWorkoutController({
             render={
               <Button
                 variant="outline"
-                onClick={() =>
-                  void finishAndNavigate("cancel").catch(() => undefined)
-                }
+                onClick={() => setCancelOpen(true)}
                 disabled={Boolean(lifecyclePending) || setPending}
               />
             }
@@ -129,9 +131,7 @@ export function ActiveWorkoutController({
           <TooltipTrigger
             render={
               <Button
-                onClick={() =>
-                  void finishAndNavigate("complete").catch(() => undefined)
-                }
+                onClick={() => setFinishOpen(true)}
                 disabled={Boolean(lifecyclePending) || setPending}
               />
             }
@@ -141,6 +141,16 @@ export function ActiveWorkoutController({
           <TooltipContent>Finish workout</TooltipContent>
         </Tooltip>
       </div>
+      <CancelWorkoutDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        onConfirm={() => finishAndNavigate("cancel")}
+      />
+      <FinishWorkoutDialog
+        open={finishOpen}
+        onOpenChange={setFinishOpen}
+        onConfirm={() => finishAndNavigate("complete")}
+      />
     </div>
   );
 }

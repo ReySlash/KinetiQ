@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -71,6 +71,14 @@ describe("ActiveWorkoutController", () => {
     render(<ActiveWorkoutController session={session} />);
 
     await user.click(screen.getByRole("button", { name: "Finish workout" }));
+    await user.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", {
+        name: "Finish workout",
+      }),
+    );
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "A workout requires at least one recorded set before completion.",

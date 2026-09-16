@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ActiveWorkout } from "@/app/(app)/workout-sessions/[workoutSessionId]/components/active-workout";
@@ -115,8 +115,18 @@ describe("ActiveWorkout", () => {
     await user.clear(repetitionsInput);
     await user.type(repetitionsInput, "9");
     await user.click(screen.getByRole("button", { name: /save set/i }));
-    expect(onUpdateSet).toHaveBeenCalledWith("423e4567-e89b-12d3-a456-426614174000", { repetitions: 9 });
+    expect(onUpdateSet).toHaveBeenCalledWith(
+      "423e4567-e89b-12d3-a456-426614174000",
+      { repetitions: 9 },
+    );
     await user.click(screen.getByRole("button", { name: /delete set/i }));
+    expect(screen.getByRole("alertdialog")).toBeVisible();
+    expect(onDeleteSet).not.toHaveBeenCalled();
+    await user.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", {
+        name: "Delete set",
+      }),
+    );
     expect(onDeleteSet).toHaveBeenCalledWith("423e4567-e89b-12d3-a456-426614174000");
   });
 

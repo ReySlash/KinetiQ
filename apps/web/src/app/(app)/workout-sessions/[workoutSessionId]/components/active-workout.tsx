@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { DeleteSetDialog } from "./delete-set-dialog";
 import type {
   RecordWorkoutSetInput,
   WorkoutSession,
@@ -58,6 +59,7 @@ export function ActiveWorkout({
     load: string;
   } | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [deleteSetId, setDeleteSetId] = useState<string | null>(null);
 
   if (!performance) {
     return (
@@ -246,9 +248,7 @@ export function ActiveWorkout({
                                 variant="destructive"
                                 size="icon-sm"
                                 aria-label="Delete set"
-                                onClick={() =>
-                                  void onDeleteSet(completedSet.id)
-                                }
+                                onClick={() => setDeleteSetId(completedSet.id)}
                                 disabled={isSubmitting}
                               />
                             }
@@ -310,6 +310,17 @@ export function ActiveWorkout({
           </form>
         </CardContent>
       </Card>
+      <DeleteSetDialog
+        open={deleteSetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteSetId(null);
+        }}
+        onConfirm={async () => {
+          if (!deleteSetId || !onDeleteSet) return;
+          await onDeleteSet(deleteSetId);
+          setDeleteSetId(null);
+        }}
+      />
     </div>
   );
 }
