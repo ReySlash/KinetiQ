@@ -64,6 +64,9 @@ describe("ActiveWorkout", () => {
     render(<ActiveWorkout session={session} onRecordSet={vi.fn()} />);
 
     expect(screen.getByText("Bench Press")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Bench Press thumbnail" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/3 sets/i)).toBeInTheDocument();
     expect(screen.getByText(/8–10 reps/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /record set/i })).toBeInTheDocument();

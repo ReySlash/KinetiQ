@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StyledLink from "@/components/styled-link";
+import ImageWithFallback from "@/components/image-with-fallback";
+import { getLocalImageSrc } from "@/lib/local-image";
 import {
   Tooltip,
   TooltipContent,
@@ -137,14 +139,35 @@ export function ActiveWorkout({
           </div>
         </div>
       )}
-      <Card className="border-border/70 bg-card/80">
-        <CardHeader className="gap-2">
-          <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-2xl">
+      <Card className="gap-1 border-border/70 bg-card/80">
+        <CardHeader className="gap-2 pb-2">
+          <div className="flex justify-center text-center">
+            <CardTitle className="min-w-0 text-2xl">
               {performance.exerciseNameSnapshot}
             </CardTitle>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <ImageWithFallback
+              className="size-[70px] shrink-0 rounded-xl border border-border/70 object-cover"
+              src={getLocalImageSrc(
+                "exercises",
+                exerciseSlugFromName(performance.exerciseNameSnapshot),
+              )}
+              alt={`${performance.exerciseNameSnapshot} thumbnail`}
+              width={160}
+              height={120}
+              fallbackSrc="/assets/empty-state-exercises.webp"
+            />
+            <div className="grid flex-1 justify-items-center gap-2 text-center text-sm text-muted-foreground">
+              <p>
+                {performance.targetSetCount ?? "—"} sets · {prescription}
+              </p>
+              {performance.targetRir !== null && (
+                <p>Target RIR {performance.targetRir}</p>
+              )}
+            </div>
             <Tooltip>
-              <TooltipTrigger render={<span className="inline-flex" />}>
+              <TooltipTrigger render={<span className="inline-flex shrink-0" />}>
                 <StyledLink
                   variant="outline"
                   size="sm"
@@ -156,17 +179,77 @@ export function ActiveWorkout({
               <TooltipContent>View exercise details</TooltipContent>
             </Tooltip>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {performance.targetSetCount ?? "—"} sets · {prescription}
-          </p>
-          {performance.targetRir !== null && (
-            <p className="text-sm text-muted-foreground">
-              Target RIR {performance.targetRir}
-            </p>
+          {performance.completedSets.length > 0 && (
+            <div className="grid gap-1" aria-label="Completed sets">
+              <p className="text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Completed sets
+              </p>
+              {performance.completedSets.map((completedSet) => (
+                <div
+                  key={completedSet.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/30 px-3 py-2 text-sm"
+                >
+                  <span>
+                    {completedSet.loadKg}{" "}
+                    {completedSet.loadUnit.toLowerCase()} ×{" "}
+                    {completedSet.repetitions} reps
+                    {completedSet.rir !== null
+                      ? ` · RIR ${completedSet.rir}`
+                      : ""}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {onUpdateSet && (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Edit set"
+                              onClick={() => {
+                                setEditingSet({
+                                  id: completedSet.id,
+                                  repetitions: completedSet.repetitions,
+                                  load: completedSet.loadKg,
+                                });
+                              }}
+                              disabled={isSubmitting}
+                            />
+                          }
+                        >
+                          Edit
+                        </TooltipTrigger>
+                        <TooltipContent>Edit set</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {onDeleteSet && (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon-sm"
+                              aria-label="Delete set"
+                              onClick={() => setDeleteSetId(completedSet.id)}
+                              disabled={isSubmitting}
+                            />
+                          }
+                        >
+                          <Trash2 />
+                        </TooltipTrigger>
+                        <TooltipContent>Delete set</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-4">
+        <CardContent className="pt-2">
+          <form onSubmit={handleSubmit} className="grid gap-3">
             {validationError && (
               <p role="alert" className="text-sm text-destructive">
                 {validationError}
@@ -176,74 +259,6 @@ export function ActiveWorkout({
               <p role="alert" className="text-sm text-destructive">
                 {error}
               </p>
-            )}
-            {performance.completedSets.length > 0 && (
-              <div className="grid gap-2" aria-label="Completed sets">
-                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  Completed sets
-                </p>
-                {performance.completedSets.map((completedSet) => (
-                  <div
-                    key={completedSet.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/30 px-3 py-2 text-sm"
-                  >
-                    <span>
-                      {completedSet.loadKg}{" "}
-                      {completedSet.loadUnit.toLowerCase()} ×{" "}
-                      {completedSet.repetitions} reps
-                      {completedSet.rir !== null
-                        ? ` · RIR ${completedSet.rir}`
-                        : ""}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-1">
-                      {onUpdateSet && (
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Edit set"
-                                onClick={() => {
-                                  setEditingSet({
-                                    id: completedSet.id,
-                                    repetitions: completedSet.repetitions,
-                                    load: completedSet.loadKg,
-                                  });
-                                }}
-                                disabled={isSubmitting}
-                              />
-                            }
-                          >
-                            Edit
-                          </TooltipTrigger>
-                          <TooltipContent>Edit set</TooltipContent>
-                        </Tooltip>
-                      )}
-                      {onDeleteSet && (
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon-sm"
-                                aria-label="Delete set"
-                                onClick={() => setDeleteSetId(completedSet.id)}
-                                disabled={isSubmitting}
-                              />
-                            }
-                          >
-                            <Trash2 />
-                          </TooltipTrigger>
-                          <TooltipContent>Delete set</TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
             )}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
