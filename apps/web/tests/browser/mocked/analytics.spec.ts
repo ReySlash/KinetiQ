@@ -52,11 +52,21 @@ test.describe("mocked analytics dashboard", () => {
     await useScenario(context, "analytics-partial");
     await page.reload();
     await expect(page.getByText("Partial", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Comparison unavailable vs previous period", { exact: true })).toBeVisible();
+    await expect(
+      page
+        .locator('[data-slot="card-content"]:visible')
+        .filter({ hasText: "Comparison unavailable vs previous period" })
+        .first(),
+    ).toBeVisible();
 
     await useScenario(context, "analytics-error");
     await page.reload();
-    await expect(page.getByText("Analytics could not be loaded", { exact: true })).toBeVisible();
+    await expect(
+      page
+        .locator('[data-slot="alert-title"]:visible')
+        .filter({ hasText: "Analytics could not be loaded" })
+        .first(),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
 
     await context.clearCookies();

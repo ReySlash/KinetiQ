@@ -14,6 +14,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { SideNav } from "./side-nav";
+import { LogoutDialog } from "@/app/(auth)/components/logout-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ import { authApi, type AuthSession } from "@/lib/auth-api";
 export function AppSidebar() {
   const router = useRouter();
   const [session, setSession] = useState<AuthSession | null>(null);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
     void authApi
@@ -88,7 +90,7 @@ export function AppSidebar() {
               <DropdownMenuContent className="w-32">
                 <DropdownMenuGroup>
                   {session ? (
-                    <DropdownMenuItem onClick={() => void handleSignOut()}>
+                    <DropdownMenuItem onClick={() => setLogoutOpen(true)}>
                       <User2 />
                       Sign out
                     </DropdownMenuItem>
@@ -106,6 +108,11 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <LogoutDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        onConfirm={handleSignOut}
+      />
     </Sidebar>
   );
 }

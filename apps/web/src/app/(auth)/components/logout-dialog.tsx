@@ -1,32 +1,42 @@
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-export function LogoutDialog() {
+export function LogoutDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void | Promise<void>;
+}) {
   return (
-    <Dialog>
-      <DialogTrigger>Sign Out</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Are you sure you want to sign out?</DialogTitle>
-          <DialogDescription>
-            This action will log you out. If you want to return to your account,
-            you will need to log in again.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="sm:justify-end">
-          <Button variant="outline">Sign Out</Button>
-          <DialogClose render={<Button variant="default">Go Back</Button>} />
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Sign out of KinetiQ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            You can sign back in whenever you are ready to continue training.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-row justify-center">
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={() => void onConfirm()}
+          >
+            Sign out
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

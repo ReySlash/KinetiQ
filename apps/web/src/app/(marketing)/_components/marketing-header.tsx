@@ -45,9 +45,6 @@ export function MarketingHeader() {
           >
             Log in
           </StyledLink>
-          <StyledLink href="/sign-up" size="sm">
-            Get started
-          </StyledLink>
         </div>
       </div>
     </header>
