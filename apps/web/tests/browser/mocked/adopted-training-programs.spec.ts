@@ -111,6 +111,9 @@ test.describe("mocked adopted training program journey", () => {
     await expect(page).toHaveURL(/\/workout-sessions\/423e4567/);
     await expect(page.getByRole("link", { name: /Strength Base · Week 1, Day 1/ })).toBeVisible();
     await page.getByRole("button", { name: "Cancel workout" }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Cancel this workout?" })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel workout", exact: true }).last().click();
     await expect(page).toHaveURL(`/training-programs/adopted/${programId}`);
     await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
   });
@@ -120,6 +123,9 @@ test.describe("mocked adopted training program journey", () => {
     await page.goto(`/training-programs/adopted/${programId}`);
     await page.getByRole("button", { name: "Start workout" }).click();
     await page.getByRole("button", { name: "Finish workout" }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Finish this workout?" })).toBeVisible();
+    await page.getByRole("button", { name: "Finish workout", exact: true }).last().click();
     await expect(page).toHaveURL(`/training-programs/adopted/${programId}`);
     await expect(page.getByText("100%", { exact: true })).toBeVisible();
     await expect(page.getByText("completed", { exact: true })).toBeVisible();

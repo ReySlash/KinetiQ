@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { ActiveWorkout } from "./active-workout";
+import { CancelWorkoutDialog } from "./cancel-workout-dialog";
+import { FinishWorkoutDialog } from "./finish-workout-dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -33,8 +35,12 @@ export function ActiveWorkoutController({
   const lifecycleInFlight = useRef(false);
   const [setPending, setSetPending] = useState(false);
   const [setError, setSetError] = useState<string | null>(null);
-  const [lifecyclePending, setLifecyclePending] = useState<"complete" | "cancel" | null>(null);
+  const [lifecyclePending, setLifecyclePending] = useState<
+    "complete" | "cancel" | null
+  >(null);
   const [lifecycleError, setLifecycleError] = useState<string | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [finishOpen, setFinishOpen] = useState(false);
   const programReturnHref = getProgramReturnHref(session.provenance);
 
   async function runSetMutation(operation: () => Promise<unknown>) {
@@ -46,7 +52,9 @@ export function ActiveWorkoutController({
       await operation();
       router.refresh();
     } catch (error) {
-      setSetError(error instanceof Error ? error.message : "Workout set update failed.");
+      setSetError(
+        error instanceof Error ? error.message : "Workout set update failed.",
+      );
     } finally {
       setOperationInFlight.current = false;
       setSetPending(false);
@@ -64,7 +72,9 @@ export function ActiveWorkoutController({
       if (programReturnHref) router.push(programReturnHref);
       else router.refresh();
     } catch (error) {
-      setLifecycleError(error instanceof Error ? error.message : "Workout update failed.");
+      setLifecycleError(
+        error instanceof Error ? error.message : "Workout update failed.",
+      );
     } finally {
       lifecycleInFlight.current = false;
       setLifecyclePending(null);
@@ -79,7 +89,9 @@ export function ActiveWorkoutController({
         isSubmitting={setPending}
         error={setError}
         onRecordSet={async (performanceId, input) => {
-          await runSetMutation(() => recordWorkoutSet(session.id, performanceId, input));
+          await runSetMutation(() =>
+            recordWorkoutSet(session.id, performanceId, input),
+          );
         }}
         onDeleteSet={async (setId) => {
           const performance = session.performances.find((item) =>
@@ -88,7 +100,9 @@ export function ActiveWorkoutController({
             ),
           );
           if (!performance) return;
-          await runSetMutation(() => deleteWorkoutSet(session.id, performance.id, setId));
+          await runSetMutation(() =>
+            deleteWorkoutSet(session.id, performance.id, setId),
+          );
         }}
         onUpdateSet={async (setId, input) => {
           const performance = session.performances.find((item) =>
@@ -97,26 +111,24 @@ export function ActiveWorkoutController({
             ),
           );
           if (!performance) return;
-          await runSetMutation(() => updateWorkoutSet(session.id, performance.id, setId, input));
+          await runSetMutation(() =>
+            updateWorkoutSet(session.id, performance.id, setId, input),
+          );
         }}
       />
       {lifecycleError ? (
         <Alert variant="destructive">
           <AlertTitle>Workout update failed</AlertTitle>
-          <AlertDescription>
-            {lifecycleError}
-          </AlertDescription>
+          <AlertDescription>{lifecycleError}</AlertDescription>
         </Alert>
       ) : null}
-      <div className="flex flex-row justify-center gap-2 px-3 pb-3 md:justify-end">
+      <div className="flex flex-row justify-center gap-2 px-3 md:justify-end">
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
                 variant="outline"
-                onClick={() =>
-                  void finishAndNavigate("cancel").catch(() => undefined)
-                }
+                onClick={() => setCancelOpen(true)}
                 disabled={Boolean(lifecyclePending) || setPending}
               />
             }
@@ -129,9 +141,7 @@ export function ActiveWorkoutController({
           <TooltipTrigger
             render={
               <Button
-                onClick={() =>
-                  void finishAndNavigate("complete").catch(() => undefined)
-                }
+                onClick={() => setFinishOpen(true)}
                 disabled={Boolean(lifecyclePending) || setPending}
               />
             }
@@ -141,6 +151,16 @@ export function ActiveWorkoutController({
           <TooltipContent>Finish workout</TooltipContent>
         </Tooltip>
       </div>
+      <CancelWorkoutDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        onConfirm={() => finishAndNavigate("cancel")}
+      />
+      <FinishWorkoutDialog
+        open={finishOpen}
+        onOpenChange={setFinishOpen}
+        onConfirm={() => finishAndNavigate("complete")}
+      />
     </div>
   );
 }

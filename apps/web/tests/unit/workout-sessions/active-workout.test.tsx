@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ActiveWorkout } from "@/app/(app)/workout-sessions/[workoutSessionId]/components/active-workout";
@@ -64,6 +64,9 @@ describe("ActiveWorkout", () => {
     render(<ActiveWorkout session={session} onRecordSet={vi.fn()} />);
 
     expect(screen.getByText("Bench Press")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Bench Press thumbnail" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/3 sets/i)).toBeInTheDocument();
     expect(screen.getByText(/8–10 reps/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /record set/i })).toBeInTheDocument();
@@ -111,12 +114,26 @@ describe("ActiveWorkout", () => {
     expect(screen.getAllByText("Incline Dumbbell Press").length).toBeGreaterThan(0);
     expect(screen.getByText(/30 kg × 10 reps/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /edit set/i }));
-    const repetitionsInput = screen.getByLabelText("Repetitions");
+    const editDialog = screen.getByRole("dialog");
+    expect(editDialog).toHaveTextContent("Edit set");
+    const repetitionsInput = within(editDialog).getByLabelText("Repetitions");
     await user.clear(repetitionsInput);
     await user.type(repetitionsInput, "9");
-    await user.click(screen.getByRole("button", { name: /save set/i }));
-    expect(onUpdateSet).toHaveBeenCalledWith("423e4567-e89b-12d3-a456-426614174000", { repetitions: 9 });
+    await user.click(
+      within(editDialog).getByRole("button", { name: "Save changes" }),
+    );
+    expect(onUpdateSet).toHaveBeenCalledWith(
+      "423e4567-e89b-12d3-a456-426614174000",
+      { repetitions: 9, load: "30", loadUnit: "KG" },
+    );
     await user.click(screen.getByRole("button", { name: /delete set/i }));
+    expect(screen.getByRole("alertdialog")).toBeVisible();
+    expect(onDeleteSet).not.toHaveBeenCalled();
+    await user.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", {
+        name: "Delete set",
+      }),
+    );
     expect(onDeleteSet).toHaveBeenCalledWith("423e4567-e89b-12d3-a456-426614174000");
   });
 
@@ -135,14 +152,17 @@ describe("ActiveWorkout", () => {
       screen.getByRole("button", { name: /incline dumbbell press/i }),
     );
     await user.click(screen.getByRole("button", { name: /edit set/i }));
-    const loadInput = screen.getByLabelText("Load (kg)");
+    const editDialog = screen.getByRole("dialog");
+    const loadInput = within(editDialog).getByLabelText("Load (kg)");
     await user.clear(loadInput);
     await user.type(loadInput, "32.5");
-    await user.click(screen.getByRole("button", { name: /save set/i }));
+    await user.click(
+      within(editDialog).getByRole("button", { name: "Save changes" }),
+    );
 
     expect(onUpdateSet).toHaveBeenCalledWith(
       "423e4567-e89b-12d3-a456-426614174000",
-      { load: "32.5", loadUnit: "KG" },
+      { repetitions: 10, load: "32.5", loadUnit: "KG" },
     );
   });
 });
