@@ -1,6 +1,7 @@
 import { ApiError, type RateLimitedResult } from "@/lib/api/error";
 import { publicServerRequest, serverRequest } from "@/lib/api/server-request";
 import type { RoutineDetail, RoutineListItem } from "@/types/routine-types";
+import { cache } from "react";
 
 export type RoutinesFetchResult =
   | { status: "authenticated"; routines: RoutineListItem[] }
@@ -38,7 +39,7 @@ export async function fetchRoutines(
   }
 }
 
-export async function fetchRoutine(
+export const fetchRoutine = cache(async function fetchRoutine(
   slug: string,
 ): Promise<RoutineDetail | null | RateLimitedResult> {
   try {
@@ -50,4 +51,4 @@ export async function fetchRoutine(
     }
     throw error;
   }
-}
+});
