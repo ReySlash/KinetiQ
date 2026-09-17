@@ -13,6 +13,7 @@ export type RoutineDetailExercise = {
     id: string;
     name: string;
     slug: string;
+    thumbnailUrl: string | null;
     isActive: boolean;
     archivedAt: Date | null;
   };

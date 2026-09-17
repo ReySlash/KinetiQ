@@ -15,6 +15,7 @@ export const ROUTINE_IMAGE_FALLBACK = "/assets/empty-state-exercises.webp";
 export const ROUTINE_IMAGE_VERSION = "2";
 
 function normalizeRoutineName(name: string): string {
+  name = name.replace(/\s*\(copy(?:\s+\d+)?\)/gi, "");
   return name
     .trim()
     .toLowerCase()

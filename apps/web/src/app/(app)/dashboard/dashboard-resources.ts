@@ -5,7 +5,7 @@ import {
 import { fetchServerAuthSession } from "@/lib/auth-server";
 import { fetchAnalyticsOverviewServer } from "@/lib/analytics-server";
 import { buildAnalyticsRequest } from "@/lib/analytics-range";
-import { isRateLimitError } from "@/lib/api/error";
+import { ApiError, isRateLimitError } from "@/lib/api/error";
 import { getServerTimezone } from "@/lib/timezone-server";
 import {
   fetchActiveWorkoutSession,
@@ -31,6 +31,7 @@ type ActiveWorkout = Extract<
 export type DashboardResources =
   | { status: "unauthenticated" }
   | { status: "rate-limited" }
+  | { status: "unavailable" }
   | {
       status: "authenticated";
       authenticated: true;
@@ -57,6 +58,12 @@ export async function readDashboardResources(): Promise<DashboardResources> {
 
   if (authResult.status === "rejected") {
     if (isRateLimitError(authResult.reason)) return { status: "rate-limited" };
+    if (
+      authResult.reason instanceof ApiError &&
+      authResult.reason.status >= 500
+    ) {
+      return { status: "unavailable" };
+    }
     throw authResult.reason;
   }
 

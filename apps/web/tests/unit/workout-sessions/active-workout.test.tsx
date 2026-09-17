@@ -127,10 +127,10 @@ describe("ActiveWorkout", () => {
       { repetitions: 9, load: "30", loadUnit: "KG" },
     );
     await user.click(screen.getByRole("button", { name: /delete set/i }));
-    expect(screen.getByRole("alertdialog")).toBeVisible();
+    expect(screen.getByRole("dialog")).toBeVisible();
     expect(onDeleteSet).not.toHaveBeenCalled();
     await user.click(
-      within(screen.getByRole("alertdialog")).getByRole("button", {
+      within(screen.getByRole("dialog")).getByRole("button", {
         name: "Delete set",
       }),
     );

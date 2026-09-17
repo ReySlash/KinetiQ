@@ -72,12 +72,12 @@ describe("ActiveWorkoutController", () => {
 
     await user.click(screen.getByRole("button", { name: "Finish workout" }));
     await user.click(
-      within(screen.getByRole("alertdialog")).getByRole("button", {
+      within(screen.getByRole("dialog")).getByRole("button", {
         name: "Finish workout",
       }),
     );
     await waitFor(() => {
-      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
     expect(await screen.findByRole("alert")).toHaveTextContent(

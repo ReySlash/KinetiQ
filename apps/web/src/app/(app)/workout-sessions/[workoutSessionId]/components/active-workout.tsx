@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import StyledLink from "@/components/styled-link";
+import { MoreLink } from "@/components/more-link";
 import ImageWithFallback from "@/components/image-with-fallback";
 import { getLocalImageSrc } from "@/lib/local-image";
 import {
@@ -166,18 +166,10 @@ export function ActiveWorkout({
                 <p>Target RIR {performance.targetRir}</p>
               )}
             </div>
-            <Tooltip>
-              <TooltipTrigger render={<span className="inline-flex shrink-0" />}>
-                <StyledLink
-                  variant="outline"
-                  size="sm"
-                  href={`/exercises/${exerciseSlugFromName(performance.exerciseNameSnapshot)}`}
-                >
-                  View exercise
-                </StyledLink>
-              </TooltipTrigger>
-              <TooltipContent>View exercise details</TooltipContent>
-            </Tooltip>
+            <MoreLink
+              href={`/exercises/${exerciseSlugFromName(performance.exerciseNameSnapshot)}`}
+              tooltip="View exercise details"
+            />
           </div>
           {performance.completedSets.length > 0 && (
             <div className="grid gap-1" aria-label="Completed sets">

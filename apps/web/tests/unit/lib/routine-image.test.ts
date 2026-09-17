@@ -18,6 +18,18 @@ describe("routine image helpers", () => {
     );
   });
 
+  it("matches routine copies with optional numeric suffixes", () => {
+    expect(getRoutineCoverSrc("Full Body A (Copy)")).toBe(
+      "/assets/Covers/full-body-a.webp?v=2",
+    );
+    expect(getRoutineCoverSrc("Full Body A (Copy 1)")).toBe(
+      "/assets/Covers/full-body-a.webp?v=2",
+    );
+    expect(getRoutineCoverSrc("Full Body A (copy 23)")).toBe(
+      "/assets/Covers/full-body-a.webp?v=2",
+    );
+  });
+
   it("does not use keyword or unsupported-name matches", () => {
     expect(getRoutineCoverSrc("Push Day")).toBeNull();
   });

@@ -4,18 +4,9 @@ import { CirclePlay, Pause, Play, RotateCcw, SkipForward, X } from "lucide-react
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import StyledLink from "@/components/styled-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import type { AdoptedTrainingProgram } from "@/types/adopted-training-program-types";
 import { getMobileProgramAction } from "./adopted-program-action-priority";
@@ -165,7 +156,7 @@ export function AdoptedProgramActions({
           <div
             role="group"
             aria-label="Mobile program controls"
-            className="flex flex-wrap items-center gap-2"
+            className="flex flex-wrap items-center justify-center gap-2 md:justify-end"
           >
             {program.actions.canSkipNext && nextOccurrence ? (
               <Button
@@ -208,56 +199,39 @@ export function AdoptedProgramActions({
         </div>
       ) : null}
 
-      <AlertDialog open={skipOpen} onOpenChange={setSkipOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Skip this workout?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {nextOccurrence
-                ? `Week ${nextOccurrence.weekNumber}, day ${nextOccurrence.dayNumber} will count as skipped. This cannot be undone.`
-                : "This workout will count as skipped."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep workout</AlertDialogCancel>
-            <AlertDialogAction
-              variant="outline"
-              disabled={isPending || !nextOccurrence}
-              onClick={() => {
-                if (!nextOccurrence) return;
-                setSkipOpen(false);
-                run({ type: "skip", occurrenceId: nextOccurrence.id });
-              }}
-            >
-              Skip workout
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        open={skipOpen}
+        onOpenChange={setSkipOpen}
+        title="Skip this workout?"
+        description={
+          nextOccurrence
+            ? `Week ${nextOccurrence.weekNumber}, day ${nextOccurrence.dayNumber} will count as skipped. This cannot be undone.`
+            : "This workout will count as skipped."
+        }
+        cancelLabel="Keep workout"
+        confirmLabel="Skip workout"
+        confirmVariant="outline"
+        confirmDisabled={isPending || !nextOccurrence}
+        onConfirm={() => {
+          if (!nextOccurrence) return;
+          setSkipOpen(false);
+          run({ type: "skip", occurrenceId: nextOccurrence.id });
+        }}
+      />
 
-      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel this program?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your completed workout history stays available, but this program cannot be resumed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep program</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={isPending}
-              onClick={() => {
-                setCancelOpen(false);
-                run({ type: "cancel" });
-              }}
-            >
-              Cancel program
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        title="Cancel this program?"
+        description="Your completed workout history stays available, but this program cannot be resumed."
+        cancelLabel="Keep program"
+        confirmLabel="Cancel program"
+        confirmDisabled={isPending}
+        onConfirm={() => {
+          setCancelOpen(false);
+          run({ type: "cancel" });
+        }}
+      />
     </div>
   );
 }

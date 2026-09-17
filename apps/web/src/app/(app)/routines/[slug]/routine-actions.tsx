@@ -5,17 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { AuthRequiredDialog } from "@/app/(auth)/components/auth-required-dialog";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import StyledLink from "@/components/styled-link";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   deleteRoutineAction,
   duplicateRoutineAction,
@@ -56,21 +48,15 @@ export function RoutineActions({
   if (visibility === "GLOBAL") {
     return (
       <>
-        <Button
-          size="lg"
-          onClick={duplicate}
-          disabled={isPending}
-        >
+        <Button size="lg" onClick={duplicate} disabled={isPending}>
           <Copy />
-          {isPending
-            ? "Copying…"
-            : "Copy to my routines"}
+          {isPending ? "Copying…" : "Copy to my routines"}
         </Button>
         {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <AuthRequiredDialog open={authOpen} onOpenChange={setAuthOpen} />
       </>
     );
@@ -78,14 +64,20 @@ export function RoutineActions({
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        <StyledLink href={`/routines/${routineSlug}/edit`} variant="outline" size="lg">
+      <div className="flex flex-row flex-wrap gap-2 md:justify-end justify-center">
+        <StyledLink
+          href={`/routines/${routineSlug}/edit`}
+          variant="outline"
+          size="lg"
+          className="w-35 max-w-full justify-center"
+        >
           <Pencil />
           Edit routine
         </StyledLink>
         <Button
           variant="outline"
           size="lg"
+          className="w-35 max-w-full justify-center"
           onClick={duplicate}
           disabled={isPending}
         >
@@ -95,6 +87,7 @@ export function RoutineActions({
         <Button
           variant="destructive"
           size="lg"
+          className="w-35 max-w-full justify-center"
           onClick={() => setDeleteOpen(true)}
           disabled={isPending}
         >
@@ -107,27 +100,22 @@ export function RoutineActions({
           {error}
         </p>
       )}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete this routine?</DialogTitle>
-            <DialogDescription>
-              This permanently deletes the routine and its exercise prescriptions.
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-            <Button
-              variant="destructive"
-              onClick={remove}
-              disabled={isPending}
-            >
-              {isPending ? "Deleting…" : "Delete routine"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete this routine?"
+        description={
+          <>
+            This permanently deletes the routine and its exercise prescriptions.
+            This action cannot be undone.
+          </>
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Delete routine"
+        confirmPendingLabel="Deleting…"
+        confirmPending={isPending}
+        onConfirm={remove}
+      />
     </>
   );
 }

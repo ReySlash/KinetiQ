@@ -43,7 +43,13 @@ export default async function TrainingProgramDetailPage({
 }) {
   const { slug } = await params;
   const program = await fetchTrainingProgram(slug);
-  if (isRateLimitedResult(program)) return <RateLimitedState title="Training program is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  if (isRateLimitedResult(program))
+    return (
+      <RateLimitedState
+        title="Training program is temporarily unavailable"
+        description="Too many requests were made. Please wait a moment and try again."
+      />
+    );
   if (!program) notFound();
 
   return (

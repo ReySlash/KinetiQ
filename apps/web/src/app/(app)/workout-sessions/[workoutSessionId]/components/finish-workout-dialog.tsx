@@ -1,13 +1,4 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 
 export function FinishWorkoutDialog({
   open,
@@ -19,26 +10,18 @@ export function FinishWorkoutDialog({
   onConfirm: () => void | Promise<void>;
 }) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Finish this workout?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Your completed sets will be saved and this workout will be added to your history.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-row justify-center">
-          <AlertDialogCancel>Keep working out</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              onOpenChange(false);
-              void onConfirm();
-            }}
-          >
-            Finish workout
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Finish this workout?"
+      description="Your completed sets will be saved and this workout will be added to your history."
+      cancelLabel="Keep working out"
+      confirmLabel="Finish workout"
+      confirmVariant="default"
+      onConfirm={() => {
+        onOpenChange(false);
+        return onConfirm();
+      }}
+    />
   );
 }

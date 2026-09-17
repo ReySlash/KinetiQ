@@ -39,6 +39,9 @@ export class RoutineExerciseReferenceDto {
   @ApiProperty({ example: 'bench-press' })
   slug!: string;
 
+  @ApiPropertyOptional({ nullable: true })
+  thumbnailUrl!: string | null;
+
   @ApiProperty({ example: true })
   isActive!: boolean;
 
