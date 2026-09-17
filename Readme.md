@@ -94,7 +94,9 @@ completed before inviting beta users.
 Reference-library, routine, training-program, adopted-program, workout-session,
 dashboard, and basic analytics slices are implemented. The next work is to
 complete the closed-beta production acceptance gates: HTTPS journey,
-monitoring, backups, restore/rollback rehearsal, and operational controls.
+monitoring, authentication, authorization, and operational controls. Full
+database backup and restore automation is intentionally deferred while the
+beta has only a few testers.
 Advanced analytics, progression, recovery, calendar scheduling, and coach
 workflows remain deferred.
 

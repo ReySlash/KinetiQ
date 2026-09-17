@@ -58,9 +58,12 @@ does not run its web service on Oracle.
 ## Database and migrations
 
 Neon is the production PostgreSQL provider. Use TLS, a least-privileged runtime
-role, appropriate connection pooling, and provider backups/PITR. Apply existing
-migrations from the reviewed checkout with `prisma migrate deploy` before
-starting an API version that depends on them.
+role, and appropriate connection pooling. The current free-tier prototype uses
+one manually created Neon snapshot before risky changes; recurring provider
+backups/PITR and external logical backups are deferred until paid-user
+infrastructure is introduced. Apply existing migrations from the reviewed
+checkout with `prisma migrate deploy` before starting an API version that
+depends on them.
 
 Never use `migrate dev`, reset commands, or destructive seed behavior in
 production. Reference-data initialization must be reviewed and idempotent.
@@ -115,8 +118,11 @@ migration; prefer a forward fix.
 
 ## Readiness gates before beta invitations
 
-Monitoring and email alerts, independent encrypted logical backups, isolated
-restore rehearsal, detailed RPO/RTO measurement, and incident runbooks are
-required before beta invitations. Neon backups/PITR, health checks, bounded
-logs, and application rollback are part of the initial beta baseline.
-Automated API deployment and advanced operational dashboards remain deferred.
+Monitoring, email alerts, health checks, bounded logs, and application rollback
+remain part of the initial beta baseline. The current prototype has only a few
+testers, so automated database backups, isolated restore rehearsal, and formal
+RPO/RTO measurement are explicitly deferred. Take a manual Neon snapshot before
+Prisma migrations or other risky database changes and record that it is not a
+recurring backup guarantee. Revisit full database protection when the product
+moves to the planned consolidated Hostinger VPS for paid users. Automated API
+deployment and advanced operational dashboards remain deferred.

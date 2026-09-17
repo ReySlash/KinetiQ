@@ -2,7 +2,13 @@
 
 ## Purpose
 
-A single developer needs enough signal to detect broken deployments, diagnose requests, and recover data without operating a large observability platform. The closed-beta baseline starts with API request logs, health checks, Vercel deployment visibility, bounded VPS logs, and Neon backups/PITR. Alerts, portable off-provider backups, and restore rehearsal are required before beta invitations.
+A single developer needs enough signal to detect broken deployments and diagnose
+requests without operating a large observability platform. The current
+prototype baseline starts with API request logs, health checks, Vercel deployment
+visibility, bounded VPS logs, and a manually managed Neon safety snapshot before
+risky database changes. Recurring off-provider backups, restore rehearsal, and
+formal RPO/RTO measurement are deferred until paid-user infrastructure is
+justified.
 
 ## Logging
 
@@ -31,10 +37,10 @@ MVP may start with provider/host monitoring plus lightweight application metrics
 - VPS CPU, memory, disk space/inodes, load, network
 - upload/transform failures and orphan cleanup backlog
 - auth failure/rate-limit spikes
-- backup age, size, duration, and success
+- backup age, size, duration, and success once recurring backups are introduced
 - certificate expiry and renewal failure
 
-Alerts must be actionable and reach the developer outside the failed VPS. Initial examples: readiness down for 5 minutes, elevated 5xx, disk above 80/90%, no successful backup within 30 hours, certificate under 14 days, database/storage connection failures.
+Alerts must be actionable and reach the developer outside the failed VPS. Initial examples: readiness down for 5 minutes, elevated 5xx, disk above 80/90%, certificate under 14 days, and database/storage connection failures. Add backup-age alerts when recurring backups are introduced.
 
 ## Error tracking
 
@@ -42,11 +48,16 @@ An external error tracker is recommended if its cost and data region are accepta
 
 ## Backup strategy
 
-### PostgreSQL
+### PostgreSQL — current prototype policy
 
-- Neon automated backups/PITR are the first-beta recovery baseline and must be verified against the selected production plan.
-- A portable encrypted logical backup outside Neon and the VPS is required before beta invitations.
-- When introduced, back up Better Auth and application schemas consistently in the same snapshot and document retention and key custody.
+- Neon is the production database, but the free tier currently provides only a
+  manually created safety snapshot rather than the recurring schedule required
+  for a formal RPO. Take that snapshot before migrations or other risky changes.
+- The API VPS is temporary and is not treated as the persistent data-backup
+  target.
+- When the product moves to the consolidated paid-user VPS, introduce an
+  encrypted recurring logical backup outside both the VPS and Neon, covering
+  Better Auth and application schemas consistently.
 
 ### Media
 
@@ -58,9 +69,15 @@ Back up encrypted operational configuration, Nginx/Compose definitions (also in 
 
 ## Restore procedure
 
-At least quarterly, restore the latest backup into an isolated database, apply no destructive “fixups,” run integrity counts/foreign-key checks, boot a staging API, confirm auth/reference/routine sample reads, and record duration and gaps. Test media object availability separately. A backup is not considered successful until a restore drill has passed.
+Restore rehearsal is deferred for the current small prototype beta. Before
+launching the paid-user infrastructure, restore the latest external backup into
+an isolated database, run integrity and foreign-key checks, boot a staging API,
+confirm auth/reference/routine/session/analytics reads, and record duration and
+gaps. A recurring backup program is not considered operational until a restore
+drill has passed.
 
-Define RPO/RTO. Private MVP recommendation: 24-hour RPO and 4-hour RTO. Tighten before meaningful performance histories make a day of loss unacceptable.
+Formal RPO/RTO targets are deferred for the current prototype. Define and
+measure them when recurring backups and the consolidated host are introduced.
 
 ## Operational runbooks
 
@@ -68,7 +85,11 @@ Create concise runbooks for deploy failure, database unavailable, full disk, exp
 
 ## Testing and current acceptance
 
-Automated tests cover health behavior, dependency timeout, and API request-ID propagation. The remaining operational acceptance is to verify Neon recovery settings, certificate renewal, log retention, off-host alerting, and an isolated restore. The stronger standard remains that failures are detected off-host, logs correlate without exposing secrets, retention prevents disk exhaustion, and measured restore meets the approved targets.
+Automated tests cover health behavior, dependency timeout, and API request-ID
+propagation. The remaining prototype operational acceptance is certificate
+renewal, log retention, off-host alerting, and safe manual snapshots before
+risky database changes. The stronger backup standard remains deferred until
+recurring backups and restore can be measured on the consolidated host.
 
 ## Future extensions and open questions
 

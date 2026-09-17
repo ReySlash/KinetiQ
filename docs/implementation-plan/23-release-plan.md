@@ -75,9 +75,9 @@ This work may begin earlier and must be complete before any shared environment e
 
 ## R9 — Production MVP baseline and hardening
 
-**Deliver:** Vercel-hosted Next.js, a Dockerized NestJS API behind Nginx on Oracle Cloud, Neon PostgreSQL, HTTPS, full CI gates, security headers/rate limits, structured logs, health checks, tracked production assets, backups, and rollback guidance.
+**Deliver:** Vercel-hosted Next.js, a Dockerized NestJS API behind Nginx on Oracle Cloud, Neon PostgreSQL, HTTPS, full CI gates, security headers/rate limits, structured logs, health checks, tracked production assets, and rollback guidance. Recurring database backups and restore operations are deferred for the small prototype beta.
 
-**Acceptance:** repository implementation is complete, but the closed beta is not ready for invitations until the public HTTPS journey, operator controls, branch protection, certificate renewal, backup restoration, external logical backups, alerting, RPO/RTO measurement, and incident runbooks are verified.
+**Acceptance:** repository implementation is complete, and the closed beta may proceed with a documented prototype-risk policy once the public HTTPS journey, operator controls, branch protection, certificate renewal, and alerting are verified. A manual Neon snapshot is taken before risky database changes. Recurring external backups, restore rehearsal, and formal RPO/RTO measurement are deferred until paid-user infrastructure is introduced.
 
 ## Historical roadmap after the production baseline
 
@@ -109,9 +109,10 @@ media assets.
 
 Use the closed beta to validate the implemented slices through R13 while
 closing the remaining operator-side deployment checklist. Prioritize public
-acceptance, branch protection, Neon backup verification, rollback and restore
-rehearsal, then monitoring and alerts. Do not begin recommendations or recovery
-features until beta data and the analytics foundation are trustworthy.
+acceptance, branch protection, monitoring, alerting, and safe manual database
+snapshots before risky changes. Defer recurring backups, restore rehearsal,
+progression recommendations, and recovery features until beta usage justifies
+the next infrastructure step.
 
 ## Status tracking
 
@@ -128,7 +129,7 @@ accepted until its acceptance block and any external operational gates pass.
 | R5 Media                        | Tracked optimized assets and fallbacks implemented; upload/management remains post-MVP                           | R2                            |
 | R6 Auth/admin hardening         | Implemented with HTTP authorization tests; cookie, revocation, and public acceptance continue                     | R0; gates shared R2–R5        |
 | R7–R8 Routines                  | Implemented with ownership coverage; beta acceptance continues                                                    | R2, R6                        |
-| R9 Production MVP               | Repository baseline implemented; external deployment and readiness gates remain                                | R0–R8                         |
+| R9 Production MVP               | Repository baseline implemented; prototype acceptance continues and recurring backup/restore is deferred     | R0–R8                         |
 | R10 Training-program templates  | Implemented; beta acceptance continues                                                                            | R9                            |
 | R11 Standalone sessions         | Implemented; beta acceptance continues                                                                            | Auth + routines               |
 | R12 Adopted-program execution   | Implemented with ownership, concurrency, rollback, and journey coverage; beta acceptance continues               | R10, R11                      |
