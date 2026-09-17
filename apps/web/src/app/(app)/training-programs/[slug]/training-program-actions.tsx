@@ -5,16 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import StyledLink from "@/components/styled-link";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { deleteTrainingProgramAction } from "../training-program-server-actions";
 
 export function TrainingProgramActions({ slug }: { slug: string }) {
@@ -54,26 +46,17 @@ export function TrainingProgramActions({ slug }: { slug: string }) {
           {error}
         </p>
       )}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete this training program?</DialogTitle>
-            <DialogDescription>
-              This permanently deletes the program and its schedule. The routines it references will not be deleted.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-            <Button
-              variant="destructive"
-              onClick={remove}
-              disabled={isPending}
-            >
-              {isPending ? "Deleting…" : "Delete program"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete this training program?"
+        description="This permanently deletes the program and its schedule. The routines it references will not be deleted."
+        cancelLabel="Cancel"
+        confirmLabel="Delete program"
+        confirmPendingLabel="Deleting…"
+        confirmPending={isPending}
+        onConfirm={remove}
+      />
     </>
   );
 }

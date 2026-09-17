@@ -5,19 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { AuthRequiredDialog } from "@/app/(auth)/components/auth-required-dialog";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import StyledLink from "@/components/styled-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { adoptTrainingProgramAction } from "../training-program-server-actions";
 
@@ -115,26 +105,22 @@ export function AdoptTrainingProgramControl({
         </Alert>
       ) : null}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogMedia><Dumbbell /></AlertDialogMedia>
-            <AlertDialogTitle>Adopt {name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This program runs for {durationWeeks} {durationWeeks === 1 ? "week" : "weeks"} and contains {scheduledWorkoutCount} scheduled workouts. {visibility === "GLOBAL" ? "KinetiQ will add a fully editable copy to My Programs and copy its routines into My Routines." : "This will start your existing personal program without creating another copy."} You can have only one active or paused program at a time.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Not now</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isPending}
-              onClick={adopt}
-            >
-              {isPending ? "Adopting…" : "Adopt program"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={`Adopt ${name}?`}
+        description={
+          <>
+            This program runs for {durationWeeks} {durationWeeks === 1 ? "week" : "weeks"} and contains {scheduledWorkoutCount} scheduled workouts. {visibility === "GLOBAL" ? "KinetiQ will add a fully editable copy to My Programs and copy its routines into My Routines." : "This will start your existing personal program without creating another copy."} You can have only one active or paused program at a time.
+          </>
+        }
+        cancelLabel="Not now"
+        confirmLabel="Adopt program"
+        confirmPendingLabel="Adopting…"
+        confirmPending={isPending}
+        confirmVariant="default"
+        onConfirm={adopt}
+      />
 
       <AuthRequiredDialog open={authOpen} onOpenChange={setAuthOpen} />
     </div>

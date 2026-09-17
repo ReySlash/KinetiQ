@@ -31,6 +31,7 @@ export type RoutineExercise = RoutineExerciseInput & {
     id: string;
     name: string;
     slug: string;
+    thumbnailUrl: string | null;
     isActive: boolean;
     archivedAt: string | null;
   };

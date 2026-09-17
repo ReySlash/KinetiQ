@@ -1,13 +1,4 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 
 export function DeleteSetDialog({
   open,
@@ -19,27 +10,17 @@ export function DeleteSetDialog({
   onConfirm: () => void | Promise<void>;
 }) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete this set?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This completed set will be permanently removed from your workout.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-row justify-center">
-          <AlertDialogCancel>Go back</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            onClick={() => {
-              onOpenChange(false);
-              void onConfirm();
-            }}
-          >
-            Delete set
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Delete this set?"
+      description="This completed set will be permanently removed from your workout."
+      cancelLabel="Go back"
+      confirmLabel="Delete set"
+      onConfirm={() => {
+        onOpenChange(false);
+        return onConfirm();
+      }}
+    />
   );
 }

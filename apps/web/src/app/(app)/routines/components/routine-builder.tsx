@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/page-header";
 import StyledLink from "@/components/styled-link";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import type { RoutineCreateInput, RoutineDetail } from "@/types/routine-types";
 import Link from "next/link";
 import { RoutineExercisePicker } from "./routine-exercise-picker";
@@ -136,6 +137,10 @@ export function RoutineBuilder({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [removeExerciseTarget, setRemoveExerciseTarget] = useState<{
+    index: number;
+    name: string;
+  } | null>(null);
   const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(routineSchema),
     defaultValues: getDefaults(routine, initialExerciseSlug),
@@ -175,6 +180,13 @@ export function RoutineBuilder({
       tempo: "",
       notes: "",
     });
+  }
+
+  function confirmRemoveExercise() {
+    if (!removeExerciseTarget) return;
+
+    fields.remove(removeExerciseTarget.index);
+    setRemoveExerciseTarget(null);
   }
 
   return (
@@ -278,7 +290,12 @@ export function RoutineBuilder({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => fields.remove(index)}
+                          onClick={() =>
+                            setRemoveExerciseTarget({
+                              index,
+                              name: field.exerciseSlug,
+                            })
+                          }
                           aria-label={`Remove ${field.exerciseSlug}`}
                         >
                           <Trash2 className="text-destructive" />
@@ -422,6 +439,21 @@ export function RoutineBuilder({
           </div>
         </form>
       </section>
+      <ConfirmationDialog
+        open={removeExerciseTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoveExerciseTarget(null);
+        }}
+        title="Remove this exercise?"
+        description={
+          removeExerciseTarget
+            ? `This will remove ${removeExerciseTarget.name} and its prescription from this routine.`
+            : "This will remove the exercise and its prescription from this routine."
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Remove exercise"
+        onConfirm={confirmRemoveExercise}
+      />
     </main>
   );
 }

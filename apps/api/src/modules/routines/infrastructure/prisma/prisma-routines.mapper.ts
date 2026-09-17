@@ -40,6 +40,7 @@ export const routineFindOneSelect = {
           id: true,
           name: true,
           slug: true,
+          thumbnailUrl: true,
           isActive: true,
           archivedAt: true,
         },
