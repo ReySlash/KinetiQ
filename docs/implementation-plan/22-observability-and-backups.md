@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A single developer needs enough signal to detect broken deployments, diagnose requests, and recover data without operating a large observability platform. The closed-beta baseline starts with API request logs, health checks, Vercel deployment visibility, bounded VPS logs, and Neon backups/PITR. Alerts, portable off-provider backups, and restore rehearsal remain post-launch hardening.
+A single developer needs enough signal to detect broken deployments, diagnose requests, and recover data without operating a large observability platform. The closed-beta baseline starts with API request logs, health checks, Vercel deployment visibility, bounded VPS logs, and Neon backups/PITR. Alerts, portable off-provider backups, and restore rehearsal are required before beta invitations.
 
 ## Logging
 
@@ -45,7 +45,7 @@ An external error tracker is recommended if its cost and data region are accepta
 ### PostgreSQL
 
 - Neon automated backups/PITR are the first-beta recovery baseline and must be verified against the selected production plan.
-- A portable encrypted logical backup outside Neon and the VPS is post-launch hardening.
+- A portable encrypted logical backup outside Neon and the VPS is required before beta invitations.
 - When introduced, back up Better Auth and application schemas consistently in the same snapshot and document retention and key custody.
 
 ### Media

@@ -77,7 +77,7 @@ This work may begin earlier and must be complete before any shared environment e
 
 **Deliver:** Vercel-hosted Next.js, a Dockerized NestJS API behind Nginx on Oracle Cloud, Neon PostgreSQL, HTTPS, full CI gates, security headers/rate limits, structured logs, health checks, tracked production assets, backups, and rollback guidance.
 
-**Acceptance:** the closed-beta baseline is deployed. Remaining acceptance work includes completing the public HTTPS journey, verifying operator-side controls and branch protection, exercising certificate renewal and rollback, and rehearsing backup restoration. External logical backups, alerting, detailed RPO/RTO measurement, and exhaustive incident runbooks are post-launch hardening rather than blockers for the initial beta.
+**Acceptance:** repository implementation is complete, but the closed beta is not ready for invitations until the public HTTPS journey, operator controls, branch protection, certificate renewal, backup restoration, external logical backups, alerting, RPO/RTO measurement, and incident runbooks are verified.
 
 ## Historical roadmap after the production baseline
 
@@ -115,21 +115,22 @@ features until beta data and the analytics foundation are trustworthy.
 
 ## Status tracking
 
-At plan creation all releases are `PLANNED`. Update this table when work begins; do not mark a release done until its acceptance block passes.
+This table reflects the current implementation state. A release is not fully
+accepted until its acceptance block and any external operational gates pass.
 
 | Release                         | Status                                                                                                           | Depends on                    |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| R0 Foundation                   | Deployed in the closed beta; remaining operator controls are tracked separately                                  | —                             |
-| R1 Muscles                      | Deployed; beta acceptance continues                                                                              | R0                            |
-| R2 Exercise identity            | Deployed; final admin production-security acceptance remains                                                     | R1                            |
-| R3 Muscle assignments           | Deployed; beta acceptance continues                                                                              | R2                            |
-| R4 Profiles                     | Deployed; beta acceptance continues                                                                              | R3                            |
+| R0 Foundation                   | Implemented; remaining external operator controls are tracked separately                                        | —                             |
+| R1 Muscles                      | Implemented; beta acceptance continues                                                                            | R0                            |
+| R2 Exercise identity            | Implemented; final admin production-security acceptance remains                                                   | R1                            |
+| R3 Muscle assignments           | Implemented; beta acceptance continues                                                                            | R2                            |
+| R4 Profiles                     | Implemented; beta acceptance continues                                                                            | R3                            |
 | R5 Media                        | Tracked optimized assets and fallbacks implemented; upload/management remains post-MVP                           | R2                            |
-| R6 Auth/admin hardening         | Deployed with HTTP authorization tests; cookie, revocation, and public acceptance continue                       | R0; gates shared R2–R5        |
-| R7–R8 Routines                  | Deployed with ownership coverage; beta acceptance continues                                                      | R2, R6                        |
-| R9 Production MVP               | Closed-beta baseline deployed on Vercel, Oracle, and Neon; operational hardening remains                         | R0–R8                         |
-| R10 Training-program templates  | Deployed; beta acceptance continues                                                                              | R9                            |
-| R11 Standalone sessions         | Deployed; beta acceptance continues                                                                              | Auth + routines               |
-| R12 Adopted-program execution   | Deployed with ownership, concurrency, rollback, and journey coverage; beta acceptance continues                 | R10, R11                      |
-| R13 Analytics overview          | Deterministic read-only overview deployed; beta validation continues                                             | R12 stable integrated history |
+| R6 Auth/admin hardening         | Implemented with HTTP authorization tests; cookie, revocation, and public acceptance continue                     | R0; gates shared R2–R5        |
+| R7–R8 Routines                  | Implemented with ownership coverage; beta acceptance continues                                                    | R2, R6                        |
+| R9 Production MVP               | Repository baseline implemented; external deployment and readiness gates remain                                | R0–R8                         |
+| R10 Training-program templates  | Implemented; beta acceptance continues                                                                            | R9                            |
+| R11 Standalone sessions         | Implemented; beta acceptance continues                                                                            | Auth + routines               |
+| R12 Adopted-program execution   | Implemented with ownership, concurrency, rollback, and journey coverage; beta acceptance continues               | R10, R11                      |
+| R13 Analytics overview          | Deterministic read-only overview implemented; beta validation continues                                          | R12 stable integrated history |
 | R14+ Heuristics and later phases | Deferred                                                                                                        | R13 validated                 |

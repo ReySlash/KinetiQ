@@ -58,9 +58,11 @@ Integrate Better Auth with NestJS request authentication. Add private routine CR
 Deploy the closed beta with the Next.js frontend on Vercel, the Dockerized API
 behind Nginx/Certbot on Oracle Cloud, and Neon PostgreSQL. Accessibility checks,
 rate limiting, security headers, health checks, CI builds, and basic operational
-documentation are implemented. Monitoring, external logical backups, restore
-rehearsal, detailed RPO/RTO measurement, and automated API deployment remain
-post-launch hardening.
+documentation, and deployment artifacts are implemented in the repository.
+Before beta invitations, complete monitoring, external logical backups, restore
+rehearsal, detailed RPO/RTO measurement, branch protection, and the complete
+HTTPS acceptance journey. Automated API deployment remains deferred until the
+manual release workflow is stable.
 
 ### Phase 7 — Training programs and weekly scheduling
 

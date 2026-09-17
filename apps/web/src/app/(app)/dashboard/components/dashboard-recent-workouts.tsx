@@ -84,13 +84,14 @@ export function DashboardRecentWorkouts({
                 <TableHead className="text-right">Sets</TableHead>
                 <TableHead className="text-right">Reps</TableHead>
                 <TableHead className="text-right">Volume</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {recentWorkouts.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="h-28 text-center text-muted-foreground"
                   >
                     No completed workouts this week.
@@ -123,23 +124,7 @@ export function DashboardRecentWorkouts({
                           </TooltipContent>
                         </Tooltip>
                       </TableCell>
-                      <TableCell>
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={<span className="inline-flex max-w-full" />}
-                          >
-                            <Link
-                              href={`/workout-sessions/${workout.workoutSessionId}`}
-                              className="truncate rounded font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                            >
-                              {workoutLabel(workout)}
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Open {workoutLabel(workout)} workout details
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
+                      <TableCell>{workoutLabel(workout)}</TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatDashboardNumber(
                           workout.completedWorkingSetCount,
@@ -155,6 +140,13 @@ export function DashboardRecentWorkouts({
                             {volumeStatus}
                           </div>
                         ) : null}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <MoreLink
+                          href={`/workout-sessions/${workout.workoutSessionId}`}
+                          tooltip="View workout details"
+                          ariaLabel={`View ${workoutLabel(workout)} workout details`}
+                        />
                       </TableCell>
                     </TableRow>
                   );

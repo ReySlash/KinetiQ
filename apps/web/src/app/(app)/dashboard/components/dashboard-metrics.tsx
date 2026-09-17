@@ -7,21 +7,28 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  formatDashboardNumber,
-} from "./dashboard-formatters";
+import { formatDashboardNumber } from "./dashboard-formatters";
 import { DashboardMetricCard } from "./dashboard-metric-card";
 
-export function DashboardMetrics({ overview }: { overview: AnalyticsOverview }) {
+export function DashboardMetrics({
+  overview,
+}: {
+  overview: AnalyticsOverview;
+}) {
   const { totals } = overview;
   return (
-    <section aria-labelledby="dashboard-metrics-title" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="dashboard-metrics-title"
+      className="flex flex-col gap-2"
+    >
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
           <h2 id="dashboard-metrics-title" className="text-base font-semibold">
             This week
           </h2>
-          <CardDescription>A quick view of your completed training.</CardDescription>
+          <CardDescription>
+            A quick view of your completed training.
+          </CardDescription>
         </div>
         <Tooltip>
           <TooltipTrigger
@@ -37,7 +44,7 @@ export function DashboardMetrics({ overview }: { overview: AnalyticsOverview }) 
           <TooltipContent>Open your full training analytics</TooltipContent>
         </Tooltip>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2 md:w-1/2 md:mx-auto">
         <DashboardMetricCard
           label="Workouts"
           value={formatDashboardNumber(totals.completedWorkouts)}

@@ -1,8 +1,8 @@
 # Deployment
 
-## Current closed-beta architecture
+## Documented closed-beta architecture
 
-The closed beta is deployed as three independently operated services:
+The planned closed-beta topology has three independently operated services:
 
 ```text
 Browser
@@ -74,10 +74,11 @@ security-header, and rate-limit policy. Validate Nginx before reload and test
 Certbot renewal periodically. Trust forwarded headers only from the local
 proxy path.
 
-The checked-in `deploy/nginx/kinetiq.conf` still models the earlier single-host
-web/API deployment. It must be synchronized with the working API-only VPS
-configuration before it is used for a future rebuild; the current production
-host configuration is authoritative until that repository task is completed.
+The checked-in `deploy/nginx/kinetiq.conf` is a reference configuration for a
+single-host web/API deployment and is not automatically the active VPS file.
+The current beta topology remains Vercel web plus API-only VPS; reconcile the
+template with the installed host configuration during the deployment rehearsal
+before replacing any live Nginx file.
 
 ## CI and release flow
 
@@ -112,10 +113,10 @@ the API by rebuilding/restarting the previous reviewed SHA, provided migrations
 remain backward compatible. Database rollback is not an automatic reverse
 migration; prefer a forward fix.
 
-## Post-launch hardening
+## Readiness gates before beta invitations
 
 Monitoring and email alerts, independent encrypted logical backups, isolated
-restore rehearsal, detailed RPO/RTO measurement, exhaustive incident runbooks,
-automated API deployment, and advanced operational dashboards remain
-post-launch work. Neon backups/PITR, health checks, bounded logs, and a basic
-application rollback remain required during the beta.
+restore rehearsal, detailed RPO/RTO measurement, and incident runbooks are
+required before beta invitations. Neon backups/PITR, health checks, bounded
+logs, and application rollback are part of the initial beta baseline.
+Automated API deployment and advanced operational dashboards remain deferred.
