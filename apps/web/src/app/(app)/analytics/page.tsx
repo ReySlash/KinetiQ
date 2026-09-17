@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { fetchAnalyticsOverviewServer } from "@/lib/analytics-server";
 import { buildAnalyticsRequest } from "@/lib/analytics-range";
-import { ApiError } from "@/lib/api/error";
 import { getServerTimezone } from "@/lib/timezone-server";
 import type { AnalyticsRange } from "@/types/analytics-types";
 import type { ExerciseSortMetric } from "./components/exercise-analytics-utils";
@@ -27,18 +26,11 @@ export default async function AnalyticsPage({ searchParams }: {
     ? (metricValue as ExerciseSortMetric)
     : "volume";
   let overview = null;
-  let failure: { status: number; message: string } | undefined;
 
   if (timezone) {
     const request = buildAnalyticsRequest(timezone, { range });
     if (request.ok) {
-      try {
-        overview = await fetchAnalyticsOverviewServer(request.request);
-      } catch (error) {
-        failure = error instanceof ApiError
-          ? { status: error.status, message: error.message }
-          : { status: 500, message: "Analytics could not be loaded." };
-      }
+      overview = await fetchAnalyticsOverviewServer(request.request);
     }
   }
 
@@ -54,7 +46,6 @@ export default async function AnalyticsPage({ searchParams }: {
             range={range}
             metric={metric}
             timezone={timezone}
-            failure={failure}
           />
         ) : (
           <AnalyticsLoading />

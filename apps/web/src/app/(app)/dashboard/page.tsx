@@ -7,6 +7,7 @@ import { selectDashboardPrimaryAction } from "./components/dashboard-state";
 import SignedOutState from "@/components/signed-out-state";
 import { PageHeader } from "@/components/page-header";
 import { RateLimitedState } from "@/components/rate-limited-state";
+import { ServiceUnavailableState } from "@/components/service-unavailable-state";
 import { ApiError } from "@/lib/api/error";
 import { readDashboardResources } from "./dashboard-resources";
 
@@ -26,7 +27,25 @@ export default async function DashboardPage() {
           <h1 className="text-lg font-bold leading-none">Dashboard</h1>
         </PageHeader>
         <section className="flex min-h-0 flex-1 flex-col overflow-auto px-1 py-1 md:px-0">
-          <RateLimitedState title="Dashboard is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />
+          <RateLimitedState
+            title="Dashboard is temporarily unavailable"
+            description="Too many requests were made. Please wait a moment and try again."
+          />
+        </section>
+      </main>
+    );
+  }
+  if ("status" in resources && resources.status === "unavailable") {
+    return (
+      <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2">
+        <PageHeader subtitle="Your personal training dashboard.">
+          <h1 className="text-lg font-bold leading-none">Dashboard</h1>
+        </PageHeader>
+        <section className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto px-1 py-1 md:px-0">
+          <ServiceUnavailableState
+            title="Dashboard is temporarily unavailable"
+            description="We could not connect to the service. Please try again in a moment."
+          />
         </section>
       </main>
     );
@@ -63,12 +82,17 @@ export default async function DashboardPage() {
           <DashboardAnalytics
             overview={authenticatedResources.analytics.value}
             timezone={authenticatedResources.timezone}
-            failure={authenticatedResources.analytics.error ? {
-              status: authenticatedResources.analytics.error instanceof ApiError
-                ? authenticatedResources.analytics.error.status
-                : 500,
-              message: authenticatedResources.analytics.error.message,
-            } : undefined}
+            failure={
+              authenticatedResources.analytics.error
+                ? {
+                    status:
+                      authenticatedResources.analytics.error instanceof ApiError
+                        ? authenticatedResources.analytics.error.status
+                        : 500,
+                    message: authenticatedResources.analytics.error.message,
+                  }
+                : undefined
+            }
           >
             <TrainingPlanCard
               action={action}
