@@ -1,5 +1,6 @@
 import { ApiError, type RateLimitedResult } from "@/lib/api/error";
 import { serverRequest } from "@/lib/api/server-request";
+import { cache } from "react";
 import type {
   WorkoutSession,
   WorkoutSessionFilters,
@@ -64,7 +65,7 @@ export async function fetchWorkoutSessions(
   }
 }
 
-export async function fetchWorkoutSession(
+export const fetchWorkoutSession = cache(async function fetchWorkoutSession(
   workoutSessionId: string,
 ): Promise<WorkoutSession | null | RateLimitedResult> {
   try {
@@ -83,4 +84,4 @@ export async function fetchWorkoutSession(
     }
     throw error;
   }
-}
+});
