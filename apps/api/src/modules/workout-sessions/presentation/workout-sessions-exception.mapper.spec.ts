@@ -15,6 +15,7 @@ import {
   WorkoutSessionRoutineUnavailableError,
 } from '../application/errors/workout-session.application.errors';
 import { WorkoutSessionValidationError } from '../domain/errors/workout-session.errors';
+import { InvalidUuidError } from '../../shared/domain/errors/invalid-uuid.error';
 import { toWorkoutSessionsHttpException } from './workout-sessions-exception.mapper';
 
 describe('toWorkoutSessionsHttpException', () => {
@@ -28,6 +29,7 @@ describe('toWorkoutSessionsHttpException', () => {
       UnprocessableEntityException,
     ],
     [new WorkoutSessionValidationError('Invalid workout'), BadRequestException],
+    [new InvalidUuidError(), BadRequestException],
     [new WorkoutSessionPersistenceError(), InternalServerErrorException],
     [new WorkoutSessionQueryError(), InternalServerErrorException],
     [new Error('unexpected'), InternalServerErrorException],

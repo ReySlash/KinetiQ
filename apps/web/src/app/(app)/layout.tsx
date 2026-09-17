@@ -7,7 +7,6 @@ import { TimezoneSynchronizer } from "@/app/(app)/_components/timezone-synchroni
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteUrl } from "@/lib/site";
-import "../globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -25,26 +24,22 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="min-h-full antialiased">
-      <body className="min-h-dvh bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            <TimezoneSynchronizer />
-            <div className="h-dvh overflow-hidden">
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>{children}</SidebarInset>
-                <MobileBottomNav />
-              </SidebarProvider>
-            </div>
-          </TooltipProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <TooltipProvider>
+        <TimezoneSynchronizer />
+        <div className="h-dvh overflow-hidden">
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>{children}</SidebarInset>
+            <MobileBottomNav />
+          </SidebarProvider>
+        </div>
+      </TooltipProvider>
+    </ThemeProvider>
   );
 }

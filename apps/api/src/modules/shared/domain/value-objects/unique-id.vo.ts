@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import { InvalidUuidError } from '../errors/invalid-uuid.error';
 import { ValueObject } from './value-object.vo';
 
 const UUID_PATTERN =
@@ -13,7 +14,7 @@ export class UniqueId extends ValueObject<string> {
   static create(value?: string): UniqueId {
     const id = value ?? randomUUID();
     if (!UUID_PATTERN.test(id)) {
-      throw new Error('Unique ID must be a valid UUID.');
+      throw new InvalidUuidError();
     }
     return new UniqueId(id);
   }

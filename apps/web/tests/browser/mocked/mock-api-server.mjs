@@ -102,7 +102,7 @@ function workoutDetail(state) {
     createdAt: "2026-09-03T08:00:00.000Z", updatedAt: "2026-09-03T08:00:00.000Z",
     performances: [{
       id: "523e4567-e89b-12d3-a456-426614174000", exerciseId: "623e4567-e89b-12d3-a456-426614174000",
-      exerciseNameSnapshot: "Bench Press", order: 0, targetSetCount: 3,
+      exerciseNameSnapshot: "Barbell Bench Press", order: 0, targetSetCount: 3,
       targetMinReps: 6, targetMaxReps: 8, targetRir: 2, targetRestSeconds: 120,
       targetTempo: null, prescriptionNotes: null, completedSets: [],
     }],

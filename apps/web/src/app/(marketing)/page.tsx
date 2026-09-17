@@ -3,7 +3,6 @@ import Image from "next/image";
 import { ArrowRight, BarChart3, BookOpenCheck, ListChecks } from "lucide-react";
 
 import StyledLink from "@/components/styled-link";
-import { getSiteUrl } from "@/lib/site";
 import { MarketingFeature } from "./_components/marketing-feature";
 import { MarketingFooter } from "./_components/marketing-footer";
 import { MarketingHeader } from "./_components/marketing-header";
@@ -61,14 +60,6 @@ const benefits = [
     description: "See patterns across training and performance.",
   },
 ] as const;
-
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "KinetiQ",
-  url: getSiteUrl(),
-  description,
-};
 
 export default function MarketingPage() {
   return (
@@ -259,12 +250,6 @@ export default function MarketingPage() {
         </section>
       </main>
       <MarketingFooter />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
-        }}
-      />
     </div>
   );
 }

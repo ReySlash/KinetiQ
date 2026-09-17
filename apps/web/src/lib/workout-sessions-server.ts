@@ -72,7 +72,12 @@ export async function fetchWorkoutSession(
       `workout-sessions/${workoutSessionId}`,
     );
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return null;
+    if (
+      error instanceof ApiError &&
+      (error.status === 400 || error.status === 404)
+    ) {
+      return null;
+    }
     if (error instanceof ApiError && error.status === 429) {
       return { status: "rate-limited" };
     }
