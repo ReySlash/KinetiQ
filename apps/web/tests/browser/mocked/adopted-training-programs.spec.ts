@@ -45,7 +45,9 @@ test.describe("mocked adopted training program journey", () => {
 
     await useScenario(context, "error");
     await gotoAfterTransientAbort(page, "/training-programs/active");
-    await expect(page.getByText("Active program unavailable", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Something went wrong", level: 2 }),
+    ).toBeVisible();
 
     await useScenario(context, "loading");
     const detailNavigation = page.goto(`/training-programs/adopted/${programId}`);
@@ -54,7 +56,9 @@ test.describe("mocked adopted training program journey", () => {
 
     await useScenario(context, "error");
     await gotoAfterTransientAbort(page, `/training-programs/adopted/${programId}`);
-    await expect(page.getByText("Program unavailable", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Something went wrong", level: 2 }),
+    ).toBeVisible();
   });
 
   test("adopts a program and opens its independent snapshot", async ({ page, context }) => {
@@ -116,7 +120,7 @@ test.describe("mocked adopted training program journey", () => {
     await expect(page).toHaveURL(/\/workout-sessions\/423e4567/);
     await expect(page.getByRole("link", { name: /Strength Base · Week 1, Day 1/ })).toBeVisible();
     await page.getByRole("button", { name: "Cancel workout" }).click();
-    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Cancel this workout?" })).toBeVisible();
     await page.getByRole("button", { name: "Cancel workout", exact: true }).last().click();
     await expect(page).toHaveURL(`/training-programs/adopted/${programId}`);
@@ -128,7 +132,7 @@ test.describe("mocked adopted training program journey", () => {
     await page.goto(`/training-programs/adopted/${programId}`);
     await page.getByRole("button", { name: "Start workout" }).click();
     await page.getByRole("button", { name: "Finish workout" }).click();
-    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Finish this workout?" })).toBeVisible();
     await page.getByRole("button", { name: "Finish workout", exact: true }).last().click();
     await expect(page).toHaveURL(`/training-programs/adopted/${programId}`);

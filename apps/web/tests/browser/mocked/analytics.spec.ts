@@ -62,12 +62,9 @@ test.describe("mocked analytics dashboard", () => {
     await useScenario(context, "analytics-error");
     await page.reload();
     await expect(
-      page
-        .locator('[data-slot="alert-title"]:visible')
-        .filter({ hasText: "Analytics could not be loaded" })
-        .first(),
+      page.getByRole("heading", { name: "Something went wrong", level: 2 }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
 
     await context.clearCookies();
     await page.reload();

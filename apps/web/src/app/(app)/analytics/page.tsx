@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/page-header";
+import { ApiError } from "@/lib/api/error";
 import { fetchAnalyticsOverviewServer } from "@/lib/analytics-server";
 import { buildAnalyticsRequest } from "@/lib/analytics-range";
 import { getServerTimezone } from "@/lib/timezone-server";
 import type { AnalyticsRange } from "@/types/analytics-types";
 import type { ExerciseSortMetric } from "./components/exercise-analytics-utils";
 import { AnalyticsDashboard, AnalyticsLoading } from "./components/analytics-dashboard";
+import { AnalyticsUnauthenticatedState } from "./components/analytics-unauthenticated-state";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -26,11 +28,20 @@ export default async function AnalyticsPage({ searchParams }: {
     ? (metricValue as ExerciseSortMetric)
     : "volume";
   let overview = null;
+  let unauthenticated = false;
 
   if (timezone) {
     const request = buildAnalyticsRequest(timezone, { range });
     if (request.ok) {
-      overview = await fetchAnalyticsOverviewServer(request.request);
+      try {
+        overview = await fetchAnalyticsOverviewServer(request.request);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          unauthenticated = true;
+        } else {
+          throw error;
+        }
+      }
     }
   }
 
@@ -40,7 +51,9 @@ export default async function AnalyticsPage({ searchParams }: {
         <h1 className="text-lg font-bold leading-none">Analytics</h1>
       </PageHeader>
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {timezone ? (
+        {unauthenticated ? (
+          <AnalyticsUnauthenticatedState />
+        ) : timezone ? (
           <AnalyticsDashboard
             overview={overview}
             range={range}

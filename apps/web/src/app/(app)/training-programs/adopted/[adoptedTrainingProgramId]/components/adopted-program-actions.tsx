@@ -156,7 +156,7 @@ export function AdoptedProgramActions({
           <div
             role="group"
             aria-label="Mobile program controls"
-            className="flex flex-wrap items-center gap-2"
+            className="flex flex-wrap items-center justify-center gap-2 md:justify-end"
           >
             {program.actions.canSkipNext && nextOccurrence ? (
               <Button

@@ -128,7 +128,7 @@ export default async function RoutineDetailsPage({
                 Ordered prescriptions for this routine.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 px-1">
               {activeExercises.length === 0 ? (
                 <p className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
                   This routine has no active exercises.

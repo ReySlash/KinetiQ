@@ -117,7 +117,7 @@ export function AdoptedProgramSchedule({
           this plan.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-3 px-1">
         {hasUnavailableRoutine ? (
           <Alert variant="destructive">
             <AlertTriangle />
@@ -138,6 +138,7 @@ export function AdoptedProgramSchedule({
                 <TableHead>Routine</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-right">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -165,6 +166,16 @@ export function AdoptedProgramSchedule({
                     <TableCell>
                       <OccurrenceStatus occurrence={occurrence} />
                     </TableCell>
+                    <TableCell className="text-right">
+                      {occurrence.sourceRoutineAvailable &&
+                      occurrence.sourceRoutineSlug ? (
+                        <MoreLink
+                          href={`/routines/${occurrence.sourceRoutineSlug}`}
+                          tooltip="Open routine details"
+                          ariaLabel={`Open ${occurrence.routineNameSnapshot} details`}
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -180,7 +191,10 @@ export function AdoptedProgramSchedule({
                 className="flex flex-col gap-2"
                 aria-labelledby={`week-${weekNumber}`}
               >
-                <h3 id={`week-${weekNumber}`} className="text-sm font-semibold">
+                <h3
+                  id={`week-${weekNumber}`}
+                  className="text-sm font-semibold px-4"
+                >
                   Week {weekNumber}
                 </h3>
                 {occurrences.map((occurrence) => {

@@ -53,7 +53,13 @@ export default async function AdoptedTrainingProgramPage({
 }) {
   const { adoptedTrainingProgramId } = await params;
   const program = await fetchAdoptedTrainingProgram(adoptedTrainingProgramId);
-  if (isRateLimitedResult(program)) return <RateLimitedState title="Adopted program is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  if (isRateLimitedResult(program))
+    return (
+      <RateLimitedState
+        title="Adopted program is temporarily unavailable"
+        description="Too many requests were made. Please wait a moment and try again."
+      />
+    );
   if (!program) notFound();
 
   return (

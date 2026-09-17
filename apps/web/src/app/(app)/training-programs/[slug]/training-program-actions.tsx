@@ -26,7 +26,7 @@ export function TrainingProgramActions({ slug }: { slug: string }) {
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap justify-center gap-2 md:justify-start">
         <StyledLink href={`/training-programs/${slug}/edit`} variant="outline" size="lg">
           <Pencil />
           Edit program
