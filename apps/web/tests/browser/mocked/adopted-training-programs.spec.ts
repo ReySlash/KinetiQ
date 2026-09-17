@@ -62,9 +62,14 @@ test.describe("mocked adopted training program journey", () => {
     await page.goto("/training-programs/strength-base");
     await page.getByRole("button", { name: "Adopt program" }).click();
     await expect(page.getByRole("heading", { name: "Adopt Strength Base?" })).toBeVisible();
+    await expect(page.getByText(/editable copy.*My Programs/i)).toBeVisible();
     await page.getByRole("button", { name: "Adopt program" }).click();
     await expect(page).toHaveURL(`/training-programs/adopted/${programId}`);
     await expect(page.getByText("Program progress", { exact: true })).toBeVisible();
+    await page.goto("/training-programs?scope=my");
+    await expect(
+      page.getByText("Strength Base (Copy)", { exact: true }).first(),
+    ).toBeVisible();
   });
 
   test("offers the active program after an adoption conflict", async ({ page, context }) => {

@@ -13,7 +13,7 @@ import {
 export default async function Loading() {
   return (
     <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
-      <PageHeader subtitle="Explore our exercise&apos;s catalog.">
+      <PageHeader subtitle="Explore our exercise's catalog.">
         <h1 className="text-lg font-bold leading-none">Exercises</h1>
       </PageHeader>
       <section className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border/70 bg-card/80 p-1 shadow-sm md:rounded-2xl md:p-2">
@@ -59,7 +59,7 @@ export default async function Loading() {
           {Array.from({ length: 8 }, (_, index) => (
             <Card key={index} className="w-full py-1">
               <CardContent className="flex items-center justify-between gap-2 px-1">
-                <Skeleton className="size-[70px] shrink-0 rounded-xl" />
+                <Skeleton className="size-17.5 shrink-0 rounded-xl" />
                 <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />

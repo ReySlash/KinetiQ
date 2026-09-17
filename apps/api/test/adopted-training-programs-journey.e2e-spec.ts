@@ -313,6 +313,174 @@ describe('adopted training program HTTP journeys (e2e)', () => {
     );
   });
 
+  it('copies a global program and its distinct routines into the adopter library atomically', async () => {
+    const user = principal();
+    users.push(user);
+    const userCookies = await signUp(user);
+    if (!user.id) throw new Error('User ID was not assigned.');
+    const routineSlug = await createRoutine(
+      userCookies,
+      `global-copy-routine-${randomUUID()}`,
+    );
+    const programSlug = await createProgram(userCookies, routineSlug, 2);
+    await prisma.routine.update({
+      where: { slug: routineSlug },
+      data: { visibility: 'GLOBAL' },
+    });
+    const sourceProgram = await prisma.trainingProgram.update({
+      where: { slug: programSlug },
+      data: { visibility: 'GLOBAL' },
+      select: { id: true, name: true },
+    });
+
+    const adopted = await request(app.getHttpServer())
+      .post('/api/user-training-programs')
+      .set('Cookie', userCookies)
+      .send({ sourceProgramSlug: programSlug })
+      .expect(201);
+
+    const adoptedRow = await prisma.adoptedTrainingProgram.findUniqueOrThrow({
+      where: { id: id(adopted.body) },
+      select: {
+        sourceTrainingProgramId: true,
+        occurrences: {
+          orderBy: [{ weekNumber: 'asc' }, { dayNumber: 'asc' }],
+          select: { sourceRoutineId: true },
+        },
+      },
+    });
+    expect(adoptedRow.sourceTrainingProgramId).not.toBe(sourceProgram.id);
+    expect(
+      new Set(adoptedRow.occurrences.map((item) => item.sourceRoutineId)).size,
+    ).toBe(1);
+    const copiedProgramId = adoptedRow.sourceTrainingProgramId;
+    if (!copiedProgramId) throw new Error('Copied program ID was not saved.');
+
+    const copiedProgram = await prisma.trainingProgram.findFirstOrThrow({
+      where: {
+        id: copiedProgramId,
+        ownerId: user.id,
+        visibility: 'PRIVATE',
+      },
+      select: {
+        name: true,
+        routines: {
+          orderBy: [{ weekNumber: 'asc' }, { dayNumber: 'asc' }],
+          select: {
+            weekNumber: true,
+            dayNumber: true,
+            routine: {
+              select: {
+                id: true,
+                name: true,
+                visibility: true,
+                exercises: {
+                  orderBy: { order: 'asc' },
+                  select: {
+                    exerciseSlug: true,
+                    sets: true,
+                    minReps: true,
+                    maxReps: true,
+                    targetRir: true,
+                    restSeconds: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(copiedProgram.name).toBe(`${sourceProgram.name} (Copy)`);
+    expect(copiedProgram.routines).toHaveLength(2);
+    expect(copiedProgram.routines[0]?.routine.name).toMatch(/ \(Copy\)$/);
+    expect(copiedProgram.routines[0]?.routine.visibility).toBe('PRIVATE');
+    expect(copiedProgram.routines[0]?.routine.exercises).toEqual([
+      expect.objectContaining({
+        sets: 2,
+        minReps: 8,
+        maxReps: 10,
+        targetRir: 2,
+        restSeconds: 90,
+      }),
+    ]);
+    expect(copiedProgram.routines[0]?.routine.id).toBe(
+      copiedProgram.routines[1]?.routine.id,
+    );
+
+    const unchangedSource = await prisma.trainingProgram.findUniqueOrThrow({
+      where: { id: sourceProgram.id },
+      select: { visibility: true, name: true },
+    });
+    expect(unchangedSource).toEqual({
+      visibility: 'GLOBAL',
+      name: sourceProgram.name,
+    });
+  });
+
+  it('rolls back global copies when the owner already has an active program', async () => {
+    const user = principal();
+    users.push(user);
+    const userCookies = await signUp(user);
+    if (!user.id) throw new Error('User ID was not assigned.');
+    const activeRoutineSlug = await createRoutine(
+      userCookies,
+      `active-routine-${randomUUID()}`,
+    );
+    const activeProgramSlug = await createProgram(
+      userCookies,
+      activeRoutineSlug,
+      1,
+    );
+    await request(app.getHttpServer())
+      .post('/api/user-training-programs')
+      .set('Cookie', userCookies)
+      .send({ sourceProgramSlug: activeProgramSlug })
+      .expect(201);
+
+    const globalRoutineSlug = await createRoutine(
+      userCookies,
+      `conflict-global-routine-${randomUUID()}`,
+    );
+    const globalProgramSlug = await createProgram(
+      userCookies,
+      globalRoutineSlug,
+      1,
+    );
+    await prisma.routine.update({
+      where: { slug: globalRoutineSlug },
+      data: { visibility: 'GLOBAL' },
+    });
+    await prisma.trainingProgram.update({
+      where: { slug: globalProgramSlug },
+      data: { visibility: 'GLOBAL' },
+    });
+    const before = await Promise.all([
+      prisma.trainingProgram.count({
+        where: { ownerId: user.id, visibility: 'PRIVATE' },
+      }),
+      prisma.routine.count({
+        where: { ownerId: user.id, visibility: 'PRIVATE' },
+      }),
+    ]);
+
+    await request(app.getHttpServer())
+      .post('/api/user-training-programs')
+      .set('Cookie', userCookies)
+      .send({ sourceProgramSlug: globalProgramSlug })
+      .expect(409);
+
+    const after = await Promise.all([
+      prisma.trainingProgram.count({
+        where: { ownerId: user.id, visibility: 'PRIVATE' },
+      }),
+      prisma.routine.count({
+        where: { ownerId: user.id, visibility: 'PRIVATE' },
+      }),
+    ]);
+    expect(after).toEqual(before);
+  });
+
   it('preserves a cancelled attempt, returns the occurrence to pending, and permits retry', async () => {
     const user = principal();
     users.push(user);

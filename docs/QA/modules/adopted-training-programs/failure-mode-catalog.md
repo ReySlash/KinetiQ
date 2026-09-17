@@ -252,3 +252,112 @@ current unit, API, and PostgreSQL E2E suites.
 - **Recommended expected contract:** Missing, inaccessible, inactive, or empty source routines are normal business unavailability and make the start action unavailable with an appropriate domain reason. A source routine whose persisted prescription violates required invariants is corrupted state: the read model must report it as non-startable, the command must create no session, and the attempt must raise a specific internal application error mapped to `500`. Read-model and command validation must share the same executable-prescription invariants, and integrity failures must be logged with sufficient operational context without exposing sensitive data.
 - **Contract status:** Confirmed
 - **Why it matters:** The current read model can promise startability without validating everything required to create the session.
+
+## Additional findings from the global-program copy review
+
+### Boundary conditions
+
+### BC-06 — Deep-copy fan-out has no explicit upper bound
+
+- **ID:** BC-06
+- **Category:** Boundary conditions
+- **Risk:** Medium
+- **Input that exposes it:** A global program containing many distinct scheduled routines, each with many exercises and prescriptions.
+- **Current behavior observed in the code:** Adoption loads the complete source graph and creates every distinct routine, every routine exercise, the copied program schedule, and the adopted occurrences inside one interactive Serializable transaction. The new copy path adds work proportional to the number of distinct routines and exercises, but does not impose a copy-specific size limit or transaction budget.
+- **Recommended expected contract:** Use the existing program, routine, and exercise validation limits for synchronous global-program copying. Do not add a separate copy-specific aggregate cap.
+- **Contract status:** Confirmed
+- **Why it matters:** A large but technically valid global template can cause long transactions, lock contention, request timeouts, or expensive rollback work.
+
+### BC-07 — Copy-time text validation is not classified as source validation
+
+- **ID:** BC-07
+- **Category:** Boundary conditions
+- **Risk:** Low to Medium
+- **Input that exposes it:** A persisted global routine with a description longer than the routine domain limit, or a persisted global program with a description longer than the training-program domain limit.
+- **Current behavior observed in the code:** Prescription validity is checked explicitly before writes, but copied descriptions and names are validated only when `Routine.create()` or `TrainingProgram.create()` runs. The resulting domain exception is caught by the adoption boundary and becomes a generic persistence failure; the transaction does roll back.
+- **Recommended expected contract:** Validate all copied source fields before writing and classify invalid persisted source content as source-integrity failure, consistently with malformed prescriptions. Do not report source defects as infrastructure persistence failures.
+- **Contract status:** Confirmed
+- **Why it matters:** Operators and clients cannot distinguish an unusable global template from a database outage, even though the source—not persistence—is the cause.
+
+### Equivalence classes
+
+### EC-04 — Inaccessible routine handling differs between global and private adoption
+
+- **ID:** EC-04
+- **Category:** Equivalence classes
+- **Risk:** Medium
+- **Input that exposes it:** A private program owned by the adopter whose schedule references another user's private routine, compared with a global program whose schedule references an inaccessible private routine.
+- **Current behavior observed in the code:** Global adoption validates every scheduled routine and rejects an inaccessible routine before creating copies. Private adoption remains on the existing direct-adoption path; `toSource()` converts an inaccessible routine to `routineId: null`, and adoption can proceed with an occurrence that has no source routine.
+- **Recommended expected contract:** Every adopted program, including an existing private program, must have an accessible routine for every schedule entry. Reject inaccessible or missing scheduled routines before adoption for both global and private programs.
+- **Contract status:** Confirmed
+- **Why it matters:** The same invalid source graph can produce a controlled rejection for a global program but a partially unusable adopted program for a private one.
+
+### EC-05 — Corrupted schedule positions fail after copy construction begins
+
+- **ID:** EC-05
+- **Category:** Equivalence classes
+- **Risk:** Low
+- **Input that exposes it:** A global program row containing duplicate schedule positions, an invalid day number, or a week number outside the program duration, introduced by legacy data or direct database changes.
+- **Current behavior observed in the code:** The source mapper reads the rows, then the copy path creates copied routines before `TrainingProgram.create()` validates the copied schedule. The serializable transaction rolls those writes back, and the outer mapper reports a generic persistence failure.
+- **Recommended expected contract:** Treat invalid schedule structure as source-integrity failure and validate it before creating routine copies. Return the controlled source-integrity error while guaranteeing that no personal records remain.
+- **Contract status:** Confirmed
+- **Why it matters:** The atomic rollback prevents partial data, but the late and generic classification makes repair and user-facing handling less precise.
+
+### Null or empty values
+
+### NE-06 — Non-empty schedule with a null routine relation is not explicitly guarded
+
+- **ID:** NE-06
+- **Category:** Null or empty values
+- **Risk:** Low
+- **Input that exposes it:** A schedule row whose required routine relation is missing because of corrupted data, an incomplete migration, or a database fixture that bypasses foreign-key guarantees.
+- **Current behavior observed in the code:** The Prisma source type assumes `entry.routine` is present. The mapper dereferences it while building the source model, so a null relation would raise an unclassified runtime error rather than the module's source-unavailable or source-integrity error.
+- **Recommended expected contract:** A scheduled entry without a routine is invalid source state. Detect it during source validation, abort the transaction before writes, and map it to the controlled source-integrity response.
+- **Contract status:** Confirmed
+- **Why it matters:** Defensive handling avoids turning malformed persistence state into an opaque 500 or an uncaught exception path.
+
+### NE-07 — Empty global routines are rejected, but the rejection reason is shared with access failures
+
+- **ID:** NE-07
+- **Category:** Null or empty values
+- **Risk:** Low
+- **Input that exposes it:** A global program schedules a visible routine whose exercise list is empty.
+- **Current behavior observed in the code:** `isRoutineStartableForOwner()` returns false for an empty exercise list, and adoption raises `AdoptedTrainingProgramSourceUnavailableError`, the same application error used for inaccessible or otherwise unavailable routines.
+- **Recommended expected contract:** Continue rejecting the adoption atomically with the existing unavailable-source contract. Distinguish empty source content from visibility or ownership failure only in safe server-side diagnostics.
+- **Contract status:** Confirmed
+- **Why it matters:** Both cases currently produce the same client-facing classification, which can make a publicly visible but malformed global template difficult to diagnose.
+
+### Business contract violations
+
+### BV-09 — Copy source identifiers must remain aligned with copied schedule rows
+
+- **ID:** BV-09
+- **Category:** Business contract violations
+- **Risk:** Medium
+- **Input that exposes it:** A global program with multiple schedule entries, repeated routine references, and entries ordered differently from the in-memory construction order.
+- **Current behavior observed in the code:** The copied program is sorted by week/day by the domain entity. The returned adopted source is then reconstructed by pairing copied schedule entries with the source rows by array index, while occurrences use those returned copied entry IDs and routine IDs.
+- **Recommended expected contract:** Each adopted occurrence's `sourceTrainingProgramRoutineId` must identify the exact copied schedule row for its week/day, and `sourceRoutineId` must identify the copied routine used by that row. Match copied schedule entries by the unique `weekNumber` and `dayNumber` position rather than relying on positional correspondence.
+- **Contract status:** Confirmed
+- **Why it matters:** If source ordering and domain ordering ever diverge, occurrences could point to the wrong copied schedule entry or routine even though all records were created successfully.
+
+### BV-10 — Private adoption can preserve a null routine source after the new global-copy validation
+
+- **ID:** BV-10
+- **Category:** Business contract violations
+- **Risk:** Medium
+- **Input that exposes it:** Adoption of an owned private program containing a schedule entry whose routine is inaccessible or missing.
+- **Current behavior observed in the code:** The private path does not copy or revalidate the complete source. It may create an adopted occurrence with `sourceRoutineId: null`; later start behavior must then handle the missing source routine as unavailable.
+- **Recommended expected contract:** Private adoption rejects missing or inaccessible scheduled routines before creating the adopted program. Adoption must not create a program that contains an occurrence with a null routine source.
+- **Contract status:** Confirmed
+- **Why it matters:** A successful adoption can create a program that cannot execute its next scheduled workout, leaving the user with no clear recovery path.
+
+### BV-11 — Source-copy validation and application-level error semantics are not fully aligned
+
+- **ID:** BV-11
+- **Category:** Business contract violations
+- **Risk:** Low to Medium
+- **Input that exposes it:** A global source that passes prescription checks but fails a domain invariant while constructing a copied routine or program, such as an invalid source name, description, or schedule.
+- **Current behavior observed in the code:** Validation, copy construction, and adoption are atomic, but only the explicitly checked prescription/access failures have dedicated source errors. Domain failures raised during copy construction are translated to adopted-program persistence failure.
+- **Recommended expected contract:** Invalid source-content failures use the documented source-integrity classification, while actual database failures retain persistence classification. The transaction remains rollback-safe in both cases.
+- **Contract status:** Confirmed
+- **Why it matters:** Stable error semantics are needed for safe frontend messaging and for operators to identify defective global templates instead of infrastructure failures.

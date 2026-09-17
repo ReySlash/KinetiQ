@@ -18,6 +18,7 @@ import {
   WorkoutSessionStateError,
   WorkoutSessionValidationError,
 } from '../domain/errors/workout-session.errors';
+import { InvalidUuidError } from '../../shared/domain/errors/invalid-uuid.error';
 
 export function toWorkoutSessionsHttpException(error: unknown): Error {
   if (error instanceof WorkoutSessionNotFoundError) {
@@ -36,6 +37,7 @@ export function toWorkoutSessionsHttpException(error: unknown): Error {
     return new UnprocessableEntityException(error.message);
   }
   if (
+    error instanceof InvalidUuidError ||
     error instanceof WorkoutSessionValidationError ||
     error instanceof WorkoutSessionStateError
   ) {

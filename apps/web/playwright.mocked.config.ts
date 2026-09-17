@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/browser/mocked",
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
   expect: {
     timeout: 15_000,
   },

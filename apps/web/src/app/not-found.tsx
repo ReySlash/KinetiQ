@@ -1,6 +1,9 @@
-import Link from "next/link";
+"use client";
 
-import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+
+import { PageHeader } from "@/components/page-header";
+import StyledLink from "@/components/styled-link";
 import {
   Card,
   CardContent,
@@ -9,26 +12,33 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+function getParentPath(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+
+  return segments.length > 1 ? `/${segments.slice(0, -1).join("/")}` : "/";
+}
+
 export default function NotFound() {
+  const pathname = usePathname();
+
   return (
-    <main className="lex h-dvh w-full flex-col gap-2 px-1 md:px-2 md:pb-2 md:pt-0">
-      <header className="sticky top-0 z-100 bg-background flex h-14 items-center gap-3 border-b border-border/60">
-        <div className="flex flex-col">
-          <h1 className="text-lg font-bold leading-none">404 - Not Found</h1>
-        </div>
-      </header>
-      <section className="flex flex-col justify-center items-center h-full gap-2 rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3">
-        <Card className="w-1/3">
-          <CardContent className="flex flex-col items-center gap-2">
+    <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2">
+      <PageHeader subtitle="The page you are looking for does not exist.">
+        <h1 className="text-lg font-bold leading-none">404 - Not Found</h1>
+      </PageHeader>
+
+      <section className="flex min-h-0 flex-1 items-center justify-center rounded-3xl border border-border/70 bg-card/80 p-2 shadow-sm md:p-3">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center gap-2 text-center">
             <CardTitle>404 - Not Found</CardTitle>
             <CardDescription>
               The page you are looking for does not exist.
             </CardDescription>
           </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link href={"/"}>
-              <Button variant={"default"}>Go back home</Button>
-            </Link>
+          <CardFooter className="justify-center">
+            <StyledLink href={getParentPath(pathname)} size="lg">
+              Go back
+            </StyledLink>
           </CardFooter>
         </Card>
       </section>

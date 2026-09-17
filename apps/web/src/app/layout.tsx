@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteUrl } from "@/lib/site";
+import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -12,25 +11,16 @@ export const metadata: Metadata = {
   },
   description:
     "Fitness development platform for exercises, routines, and training progress.",
-  robots: {
-    index: false,
-    follow: false,
-  },
 };
 
-export default function AuthLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <TooltipProvider>{children}</TooltipProvider>
-    </ThemeProvider>
+    <html lang="en" suppressHydrationWarning className="dark min-h-full antialiased">
+      <body className="min-h-dvh bg-background text-foreground">{children}</body>
+    </html>
   );
 }

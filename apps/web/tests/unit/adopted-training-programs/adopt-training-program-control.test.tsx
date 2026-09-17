@@ -19,11 +19,15 @@ vi.mock("@/app/(app)/training-programs/training-program-server-actions", () => (
   adoptTrainingProgramAction: adopt,
 }));
 
-function renderControl(scheduleCount = 4) {
+function renderControl(
+  scheduleCount = 4,
+  visibility: "PRIVATE" | "GLOBAL" = "GLOBAL",
+) {
   return render(
     <AdoptTrainingProgramControl
       slug="strength-base"
       name="Strength Base"
+      visibility={visibility}
       durationWeeks={2}
       scheduledWorkoutCount={scheduleCount}
     />,
@@ -47,7 +51,7 @@ describe("AdoptTrainingProgramControl", () => {
     ).toBeInTheDocument();
   });
 
-  it("confirms snapshot behavior and the one-active-program rule", async () => {
+  it("explains that adopting a global program creates editable personal copies", async () => {
     const user = userEvent.setup();
     renderControl();
     await user.click(screen.getByRole("button", { name: /adopt program/i }));
@@ -57,10 +61,22 @@ describe("AdoptTrainingProgramControl", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/2 weeks/i)).toBeInTheDocument();
     expect(screen.getByText(/4 scheduled workouts/i)).toBeInTheDocument();
-    expect(screen.getByText(/independent snapshot/i)).toBeInTheDocument();
+    expect(screen.getByText(/editable copy.*my programs/i)).toBeInTheDocument();
+    expect(screen.getByText(/routines.*my routines/i)).toBeInTheDocument();
     expect(
       screen.getByText(/one active or paused program/i),
     ).toBeInTheDocument();
+  });
+
+  it("explains that adopting a private program starts the existing personal program", async () => {
+    const user = userEvent.setup();
+    renderControl(4, "PRIVATE");
+    await user.click(screen.getByRole("button", { name: /adopt program/i }));
+
+    expect(
+      screen.getByText(/start your existing personal program/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/editable copy.*my programs/i)).not.toBeInTheDocument();
   });
 
   it("navigates to the adopted program after success", async () => {

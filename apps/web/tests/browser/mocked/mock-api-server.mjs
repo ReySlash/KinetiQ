@@ -30,6 +30,7 @@ function createState(scenario) {
   const active = scenario === "continue";
   return {
     status,
+    hasPersonalCopy: false,
     occurrences: [
       {
         id: firstOccurrenceId, weekNumber: 1, dayNumber: 1,
@@ -101,7 +102,7 @@ function workoutDetail(state) {
     createdAt: "2026-09-03T08:00:00.000Z", updatedAt: "2026-09-03T08:00:00.000Z",
     performances: [{
       id: "523e4567-e89b-12d3-a456-426614174000", exerciseId: "623e4567-e89b-12d3-a456-426614174000",
-      exerciseNameSnapshot: "Bench Press", order: 0, targetSetCount: 3,
+      exerciseNameSnapshot: "Barbell Bench Press", order: 0, targetSetCount: 3,
       targetMinReps: 6, targetMaxReps: 8, targetRir: 2, targetRestSeconds: 120,
       targetTempo: null, prescriptionNotes: null, completedSets: [],
     }],
@@ -254,11 +255,18 @@ const server = createServer(async (request, response) => {
       })),
     });
   }
-  if (request.method === "GET" && url.pathname === "/api/training-programs") return send(response, 200, [{ slug: "strength-base", name: "Strength Base", description: "A focused plan.", visibility: "GLOBAL", durationWeeks: 2, updatedAt: "2026-09-01T08:00:00.000Z" }]);
+  if (request.method === "GET" && url.pathname === "/api/training-programs") {
+    if (url.searchParams.get("scope") === "my") {
+      return send(response, 200, state.hasPersonalCopy ? [{ slug: "strength-base-copy", name: "Strength Base (Copy)", description: "A focused plan.", visibility: "PRIVATE", durationWeeks: 2, updatedAt: "2026-09-01T08:00:00.000Z" }] : []);
+    }
+    return send(response, 200, [{ slug: "strength-base", name: "Strength Base", description: "A focused plan.", visibility: "GLOBAL", durationWeeks: 2, updatedAt: "2026-09-01T08:00:00.000Z" }]);
+  }
 
   if (request.method === "POST" && url.pathname === "/api/user-training-programs") {
     if (scenario === "adoption-conflict") return send(response, 409, { error: { message: "Already active", code: "ADOPTED_TRAINING_PROGRAM_ALREADY_NON_TERMINAL" } });
-    states.set(scenario, createState(scenario));
+    const adoptedState = createState(scenario);
+    adoptedState.hasPersonalCopy = true;
+    states.set(scenario, adoptedState);
     return send(response, scenario === "adoption-200" ? 200 : 201, { id: programId, status: "ACTIVE", startedAt: "2026-09-01T08:00:00.000Z" });
   }
   if (request.method === "GET" && url.pathname === "/api/user-training-programs/active") return send(response, 200, scenario === "empty" ? null : adoptedDetail(state));

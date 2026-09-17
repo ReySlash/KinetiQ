@@ -56,6 +56,9 @@ import {
   hasInvalidRoutinePrescription,
   isRoutineStartableForOwner,
 } from '../../../shared/domain/routine-startability';
+import { Routine } from '../../../routines/domain/entities/routine.entity';
+import { TrainingProgram } from '../../../training-programs/domain/entities/training-program.entity';
+import type { AdoptedTrainingProgramSourceRow } from './prisma-adopted-training-program.mapper';
 
 const routineForStartSelect = {
   id: true,
@@ -115,9 +118,22 @@ export class PrismaAdoptedTrainingProgramsAdapter
           if (!sourceRow) {
             throw new AdoptedTrainingProgramSourceNotFoundError();
           }
-          const source = toSource(sourceRow, input.ownerId);
+          if (sourceRow.routines.some((entry) => !entry.routine)) {
+            throw new AdoptedTrainingProgramSourceIntegrityError();
+          }
+          let source = toSource(sourceRow, input.ownerId);
           if (source.schedule.length === 0) {
             throw new AdoptedTrainingProgramEmptyScheduleError();
+          }
+          if (source.schedule.some((entry) => entry.routineId === null)) {
+            throw new AdoptedTrainingProgramSourceUnavailableError();
+          }
+          if (source.visibility === 'GLOBAL') {
+            source = await this.copyGlobalSource(
+              transaction,
+              sourceRow,
+              input.ownerId,
+            );
           }
 
           const program = AdoptedTrainingProgram.create({
@@ -152,6 +168,169 @@ export class PrismaAdoptedTrainingProgramsAdapter
     } catch (error) {
       this.throwCreateError(error);
     }
+  }
+
+  private async copyGlobalSource(
+    transaction: Prisma.TransactionClient,
+    sourceRow: AdoptedTrainingProgramSourceRow,
+    ownerId: string,
+  ): Promise<AdoptedTrainingProgramSource> {
+    validateGlobalSourceContent(sourceRow, ownerId);
+    const distinctSourceRoutines = [
+      ...new Map(
+        sourceRow.routines.map((entry) => [entry.routine.id, entry.routine]),
+      ).values(),
+    ];
+
+    for (const routine of distinctSourceRoutines) {
+      const prescriptions = routine.exercises.map((entry) => ({
+        isActive: entry.exercise.isActive,
+        targetSetCount: entry.sets,
+        targetMinReps: entry.minReps,
+        targetMaxReps: entry.maxReps,
+        targetRir: entry.targetRir,
+        targetRestSeconds: entry.restSeconds,
+        targetTempo: entry.tempo,
+        prescriptionNotes: entry.notes,
+      }));
+      if (hasInvalidRoutinePrescription(prescriptions)) {
+        throw new AdoptedTrainingProgramSourceIntegrityError();
+      }
+      if (!isRoutineStartableForOwner(routine, ownerId, prescriptions)) {
+        throw new AdoptedTrainingProgramSourceUnavailableError();
+      }
+    }
+
+    const existingRoutineNames = await transaction.routine.findMany({
+      where: { ownerId, visibility: 'PRIVATE' },
+      select: { name: true },
+    });
+    const occupiedRoutineNames = new Set(
+      existingRoutineNames.map((routine) => routine.name),
+    );
+    const copiedRoutines = new Map<string, Routine>();
+
+    for (const sourceRoutine of distinctSourceRoutines) {
+      const name = createCopyName(sourceRoutine.name, occupiedRoutineNames);
+      occupiedRoutineNames.add(name);
+      const routine = Routine.create({
+        ownerId,
+        name,
+        description: sourceRoutine.description,
+        exercises: sourceRoutine.exercises.map((entry) => ({
+          exerciseSlug: entry.exerciseSlug,
+          sets: entry.sets,
+          minReps: entry.minReps,
+          maxReps: entry.maxReps,
+          targetRir: entry.targetRir,
+          restSeconds: entry.restSeconds,
+          tempo: entry.tempo,
+          notes: entry.notes,
+        })),
+      });
+      const routineValue = routine.toValue();
+      await transaction.routine.create({
+        data: {
+          id: routineValue.id,
+          ownerId: routineValue.ownerId,
+          slug: routineValue.slug,
+          name: routineValue.name,
+          description: routineValue.description,
+          visibility: routineValue.visibility,
+          createdAt: routineValue.createdAt,
+          updatedAt: routineValue.updatedAt,
+          exercises: { create: routineValue.exercises },
+        },
+      });
+      copiedRoutines.set(sourceRoutine.id, routine);
+    }
+
+    const existingProgramNames = await transaction.trainingProgram.findMany({
+      where: { ownerId, visibility: 'PRIVATE' },
+      select: { name: true },
+    });
+    const programName = createCopyName(
+      sourceRow.name,
+      new Set(existingProgramNames.map((program) => program.name)),
+    );
+    const copiedProgram = TrainingProgram.create({
+      ownerId,
+      name: programName,
+      description: sourceRow.description,
+      durationWeeks: sourceRow.durationWeeks,
+      schedule: sourceRow.routines.map((entry) => {
+        const routine = copiedRoutines.get(entry.routine.id);
+        if (!routine) throw new AdoptedTrainingProgramSourceUnavailableError();
+        return {
+          routineSlug: routine.slug,
+          weekNumber: entry.weekNumber,
+          dayNumber: entry.dayNumber,
+          notes: entry.notes,
+        };
+      }),
+    });
+    const copiedRoutineIdsBySlug = new Map(
+      [...copiedRoutines.values()].map((routine) => [
+        routine.slug,
+        routine.id.value,
+      ]),
+    );
+    const copiedProgramValue = copiedProgram.toValue();
+    await transaction.trainingProgram.create({
+      data: {
+        id: copiedProgramValue.id,
+        ownerId: copiedProgramValue.ownerId,
+        slug: copiedProgramValue.slug,
+        name: copiedProgramValue.name,
+        description: copiedProgramValue.description,
+        visibility: copiedProgramValue.visibility,
+        durationWeeks: copiedProgramValue.durationWeeks,
+        createdAt: copiedProgramValue.createdAt,
+        updatedAt: copiedProgramValue.updatedAt,
+        routines: {
+          create: copiedProgramValue.schedule.map((entry) => {
+            const routineId = copiedRoutineIdsBySlug.get(entry.routineSlug);
+            if (!routineId) {
+              throw new AdoptedTrainingProgramSourceUnavailableError();
+            }
+            return {
+              id: entry.id,
+              routineId,
+              weekNumber: entry.weekNumber,
+              dayNumber: entry.dayNumber,
+              notes: entry.notes,
+              createdAt: entry.createdAt,
+              updatedAt: entry.updatedAt,
+            };
+          }),
+        },
+      },
+    });
+
+    return {
+      id: copiedProgram.id.value,
+      name: copiedProgram.name,
+      description: copiedProgram.description,
+      visibility: copiedProgram.visibility,
+      durationWeeks: copiedProgram.durationWeeks,
+      schedule: copiedProgram.schedule.map((entry, index) => {
+        const sourceEntry = sourceRow.routines[index];
+        const routine = sourceEntry
+          ? copiedRoutines.get(sourceEntry.routine.id)
+          : undefined;
+        if (!sourceEntry || !routine) {
+          throw new AdoptedTrainingProgramSourceUnavailableError();
+        }
+        return {
+          id: entry.id.value,
+          routineId: routine.id.value,
+          routineName: routine.name,
+          weekNumber: entry.slot.weekNumber,
+          dayNumber: entry.slot.dayNumber,
+          notes: entry.notes,
+        };
+      }),
+    };
   }
 
   async findNonTerminalByOwner(
@@ -591,6 +770,8 @@ export class PrismaAdoptedTrainingProgramsAdapter
       error instanceof AdoptedTrainingProgramSourceNotFoundError ||
       error instanceof AdoptedTrainingProgramEmptyScheduleError ||
       error instanceof AdoptedTrainingProgramAlreadyNonTerminalError ||
+      error instanceof AdoptedTrainingProgramSourceIntegrityError ||
+      error instanceof AdoptedTrainingProgramSourceUnavailableError ||
       error instanceof AdoptedTrainingProgramValidationError
     ) {
       throw error;
@@ -772,6 +953,59 @@ function hasLifecycleStateMismatch(
       return hasActiveOccurrence !== hasActiveSession;
     }) ?? false
   );
+}
+
+function createCopyName(
+  sourceName: string,
+  occupiedNames: Set<string>,
+): string {
+  let copyNumber = 1;
+  while (true) {
+    const suffix = copyNumber === 1 ? ' (Copy)' : ` (Copy ${copyNumber})`;
+    const candidate = `${sourceName.slice(0, 120 - suffix.length).trimEnd()}${suffix}`;
+    if (!occupiedNames.has(candidate)) return candidate;
+    copyNumber += 1;
+  }
+}
+
+function validateGlobalSourceContent(
+  sourceRow: AdoptedTrainingProgramSourceRow,
+  ownerId: string,
+): void {
+  try {
+    for (const entry of sourceRow.routines) {
+      Routine.create({
+        ownerId,
+        name: entry.routine.name,
+        description: entry.routine.description,
+        exercises: entry.routine.exercises.map((exercise) => ({
+          exerciseSlug: exercise.exerciseSlug,
+          sets: exercise.sets,
+          minReps: exercise.minReps,
+          maxReps: exercise.maxReps,
+          targetRir: exercise.targetRir,
+          restSeconds: exercise.restSeconds,
+          tempo: exercise.tempo,
+          notes: exercise.notes,
+        })),
+      });
+    }
+
+    TrainingProgram.create({
+      ownerId,
+      name: sourceRow.name,
+      description: sourceRow.description,
+      durationWeeks: sourceRow.durationWeeks,
+      schedule: sourceRow.routines.map((entry) => ({
+        routineSlug: entry.routine.name,
+        weekNumber: entry.weekNumber,
+        dayNumber: entry.dayNumber,
+        notes: entry.notes,
+      })),
+    });
+  } catch {
+    throw new AdoptedTrainingProgramSourceIntegrityError();
+  }
 }
 
 function toAdoptedProgramOccurrences(source: AdoptedTrainingProgramSource) {
