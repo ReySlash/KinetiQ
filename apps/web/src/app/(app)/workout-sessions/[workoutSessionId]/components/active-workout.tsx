@@ -148,7 +148,7 @@ export function ActiveWorkout({
           </div>
           <div className="flex items-center justify-between gap-4">
             <ImageWithFallback
-              className="size-[70px] shrink-0 rounded-xl border border-border/70 object-cover"
+              className="size-17.5 shrink-0 rounded-xl border border-border/70 object-cover"
               src={getLocalImageSrc(
                 "exercises",
                 exerciseSlugFromName(performance.exerciseNameSnapshot),
@@ -182,9 +182,8 @@ export function ActiveWorkout({
                   className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/30 px-3 py-2 text-sm"
                 >
                   <span>
-                    {completedSet.loadKg}{" "}
-                    {completedSet.loadUnit.toLowerCase()} ×{" "}
-                    {completedSet.repetitions} reps
+                    {completedSet.loadKg} {completedSet.loadUnit.toLowerCase()}{" "}
+                    × {completedSet.repetitions} reps
                     {completedSet.rir !== null
                       ? ` · RIR ${completedSet.rir}`
                       : ""}
