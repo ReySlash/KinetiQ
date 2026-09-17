@@ -1,5 +1,5 @@
 import { ApiError, type RateLimitedResult } from "@/lib/api/error";
-import { serverRequest } from "@/lib/api/server-request";
+import { publicServerRequest, serverRequest } from "@/lib/api/server-request";
 import type {
   TrainingProgramDetail,
   TrainingProgramListItem,
@@ -25,9 +25,11 @@ export async function fetchTrainingPrograms(query: {
   if (query.sort) params.set("sort", query.sort);
 
   try {
+    const request = query.scope === "global" ? publicServerRequest : serverRequest;
+
     return {
       status: "authenticated",
-      programs: await serverRequest<TrainingProgramListItem[]>(
+      programs: await request<TrainingProgramListItem[]>(
         `training-programs?${params.toString()}`,
       ),
     };

@@ -1,9 +1,9 @@
 import { ApiError, type RateLimitedResult } from "@/lib/api/error";
-import { serverRequest } from "@/lib/api/server-request";
+import { publicServerRequest, serverRequest } from "@/lib/api/server-request";
 import type { MuscleGroup, MuscleGroupDetails } from "@/types/muscle-types";
 
 export function fetchMuscleGroups() {
-  return serverRequest<MuscleGroup[]>("muscle-groups").catch((error: unknown) => {
+  return publicServerRequest<MuscleGroup[]>("muscle-groups").catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 429) return { status: "rate-limited" } satisfies RateLimitedResult;
     throw error;
   });

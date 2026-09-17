@@ -1,5 +1,5 @@
 import { ApiError, type RateLimitedResult } from "@/lib/api/error";
-import { serverRequest } from "@/lib/api/server-request";
+import { publicServerRequest, serverRequest } from "@/lib/api/server-request";
 import type { Exercise, ExerciseDetails } from "@/types/exercise-types";
 
 export function fetchExercises(
@@ -10,7 +10,7 @@ export function fetchExercises(
     if (value !== undefined) params.set(key, String(value));
   }
 
-  return serverRequest<Exercise[]>(`exercises?${params.toString()}`).catch((error: unknown) => {
+  return publicServerRequest<Exercise[]>(`exercises?${params.toString()}`).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 429) return { status: "rate-limited" } satisfies RateLimitedResult;
     throw error;
   });

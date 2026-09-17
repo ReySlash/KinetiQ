@@ -19,3 +19,15 @@ export async function serverRequest<T>(
 
   return parseApiResponse<T>(response);
 }
+
+export async function publicServerRequest<T>(
+  path: string,
+  options?: RequestInit,
+): Promise<T> {
+  const response = await fetch(buildApiUrl(path), {
+    ...options,
+    cache: "force-cache",
+  });
+
+  return parseApiResponse<T>(response);
+}

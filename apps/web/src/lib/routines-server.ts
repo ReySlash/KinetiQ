@@ -1,5 +1,5 @@
 import { ApiError, type RateLimitedResult } from "@/lib/api/error";
-import { serverRequest } from "@/lib/api/server-request";
+import { publicServerRequest, serverRequest } from "@/lib/api/server-request";
 import type { RoutineDetail, RoutineListItem } from "@/types/routine-types";
 
 export type RoutinesFetchResult =
@@ -19,9 +19,11 @@ export async function fetchRoutines(
   if (query.sort) params.set("sort", query.sort);
 
   try {
+    const request = query.scope === "global" ? publicServerRequest : serverRequest;
+
     return {
       status: "authenticated",
-      routines: await serverRequest<RoutineListItem[]>(
+      routines: await request<RoutineListItem[]>(
         `routines?${params.toString()}`,
       ),
     };
