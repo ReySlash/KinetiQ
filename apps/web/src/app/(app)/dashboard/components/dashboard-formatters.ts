@@ -9,7 +9,7 @@ export function formatDashboardNumber(value: number): string {
 
 export function formatDashboardVolume(value: string | null): string {
   return value === null
-    ? "Not available"
+    ? "0 kg"
     : `${new Intl.NumberFormat().format(Number(value))} kg`;
 }
 
@@ -27,7 +27,7 @@ export function formatDashboardDateTime(
 export function formatDashboardVolumeStatus(
   completeness: AnalyticsVolumeCompleteness,
 ): string | null {
-  if (completeness.status === "UNAVAILABLE") return "Load unavailable";
+  if (completeness.status === "UNAVAILABLE") return null;
   if (completeness.status === "PARTIAL") {
     const suffix = completeness.excludedSetCount === 1 ? "" : "s";
     return `${completeness.excludedSetCount} set${suffix} excluded`;
