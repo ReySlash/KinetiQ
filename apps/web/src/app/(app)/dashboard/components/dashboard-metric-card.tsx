@@ -19,7 +19,7 @@ export function DashboardMetricCard({
     <Card size="sm">
       <CardHeader>
         <CardDescription>{label}</CardDescription>
-        <CardTitle className="truncate !text-2xl tabular-nums">
+        <CardTitle className="truncate text-2xl! tabular-nums">
           {value}
         </CardTitle>
       </CardHeader>

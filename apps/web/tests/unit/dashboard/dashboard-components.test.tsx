@@ -226,6 +226,8 @@ describe("dashboard components", () => {
     expect(screen.getAllByText("Upper strength", { exact: true })).not.toHaveLength(0);
     expect(screen.getAllByText("Pull day", { exact: true })).not.toHaveLength(0);
     expect(screen.queryByText("Extra history", { exact: true })).not.toBeInTheDocument();
+    expect(screen.getAllByText("0 kg", { exact: true })).not.toHaveLength(0);
+    expect(screen.queryByText("Load unavailable", { exact: true })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View all" })).toHaveAttribute(
       "href",
       "/workout-sessions",
