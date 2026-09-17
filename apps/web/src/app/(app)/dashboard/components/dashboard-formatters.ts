@@ -1,7 +1,4 @@
-import type {
-  AnalyticsVolumeCompleteness,
-  RecentWorkoutSummary,
-} from "@/types/analytics-types";
+import type { RecentWorkoutSummary } from "@/types/analytics-types";
 
 export function formatDashboardNumber(value: number): string {
   return new Intl.NumberFormat().format(value);
@@ -22,17 +19,6 @@ export function formatDashboardDateTime(
     timeStyle: "short",
     timeZone: timezone,
   }).format(new Date(value));
-}
-
-export function formatDashboardVolumeStatus(
-  completeness: AnalyticsVolumeCompleteness,
-): string | null {
-  if (completeness.status === "UNAVAILABLE") return null;
-  if (completeness.status === "PARTIAL") {
-    const suffix = completeness.excludedSetCount === 1 ? "" : "s";
-    return `${completeness.excludedSetCount} set${suffix} excluded`;
-  }
-  return null;
 }
 
 export function workoutLabel(workout: RecentWorkoutSummary): string {

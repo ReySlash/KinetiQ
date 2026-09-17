@@ -34,7 +34,6 @@ import {
   formatDashboardDateTime,
   formatDashboardNumber,
   formatDashboardVolume,
-  formatDashboardVolumeStatus,
   workoutLabel,
 } from "./dashboard-formatters";
 
@@ -99,9 +98,6 @@ export function DashboardRecentWorkouts({
                 </TableRow>
               ) : (
                 recentWorkouts.map((workout) => {
-                  const volumeStatus = formatDashboardVolumeStatus(
-                    workout.volumeCompleteness,
-                  );
                   return (
                     <TableRow key={workout.workoutSessionId}>
                       <TableCell>
@@ -134,12 +130,7 @@ export function DashboardRecentWorkouts({
                         {formatDashboardNumber(workout.totalRepetitions)}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        <div>{formatDashboardVolume(workout.volumeLoadKg)}</div>
-                        {volumeStatus ? (
-                          <div className="text-xs text-muted-foreground">
-                            {volumeStatus}
-                          </div>
-                        ) : null}
+                        {formatDashboardVolume(workout.volumeLoadKg)}
                       </TableCell>
                       <TableCell className="text-right">
                         <MoreLink
@@ -167,9 +158,6 @@ export function DashboardRecentWorkouts({
             </Empty>
           ) : (
             recentWorkouts.map((workout, index) => {
-              const volumeStatus = formatDashboardVolumeStatus(
-                workout.volumeCompleteness,
-              );
               return (
                 <div
                   key={workout.workoutSessionId}
@@ -199,11 +187,6 @@ export function DashboardRecentWorkouts({
                       </span>
                       <span className="text-right text-sm tabular-nums">
                         {formatDashboardVolume(workout.volumeLoadKg)}
-                        {volumeStatus ? (
-                          <span className="block text-xs text-muted-foreground">
-                            {volumeStatus}
-                          </span>
-                        ) : null}
                       </span>
                     </div>
                     <MoreLink
