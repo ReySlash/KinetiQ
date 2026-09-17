@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useOptimistic, useRef, useState, startTransition } from "react";
 import { ActiveWorkout } from "./active-workout";
 import { CancelWorkoutDialog } from "./cancel-workout-dialog";
 import { FinishWorkoutDialog } from "./finish-workout-dialog";
@@ -21,6 +21,11 @@ import {
 } from "@/lib/workout-sessions-api";
 import type { WorkoutSession } from "@/types/workout-session-types";
 import {
+  createOptimisticCompletedSet,
+  optimisticWorkoutSessionReducer,
+  type OptimisticWorkoutSessionAction,
+} from "./optimistic-workout-session";
+import {
   getProgramReturnHref,
   WorkoutProgramContextCard,
 } from "../../components/workout-program-context";
@@ -31,6 +36,10 @@ export function ActiveWorkoutController({
   session: WorkoutSession;
 }) {
   const router = useRouter();
+  const [optimisticSession, addOptimisticAction] = useOptimistic(
+    session,
+    optimisticWorkoutSessionReducer,
+  );
   const setOperationInFlight = useRef(false);
   const lifecycleInFlight = useRef(false);
   const [setPending, setSetPending] = useState(false);
@@ -43,22 +52,32 @@ export function ActiveWorkoutController({
   const [finishOpen, setFinishOpen] = useState(false);
   const programReturnHref = getProgramReturnHref(session.provenance);
 
-  async function runSetMutation(operation: () => Promise<unknown>) {
+  async function runSetMutation(
+    action: OptimisticWorkoutSessionAction,
+    operation: () => Promise<unknown>,
+  ) {
     if (setOperationInFlight.current || lifecycleInFlight.current) return;
     setOperationInFlight.current = true;
     setSetPending(true);
     setSetError(null);
-    try {
-      await operation();
-      router.refresh();
-    } catch (error) {
-      setSetError(
-        error instanceof Error ? error.message : "Workout set update failed.",
-      );
-    } finally {
-      setOperationInFlight.current = false;
-      setSetPending(false);
-    }
+
+    await new Promise<void>((resolve) => {
+      startTransition(async () => {
+        addOptimisticAction(action);
+        try {
+          await operation();
+          router.refresh();
+        } catch (error) {
+          setSetError(
+            error instanceof Error ? error.message : "Workout set update failed.",
+          );
+        } finally {
+          setOperationInFlight.current = false;
+          setSetPending(false);
+          resolve();
+        }
+      });
+    });
   }
 
   async function finishAndNavigate(command: "complete" | "cancel") {
@@ -85,34 +104,57 @@ export function ActiveWorkoutController({
     <div className="mx-auto grid gap-1 md:gap-3 p-1">
       <WorkoutProgramContextCard provenance={session.provenance} />
       <ActiveWorkout
-        session={session}
+        session={optimisticSession}
         isSubmitting={setPending}
         error={setError}
         onRecordSet={async (performanceId, input) => {
-          await runSetMutation(() =>
-            recordWorkoutSet(session.id, performanceId, input),
+          const performance = optimisticSession.performances.find(
+            (item) => item.id === performanceId,
+          );
+          if (!performance) return;
+          await runSetMutation(
+            {
+              type: "record",
+              exercisePerformanceId: performanceId,
+              completedSet: createOptimisticCompletedSet(
+                performance.completedSets,
+                input,
+              ),
+            },
+            () => recordWorkoutSet(session.id, performanceId, input),
           );
         }}
         onDeleteSet={async (setId) => {
-          const performance = session.performances.find((item) =>
+          const performance = optimisticSession.performances.find((item) =>
             item.completedSets.some(
               (completedSet) => completedSet.id === setId,
             ),
           );
           if (!performance) return;
-          await runSetMutation(() =>
-            deleteWorkoutSet(session.id, performance.id, setId),
+          await runSetMutation(
+            {
+              type: "delete",
+              exercisePerformanceId: performance.id,
+              completedSetId: setId,
+            },
+            () => deleteWorkoutSet(session.id, performance.id, setId),
           );
         }}
         onUpdateSet={async (setId, input) => {
-          const performance = session.performances.find((item) =>
+          const performance = optimisticSession.performances.find((item) =>
             item.completedSets.some(
               (completedSet) => completedSet.id === setId,
             ),
           );
           if (!performance) return;
-          await runSetMutation(() =>
-            updateWorkoutSet(session.id, performance.id, setId, input),
+          await runSetMutation(
+            {
+              type: "update",
+              exercisePerformanceId: performance.id,
+              completedSetId: setId,
+              input,
+            },
+            () => updateWorkoutSet(session.id, performance.id, setId, input),
           );
         }}
       />

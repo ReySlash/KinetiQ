@@ -230,6 +230,12 @@ describe("dashboard components", () => {
       "href",
       "/workout-sessions",
     );
+    expect(
+      screen.getByRole("link", { name: "View Upper strength workout details" }),
+    ).toHaveAttribute("href", "/workout-sessions/session-1");
+    expect(
+      screen.getAllByRole("link", { name: /View .* workout details/ }),
+    ).toHaveLength(3);
   });
 
   it("keeps recent history visible when the selected week is empty", () => {
