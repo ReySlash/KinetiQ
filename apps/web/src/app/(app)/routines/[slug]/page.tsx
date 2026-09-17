@@ -168,38 +168,33 @@ export default async function RoutineDetailsPage({
                         height={80}
                         fallbackSrc={ROUTINE_IMAGE_FALLBACK}
                       />
-                      <dl className="grid min-w-0 grid-cols-2 gap-2 py-2 text-sm">
+
+                      <div>
+                        <dt className="text-muted-foreground">Sets</dt>
+                        <dd className="font-medium">{routineExercise.sets}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Rep range</dt>
+                        <dd className="font-medium">
+                          {routineExercise.minReps}–{routineExercise.maxReps}
+                        </dd>
+                      </div>
+                      {routineExercise.targetRir !== null && (
                         <div>
-                          <dt className="text-muted-foreground">Sets</dt>
+                          <dt className="text-muted-foreground">Target RIR</dt>
                           <dd className="font-medium">
-                            {routineExercise.sets}
+                            {routineExercise.targetRir}
                           </dd>
                         </div>
+                      )}
+                      {routineExercise.restSeconds !== null && (
                         <div>
-                          <dt className="text-muted-foreground">Rep range</dt>
+                          <dt className="text-muted-foreground">Rest</dt>
                           <dd className="font-medium">
-                            {routineExercise.minReps}–{routineExercise.maxReps}
+                            {routineExercise.restSeconds}s
                           </dd>
                         </div>
-                        {routineExercise.targetRir !== null && (
-                          <div>
-                            <dt className="text-muted-foreground">
-                              Target RIR
-                            </dt>
-                            <dd className="font-medium">
-                              {routineExercise.targetRir}
-                            </dd>
-                          </div>
-                        )}
-                        {routineExercise.restSeconds !== null && (
-                          <div>
-                            <dt className="text-muted-foreground">Rest</dt>
-                            <dd className="font-medium">
-                              {routineExercise.restSeconds}s
-                            </dd>
-                          </div>
-                        )}
-                      </dl>
+                      )}
                     </div>
                     {(routineExercise.tempo || routineExercise.notes) && (
                       <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
