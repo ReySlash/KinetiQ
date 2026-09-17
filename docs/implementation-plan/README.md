@@ -47,9 +47,9 @@ When documents disagree, the more specific feature document wins. Changes that a
 | [17](17-api-design.md)                            | REST conventions and contracts                            | MVP                                             |
 | [18](18-frontend-architecture.md)                 | Next.js pages, state, forms, accessibility                | MVP                                             |
 | [19](19-database-and-prisma.md)                   | PostgreSQL/Prisma constraints and migrations              | MVP                                             |
-| [20](20-deployment.md)                            | Vercel web, Oracle API, Neon, CI, rollback                 | Closed beta deployed                            |
+| [20](20-deployment.md)                            | Vercel web, Oracle API, Neon, CI, rollback                 | Repository baseline; external gates pending     |
 | [21](21-security.md)                              | Threat controls and privacy                               | MVP                                             |
-| [22](22-observability-and-backups.md)             | Logs, health, restore readiness                           | MVP baseline                                    |
+| [22](22-observability-and-backups.md)             | Logs, health, backups, and restore policy                 | MVP baseline; recurring backup/restore deferred  |
 | [23](23-release-plan.md)                          | Small release sequence                                    | Governing                                       |
 | [24](24-open-decisions.md)                        | Decision log and unresolved choices                       | Living document                                 |
 | [25](25-exercise-relationships.md)                | Variations, substitutions, progressions, regressions      | Post-MVP                                        |
@@ -88,13 +88,13 @@ Authentication is integrated after public reference-library slices so early work
 
 | Phase                        | Current status                                                                                     | Exit condition                                                   |
 | ---------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Foundation                   | Deployed in the closed beta; remaining operator controls are tracked in the deployment checklist    | Web/API/database run in the deployed topology                    |
-| Reference library            | Deployed in the closed beta; beta acceptance and admin-security review continue                     | Seeded muscles and admin exercise management work end to end     |
-| Routine MVP                  | Deployed with ownership tests; beta acceptance continues                                            | Authenticated users manage only their routines                   |
-| Production MVP               | Closed-beta baseline deployed on Vercel, Oracle, and Neon; operational hardening remains            | Remaining checklist and acceptance items are closed              |
-| Training-program templates   | Backend, frontend, seed, and schedule slices deployed; beta acceptance continues                    | Programs schedule reusable routines by relative week/day         |
-| Adopted-program execution    | Deployed with atomic PostgreSQL and journey coverage; beta acceptance continues                      | Adoption, progress, and program-origin sessions work atomically  |
-| Workout sessions             | Standalone and program-origin flows deployed; beta acceptance continues                             | Immutable `WorkoutSession` history supports integrated execution |
-| Analytics                    | Deterministic Phase 9 overview deployed; beta validation continues                                  | Explainable metrics consume stable owned history                 |
+| Foundation                   | Implemented; remaining external operator controls are tracked in the deployment checklist           | Web/API/database run in the deployed topology                    |
+| Reference library            | Implemented; beta acceptance and admin-security review continue                                      | Seeded muscles and admin exercise management work end to end     |
+| Routine MVP                  | Implemented with ownership tests; beta acceptance continues                                          | Authenticated users manage only their routines                   |
+| Production MVP               | Repository deployment baseline implemented; prototype acceptance continues and backup/restore are deferred | HTTPS, auth, CI, and operational controls verified |
+| Training-program templates   | Backend, frontend, seed, and schedule slices implemented; beta acceptance continues                  | Programs schedule reusable routines by relative week/day         |
+| Adopted-program execution    | Implemented with atomic PostgreSQL and journey coverage; beta acceptance continues                   | Adoption, progress, and program-origin sessions work atomically  |
+| Workout sessions             | Standalone and program-origin flows implemented; beta acceptance continues                          | Immutable `WorkoutSession` history supports integrated execution |
+| Analytics                    | Deterministic Phase 9 overview implemented; beta validation continues                               | Explainable metrics consume stable owned history                 |
 | Recommendations and recovery | Deferred until beta data validates the deterministic analytics foundation                          | Rules use sufficient real data and expose rationale              |
 | Coach/athlete                | Exploratory                                                                                        | Tenancy and consent model is validated                           |

@@ -81,9 +81,24 @@ Exercise ratings are editorial classifications, not precise scientific measureme
 
 ## Current Status
 
-The closed beta is deployed with the Next.js frontend on Vercel, the Dockerized NestJS API behind HTTPS on an Oracle Cloud VPS, and Neon PostgreSQL. Browser API calls use same-origin `/api` URLs that Vercel rewrites server-side to `https://api.kinetiq.reyslash.com`; the API origin remains independently reachable for intentionally public reference endpoints and enforces authentication and authorization for protected resources.
+The repository is prepared for the closed-beta topology: Next.js on Vercel,
+the Dockerized NestJS API behind HTTPS on an Oracle Cloud VPS, and Neon
+PostgreSQL. Browser API calls use same-origin `/api` URLs that Vercel rewrites
+server-side to `https://api.kinetiq.reyslash.com`; the API origin remains
+independently reachable for intentionally public reference endpoints and
+enforces authentication and authorization for protected resources. The
+deployment artifacts and application slices are implemented; external
+production verification is tracked in the deployment checklist and must be
+completed before inviting beta users.
 
-Reference-library, routine, training-program, adopted-program, workout-session, dashboard, and basic analytics slices are implemented. The next work is closed-beta feedback and post-launch hardening: production acceptance gaps, monitoring, backup/restore rehearsal, and operational documentation. Advanced analytics, progression, recovery, calendar scheduling, and coach workflows remain deferred.
+Reference-library, routine, training-program, adopted-program, workout-session,
+dashboard, and basic analytics slices are implemented. The next work is to
+complete the closed-beta production acceptance gates: HTTPS journey,
+monitoring, authentication, authorization, and operational controls. Full
+database backup and restore automation is intentionally deferred while the
+beta has only a few testers.
+Advanced analytics, progression, recovery, calendar scheduling, and coach
+workflows remain deferred.
 
 ### Local verification
 

@@ -75,9 +75,9 @@ This work may begin earlier and must be complete before any shared environment e
 
 ## R9 — Production MVP baseline and hardening
 
-**Deliver:** Vercel-hosted Next.js, a Dockerized NestJS API behind Nginx on Oracle Cloud, Neon PostgreSQL, HTTPS, full CI gates, security headers/rate limits, structured logs, health checks, tracked production assets, backups, and rollback guidance.
+**Deliver:** Vercel-hosted Next.js, a Dockerized NestJS API behind Nginx on Oracle Cloud, Neon PostgreSQL, HTTPS, full CI gates, security headers/rate limits, structured logs, health checks, tracked production assets, and rollback guidance. Recurring database backups and restore operations are deferred for the small prototype beta.
 
-**Acceptance:** the closed-beta baseline is deployed. Remaining acceptance work includes completing the public HTTPS journey, verifying operator-side controls and branch protection, exercising certificate renewal and rollback, and rehearsing backup restoration. External logical backups, alerting, detailed RPO/RTO measurement, and exhaustive incident runbooks are post-launch hardening rather than blockers for the initial beta.
+**Acceptance:** repository implementation is complete, and the closed beta may proceed with a documented prototype-risk policy once the public HTTPS journey, operator controls, branch protection, certificate renewal, and alerting are verified. A manual Neon snapshot is taken before risky database changes. Recurring external backups, restore rehearsal, and formal RPO/RTO measurement are deferred until paid-user infrastructure is introduced.
 
 ## Historical roadmap after the production baseline
 
@@ -109,27 +109,29 @@ media assets.
 
 Use the closed beta to validate the implemented slices through R13 while
 closing the remaining operator-side deployment checklist. Prioritize public
-acceptance, branch protection, Neon backup verification, rollback and restore
-rehearsal, then monitoring and alerts. Do not begin recommendations or recovery
-features until beta data and the analytics foundation are trustworthy.
+acceptance, branch protection, monitoring, alerting, and safe manual database
+snapshots before risky changes. Defer recurring backups, restore rehearsal,
+progression recommendations, and recovery features until beta usage justifies
+the next infrastructure step.
 
 ## Status tracking
 
-At plan creation all releases are `PLANNED`. Update this table when work begins; do not mark a release done until its acceptance block passes.
+This table reflects the current implementation state. A release is not fully
+accepted until its acceptance block and any external operational gates pass.
 
 | Release                         | Status                                                                                                           | Depends on                    |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| R0 Foundation                   | Deployed in the closed beta; remaining operator controls are tracked separately                                  | —                             |
-| R1 Muscles                      | Deployed; beta acceptance continues                                                                              | R0                            |
-| R2 Exercise identity            | Deployed; final admin production-security acceptance remains                                                     | R1                            |
-| R3 Muscle assignments           | Deployed; beta acceptance continues                                                                              | R2                            |
-| R4 Profiles                     | Deployed; beta acceptance continues                                                                              | R3                            |
+| R0 Foundation                   | Implemented; remaining external operator controls are tracked separately                                        | —                             |
+| R1 Muscles                      | Implemented; beta acceptance continues                                                                            | R0                            |
+| R2 Exercise identity            | Implemented; final admin production-security acceptance remains                                                   | R1                            |
+| R3 Muscle assignments           | Implemented; beta acceptance continues                                                                            | R2                            |
+| R4 Profiles                     | Implemented; beta acceptance continues                                                                            | R3                            |
 | R5 Media                        | Tracked optimized assets and fallbacks implemented; upload/management remains post-MVP                           | R2                            |
-| R6 Auth/admin hardening         | Deployed with HTTP authorization tests; cookie, revocation, and public acceptance continue                       | R0; gates shared R2–R5        |
-| R7–R8 Routines                  | Deployed with ownership coverage; beta acceptance continues                                                      | R2, R6                        |
-| R9 Production MVP               | Closed-beta baseline deployed on Vercel, Oracle, and Neon; operational hardening remains                         | R0–R8                         |
-| R10 Training-program templates  | Deployed; beta acceptance continues                                                                              | R9                            |
-| R11 Standalone sessions         | Deployed; beta acceptance continues                                                                              | Auth + routines               |
-| R12 Adopted-program execution   | Deployed with ownership, concurrency, rollback, and journey coverage; beta acceptance continues                 | R10, R11                      |
-| R13 Analytics overview          | Deterministic read-only overview deployed; beta validation continues                                             | R12 stable integrated history |
+| R6 Auth/admin hardening         | Implemented with HTTP authorization tests; cookie, revocation, and public acceptance continue                     | R0; gates shared R2–R5        |
+| R7–R8 Routines                  | Implemented with ownership coverage; beta acceptance continues                                                    | R2, R6                        |
+| R9 Production MVP               | Repository baseline implemented; prototype acceptance continues and recurring backup/restore is deferred     | R0–R8                         |
+| R10 Training-program templates  | Implemented; beta acceptance continues                                                                            | R9                            |
+| R11 Standalone sessions         | Implemented; beta acceptance continues                                                                            | Auth + routines               |
+| R12 Adopted-program execution   | Implemented with ownership, concurrency, rollback, and journey coverage; beta acceptance continues               | R10, R11                      |
+| R13 Analytics overview          | Deterministic read-only overview implemented; beta validation continues                                          | R12 stable integrated history |
 | R14+ Heuristics and later phases | Deferred                                                                                                        | R13 validated                 |

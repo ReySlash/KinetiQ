@@ -21,7 +21,7 @@ This roadmap prevents the final vision from expanding the first release. Each re
 - WorkoutSession records with completed sets and historical prescription snapshots
 - Initial explainable analytics derived from raw workout history
 - Responsive, accessible UI and proportionate automated tests
-- Vercel-hosted frontend plus a Dockerized Oracle Cloud VPS API, Neon PostgreSQL, HTTPS, logs, backups, and rollback guidance
+- Vercel-hosted frontend plus a Dockerized Oracle Cloud VPS API, Neon PostgreSQL, HTTPS, logs, manual database safety snapshots, and rollback guidance
 
 ### Excluded
 
@@ -58,9 +58,12 @@ Integrate Better Auth with NestJS request authentication. Add private routine CR
 Deploy the closed beta with the Next.js frontend on Vercel, the Dockerized API
 behind Nginx/Certbot on Oracle Cloud, and Neon PostgreSQL. Accessibility checks,
 rate limiting, security headers, health checks, CI builds, and basic operational
-documentation are implemented. Monitoring, external logical backups, restore
-rehearsal, detailed RPO/RTO measurement, and automated API deployment remain
-post-launch hardening.
+documentation, and deployment artifacts are implemented in the repository.
+Before beta invitations, complete monitoring, branch protection, and the
+complete HTTPS acceptance journey. Automated database backups, restore
+rehearsal, and formal RPO/RTO measurement are deferred until the beta has
+paying users and moves to the planned consolidated host. Automated API
+deployment also remains deferred until the manual release workflow is stable.
 
 ### Phase 7 — Training programs and weekly scheduling
 

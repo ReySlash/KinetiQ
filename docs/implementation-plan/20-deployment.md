@@ -1,8 +1,8 @@
 # Deployment
 
-## Current closed-beta architecture
+## Documented closed-beta architecture
 
-The closed beta is deployed as three independently operated services:
+The planned closed-beta topology has three independently operated services:
 
 ```text
 Browser
@@ -58,9 +58,12 @@ does not run its web service on Oracle.
 ## Database and migrations
 
 Neon is the production PostgreSQL provider. Use TLS, a least-privileged runtime
-role, appropriate connection pooling, and provider backups/PITR. Apply existing
-migrations from the reviewed checkout with `prisma migrate deploy` before
-starting an API version that depends on them.
+role, and appropriate connection pooling. The current free-tier prototype uses
+one manually created Neon snapshot before risky changes; recurring provider
+backups/PITR and external logical backups are deferred until paid-user
+infrastructure is introduced. Apply existing migrations from the reviewed
+checkout with `prisma migrate deploy` before starting an API version that
+depends on them.
 
 Never use `migrate dev`, reset commands, or destructive seed behavior in
 production. Reference-data initialization must be reviewed and idempotent.
@@ -74,10 +77,11 @@ security-header, and rate-limit policy. Validate Nginx before reload and test
 Certbot renewal periodically. Trust forwarded headers only from the local
 proxy path.
 
-The checked-in `deploy/nginx/kinetiq.conf` still models the earlier single-host
-web/API deployment. It must be synchronized with the working API-only VPS
-configuration before it is used for a future rebuild; the current production
-host configuration is authoritative until that repository task is completed.
+The checked-in `deploy/nginx/kinetiq.conf` is a reference configuration for a
+single-host web/API deployment and is not automatically the active VPS file.
+The current beta topology remains Vercel web plus API-only VPS; reconcile the
+template with the installed host configuration during the deployment rehearsal
+before replacing any live Nginx file.
 
 ## CI and release flow
 
@@ -112,10 +116,13 @@ the API by rebuilding/restarting the previous reviewed SHA, provided migrations
 remain backward compatible. Database rollback is not an automatic reverse
 migration; prefer a forward fix.
 
-## Post-launch hardening
+## Readiness gates before beta invitations
 
-Monitoring and email alerts, independent encrypted logical backups, isolated
-restore rehearsal, detailed RPO/RTO measurement, exhaustive incident runbooks,
-automated API deployment, and advanced operational dashboards remain
-post-launch work. Neon backups/PITR, health checks, bounded logs, and a basic
-application rollback remain required during the beta.
+Monitoring, email alerts, health checks, bounded logs, and application rollback
+remain part of the initial beta baseline. The current prototype has only a few
+testers, so automated database backups, isolated restore rehearsal, and formal
+RPO/RTO measurement are explicitly deferred. Take a manual Neon snapshot before
+Prisma migrations or other risky database changes and record that it is not a
+recurring backup guarantee. Revisit full database protection when the product
+moves to the planned consolidated Hostinger VPS for paid users. Automated API
+deployment and advanced operational dashboards remain deferred.
