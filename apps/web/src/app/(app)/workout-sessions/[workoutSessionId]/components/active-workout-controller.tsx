@@ -55,17 +55,19 @@ export function ActiveWorkoutController({
   async function runSetMutation(
     action: OptimisticWorkoutSessionAction,
     operation: () => Promise<unknown>,
-  ) {
-    if (setOperationInFlight.current || lifecycleInFlight.current) return;
+  ): Promise<boolean> {
+    if (setOperationInFlight.current || lifecycleInFlight.current) return false;
     setOperationInFlight.current = true;
     setSetPending(true);
     setSetError(null);
 
-    await new Promise<void>((resolve) => {
+    return new Promise<boolean>((resolve) => {
       startTransition(async () => {
         addOptimisticAction(action);
+        let succeeded = false;
         try {
           await operation();
+          succeeded = true;
           router.refresh();
         } catch (error) {
           setSetError(
@@ -74,7 +76,7 @@ export function ActiveWorkoutController({
         } finally {
           setOperationInFlight.current = false;
           setSetPending(false);
-          resolve();
+          resolve(succeeded);
         }
       });
     });
