@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { PageHeader } from "@/components/page-header";
 import { MoreLink } from "@/components/more-link";
+import ImageWithFallback from "@/components/image-with-fallback";
 import {
   Card,
   CardContent,
@@ -12,6 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { fetchTrainingProgram } from "@/lib/training-programs-server";
+import {
+  getRoutineCoverSrc,
+  ROUTINE_IMAGE_FALLBACK,
+} from "@/lib/routine-image";
 import type { TrainingProgramDetail } from "@/types/training-program-types";
 import { TrainingProgramActions } from "./training-program-actions";
 import { AdoptTrainingProgramControl } from "../components/adopt-training-program-control";
@@ -124,24 +129,37 @@ export default async function TrainingProgramDetailPage({
                       {entries.map((entry) => (
                         <article
                           key={`${entry.weekNumber}-${entry.dayNumber}`}
-                          className="rounded-2xl border border-border/70 bg-background/30 p-4"
+                          className="flex items-center gap-2 rounded-2xl border border-border/70 bg-background/30 p-2"
                         >
-                          <p className="text-xs text-muted-foreground">
-                            Day {entry.dayNumber}
-                          </p>
-                          <div className="mt-1 flex items-center justify-between gap-2">
-                            <p className="font-medium">{entry.routine.name}</p>
-                            <MoreLink
-                              href={`/routines/${entry.routine.slug}`}
-                              tooltip="Open routine details"
-                              ariaLabel={`Open ${entry.routine.name}`}
-                            />
-                          </div>
-                          {entry.notes && (
-                            <p className="mt-3 text-sm text-muted-foreground">
-                              {entry.notes}
+                          <ImageWithFallback
+                            className="size-17.5 shrink-0 rounded-xl object-cover"
+                            src={
+                              getRoutineCoverSrc(entry.routine.name) ??
+                              ROUTINE_IMAGE_FALLBACK
+                            }
+                            alt="Routine cover"
+                            width={70}
+                            height={70}
+                            fallbackSrc={ROUTINE_IMAGE_FALLBACK}
+                          />
+                          <div className="min-w-0 flex-1 text-center">
+                            <p className="text-xs text-muted-foreground">
+                              Day {entry.dayNumber}
                             </p>
-                          )}
+                            <p className="truncate font-medium">
+                              {entry.routine.name}
+                            </p>
+                            {entry.notes ? (
+                              <p className="truncate text-xs text-muted-foreground">
+                                {entry.notes}
+                              </p>
+                            ) : null}
+                          </div>
+                          <MoreLink
+                            href={`/routines/${entry.routine.slug}`}
+                            tooltip="Open routine details"
+                            ariaLabel={`Open ${entry.routine.name}`}
+                          />
                         </article>
                       ))}
                     </div>
