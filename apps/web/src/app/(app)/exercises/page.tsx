@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { fetchExercises } from "@/lib/exercises-server";
 import { PageHeader } from "@/components/page-header";
 import { ExercisesTable } from "./components/exercises-table";
@@ -11,6 +12,11 @@ import { RateLimitedState } from "@/components/rate-limited-state";
 import { isRateLimitedResult } from "@/lib/api/error";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Exercises",
+  description: "Explore the KinetiQ exercise catalog.",
+};
 
 type SearchParams = {
   [key: string]: string | string[] | undefined;

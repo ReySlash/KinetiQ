@@ -20,8 +20,8 @@ export async function generateMetadata({
   const session = await fetchWorkoutSession(workoutSessionId);
   return {
     title: session
-      ? `${!isRateLimitedResult(session) ? session.sourceRoutineNameSnapshot ?? "Workout" : "Workout"} | KinetiQ`
-      : "Workout session not found | KinetiQ",
+      ? `${!isRateLimitedResult(session) ? session.sourceRoutineNameSnapshot ?? "Workout" : "Workout"} Workout`
+      : "Workout Session Not Found",
   };
 }
 
