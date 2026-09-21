@@ -26,7 +26,7 @@ type ActiveWorkoutProps = {
   onRecordSet: (
     exercisePerformanceId: string,
     input: RecordWorkoutSetInput,
-  ) => void | Promise<void>;
+  ) => void | boolean | Promise<void | boolean>;
   isSubmitting?: boolean;
   error?: string | null;
   onDeleteSet?: (completedSetId: string) => void | Promise<void>;
@@ -74,7 +74,7 @@ export function ActiveWorkout({
     );
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!repetitions.trim()) {
       setValidationError("Repetitions are required.");
@@ -86,11 +86,15 @@ export function ActiveWorkout({
     }
 
     setValidationError(null);
-    void onRecordSet(performance.id, {
+    const recorded = await onRecordSet(performance.id, {
       repetitions: Number(repetitions),
       load: load.trim(),
       loadUnit: "KG",
     });
+    if (recorded !== false) {
+      setRepetitions("");
+      setLoad("");
+    }
   }
 
   const prescription = [
@@ -121,6 +125,8 @@ export function ActiveWorkout({
                       aria-label={item.exerciseNameSnapshot}
                       onClick={() => {
                         setPerformanceIndex(index);
+                        setRepetitions("");
+                        setLoad("");
                         setValidationError(null);
                       }}
                     />

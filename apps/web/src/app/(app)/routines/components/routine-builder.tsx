@@ -40,6 +40,7 @@ const optionalInteger = (min: number, max: number) =>
 
 const routineExerciseSchema = z.object({
   exerciseSlug: z.string().min(1),
+  exerciseName: z.string().min(1).optional(),
   sets: z.coerce.number().int().min(1).max(20),
   minReps: z.coerce.number().int().min(1).max(1000),
   maxReps: z.coerce.number().int().min(1).max(1000),
@@ -70,6 +71,14 @@ const routineSchema = z
 type FormInput = z.input<typeof routineSchema>;
 type FormValues = z.output<typeof routineSchema>;
 
+function fallbackExerciseName(slug: string) {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word[0]?.toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 function getDefaults(
   routine?: RoutineDetail,
   initialExerciseSlug?: string,
@@ -78,6 +87,7 @@ function getDefaults(
     const exercises: z.input<typeof routineExerciseSchema>[] =
       routine.exercises.map((exercise) => ({
         exerciseSlug: exercise.exerciseSlug,
+        exerciseName: exercise.exercise.name,
         sets: exercise.sets,
         minReps: exercise.minReps,
         maxReps: exercise.maxReps,
@@ -88,8 +98,9 @@ function getDefaults(
       }));
 
     if (initialExerciseSlug) {
-      exercises.push({
-        exerciseSlug: initialExerciseSlug,
+        exercises.push({
+          exerciseSlug: initialExerciseSlug,
+          exerciseName: fallbackExerciseName(initialExerciseSlug),
         sets: "",
         minReps: "",
         maxReps: "",
@@ -114,6 +125,7 @@ function getDefaults(
       ? [
           {
             exerciseSlug: initialExerciseSlug,
+            exerciseName: fallbackExerciseName(initialExerciseSlug),
             sets: "",
             minReps: "",
             maxReps: "",
@@ -151,7 +163,10 @@ export function RoutineBuilder({
         name: values.name,
         description: values.description?.trim() || null,
         exercises: values.exercises.map((exercise) => ({
-          ...exercise,
+          exerciseSlug: exercise.exerciseSlug,
+          sets: exercise.sets,
+          minReps: exercise.minReps,
+          maxReps: exercise.maxReps,
           targetRir: exercise.targetRir ?? null,
           restSeconds: exercise.restSeconds ?? null,
           tempo: exercise.tempo?.trim() || null,
@@ -169,9 +184,10 @@ export function RoutineBuilder({
     });
   }
 
-  function addExercise(exerciseSlug: string) {
+  function addExercise(exercise: { name: string; slug: string }) {
     fields.append({
-      exerciseSlug,
+      exerciseSlug: exercise.slug,
+      exerciseName: exercise.name,
       sets: "",
       minReps: "",
       maxReps: "",
@@ -269,7 +285,7 @@ export function RoutineBuilder({
                   <RoutineExercisePicker
                     selectedExerciseSlugs={[]}
                     className="self-center md:self-end"
-                    onAddExercise={(exercise) => addExercise(exercise.slug)}
+                    onAddExercise={addExercise}
                   />
                 </div>
               ) : (
@@ -281,7 +297,9 @@ export function RoutineBuilder({
                     >
                       <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-medium">{field.exerciseSlug}</p>
+                          <p className="font-medium">
+                            {field.exerciseName ?? fallbackExerciseName(field.exerciseSlug)}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             Exercise reference
                           </p>
@@ -293,7 +311,7 @@ export function RoutineBuilder({
                           onClick={() =>
                             setRemoveExerciseTarget({
                               index,
-                              name: field.exerciseSlug,
+                                name: field.exerciseName ?? fallbackExerciseName(field.exerciseSlug),
                             })
                           }
                           aria-label={`Remove ${field.exerciseSlug}`}
@@ -412,7 +430,7 @@ export function RoutineBuilder({
                       selectedExerciseSlugs={fields.fields.map(
                         (field) => field.exerciseSlug,
                       )}
-                      onAddExercise={(exercise) => addExercise(exercise.slug)}
+                      onAddExercise={addExercise}
                     />
                   </div>
                 </div>

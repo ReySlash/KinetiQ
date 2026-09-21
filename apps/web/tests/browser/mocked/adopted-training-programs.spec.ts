@@ -88,6 +88,13 @@ test.describe("mocked adopted training program journey", () => {
     await useScenario(context, "pause-resume");
     await page.goto(`/training-programs/adopted/${programId}`);
     await page.getByRole("button", { name: "Pause program" }).click();
+    const pauseDialog = page.getByRole("dialog");
+    await expect(
+      pauseDialog.getByRole("heading", { name: "Pause this program?" }),
+    ).toBeVisible();
+    await pauseDialog
+      .getByRole("button", { name: "Pause program", exact: true })
+      .click();
     await expect(page.getByText("paused", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Resume program" }).click();
     await expect(page.getByText("active", { exact: true })).toBeVisible();

@@ -18,7 +18,7 @@ import { RateLimitedState } from "@/components/rate-limited-state";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Active training program | KinetiQ",
+  title: "Active Training Program",
   description: "Continue your active KinetiQ training program.",
 };
 

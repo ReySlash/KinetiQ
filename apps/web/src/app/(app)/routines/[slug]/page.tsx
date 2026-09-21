@@ -35,9 +35,9 @@ export async function generateMetadata({
   const routine = await fetchRoutine(slug);
 
   if (!routine || isRateLimitedResult(routine))
-    return { title: "Routine | KinetiQ" };
+    return { title: "Routine" };
   return {
-    title: `${routine.name} routine | KinetiQ`,
+    title: `${routine.name} Routine`,
     description:
       routine.description ?? `View the ${routine.name} workout routine.`,
   };

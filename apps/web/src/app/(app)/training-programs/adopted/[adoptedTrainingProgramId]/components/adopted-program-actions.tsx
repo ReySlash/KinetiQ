@@ -1,6 +1,13 @@
 "use client";
 
-import { CirclePlay, Pause, Play, RotateCcw, SkipForward, X } from "lucide-react";
+import {
+  CirclePlay,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipForward,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -39,6 +46,7 @@ export function AdoptedProgramActions({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [skipOpen, setSkipOpen] = useState(false);
+  const [pauseOpen, setPauseOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const nextOccurrence = program.nextPendingOccurrence;
@@ -56,7 +64,8 @@ export function AdoptedProgramActions({
         if (
           result.code === "ADOPTED_TRAINING_PROGRAM_SOURCE_UNAVAILABLE" ||
           result.code === "ADOPTED_TRAINING_PROGRAM_CONCURRENCY_CONFLICT"
-        ) router.refresh();
+        )
+          router.refresh();
         return;
       }
       setFeedback(null);
@@ -103,7 +112,9 @@ export function AdoptedProgramActions({
         size="lg"
         className={actionClassName}
         disabled={isPending}
-        onClick={() => run({ type: "start", occurrenceId: action.occurrenceId })}
+        onClick={() =>
+          run({ type: "start", occurrenceId: action.occurrenceId })
+        }
       >
         <Play data-icon="inline-start" />
         Start workout
@@ -132,7 +143,9 @@ export function AdoptedProgramActions({
             <Button
               size="lg"
               disabled={isPending}
-              onClick={() => run({ type: "start", occurrenceId: nextOccurrence.id })}
+              onClick={() =>
+                run({ type: "start", occurrenceId: nextOccurrence.id })
+              }
             >
               <Play data-icon="inline-start" />
               Start workout
@@ -173,7 +186,7 @@ export function AdoptedProgramActions({
                 variant="outline"
                 size="lg"
                 disabled={isPending}
-                onClick={() => run({ type: "pause" })}
+                onClick={() => setPauseOpen(true)}
               >
                 <Pause data-icon="inline-start" />
                 Pause program
@@ -208,9 +221,9 @@ export function AdoptedProgramActions({
             ? `Week ${nextOccurrence.weekNumber}, day ${nextOccurrence.dayNumber} will count as skipped. This cannot be undone.`
             : "This workout will count as skipped."
         }
-        cancelLabel="Keep workout"
+        cancelLabel="Go back"
         confirmLabel="Skip workout"
-        confirmVariant="outline"
+        confirmVariant="destructive"
         confirmDisabled={isPending || !nextOccurrence}
         onConfirm={() => {
           if (!nextOccurrence) return;
@@ -230,6 +243,20 @@ export function AdoptedProgramActions({
         onConfirm={() => {
           setCancelOpen(false);
           run({ type: "cancel" });
+        }}
+      />
+
+      <ConfirmationDialog
+        open={pauseOpen}
+        onOpenChange={setPauseOpen}
+        title="Pause this program?"
+        description="Your progress will be kept, and you can resume the program later."
+        cancelLabel="Keep active"
+        confirmLabel="Pause program"
+        confirmDisabled={isPending}
+        onConfirm={() => {
+          setPauseOpen(false);
+          run({ type: "pause" });
         }}
       />
     </div>

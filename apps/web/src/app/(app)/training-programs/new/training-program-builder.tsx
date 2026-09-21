@@ -505,7 +505,7 @@ function RoutinePicker({ routines, value, onChange }: RoutinePickerProps) {
           <TabsList aria-label="Routine scope" className="w-full">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="global">Global</TabsTrigger>
-            <TabsTrigger value="my">My routines</TabsTrigger>
+            <TabsTrigger value="my">My Routines</TabsTrigger>
           </TabsList>
           <TabsContent value="all">{renderRoutineList("all")}</TabsContent>
           <TabsContent value="global">{renderRoutineList("global")}</TabsContent>

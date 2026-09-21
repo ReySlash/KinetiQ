@@ -83,6 +83,21 @@ describe("ActiveWorkout", () => {
     expect(onRecordSet).not.toHaveBeenCalled();
   });
 
+  it("clears the set inputs after recording succeeds", async () => {
+    const user = userEvent.setup();
+    const onRecordSet = vi.fn().mockResolvedValue(true);
+    render(<ActiveWorkout session={session} onRecordSet={onRecordSet} />);
+
+    const repetitions = screen.getByLabelText("Repetitions");
+    const load = screen.getByLabelText("Load (kg)");
+    await user.type(repetitions, "8");
+    await user.type(load, "100");
+    await user.click(screen.getByRole("button", { name: /record set/i }));
+
+    expect(repetitions).toHaveValue("");
+    expect(load).toHaveValue("");
+  });
+
   it("disables submission while a set request is interrupted or pending and exposes the error", () => {
     render(
       <ActiveWorkout
@@ -135,6 +150,25 @@ describe("ActiveWorkout", () => {
       }),
     );
     expect(onDeleteSet).toHaveBeenCalledWith("423e4567-e89b-12d3-a456-426614174000");
+  });
+
+  it("clears set inputs when switching exercises", async () => {
+    const user = userEvent.setup();
+    render(
+      <ActiveWorkout
+        session={sessionWithMultipleExercises}
+        onRecordSet={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByLabelText("Repetitions"), "8");
+    await user.type(screen.getByLabelText("Load (kg)"), "100");
+    await user.click(
+      screen.getByRole("button", { name: /incline dumbbell press/i }),
+    );
+
+    expect(screen.getByLabelText("Repetitions")).toHaveValue("");
+    expect(screen.getByLabelText("Load (kg)")).toHaveValue("");
   });
 
   it("updates a completed-set load together with its canonical unit", async () => {

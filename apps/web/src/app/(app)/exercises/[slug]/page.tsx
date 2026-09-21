@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getLocalImageSrc } from "@/lib/local-image";
 import { fetchExercise } from "@/lib/exercises-server";
 import { isRateLimitedResult } from "@/lib/api/error";
@@ -16,6 +17,24 @@ import MuscleSCard from "@/app/(app)/exercises/components/muscles-card";
 import { AddToRoutineDialog } from "@/app/(app)/exercises/components/add-to-routine-dialog";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const exercise = await fetchExercise(slug);
+
+  if (!exercise || isRateLimitedResult(exercise)) {
+    return { title: "Exercise" };
+  }
+
+  return {
+    title: exercise.name,
+    description: exercise.description,
+  };
+}
 
 export default async function ExerciseDetailsPage(props: {
   params: Promise<{ slug: string }>;

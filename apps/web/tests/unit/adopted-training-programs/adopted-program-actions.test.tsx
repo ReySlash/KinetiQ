@@ -109,10 +109,27 @@ describe("AdoptedProgramActions", () => {
     renderActions();
     await user.click(screen.getByRole("button", { name: /skip workout/i }));
     expect(screen.getByRole("heading", { name: /skip this workout/i })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /keep workout/i }));
+    await user.click(screen.getByRole("button", { name: /go back/i }));
     await user.click(screen.getByRole("button", { name: /cancel program/i }));
     expect(screen.getByRole("heading", { name: /cancel this program/i })).toBeInTheDocument();
     expect(api.update).not.toHaveBeenCalled();
+  });
+
+  it("confirms pause before mutating", async () => {
+    const user = userEvent.setup();
+    api.update.mockResolvedValue({ ok: true, status: 200, data: {} });
+    renderActions();
+
+    await user.click(screen.getByRole("button", { name: /pause program/i }));
+    expect(screen.getByRole("heading", { name: /pause this program/i })).toBeInTheDocument();
+    expect(api.update).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /keep active/i }));
+    expect(api.update).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /pause program/i }));
+    await user.click(screen.getByRole("button", { name: /^pause program$/i }));
+    expect(api.update).toHaveBeenCalledWith("program-id", { type: "pause" });
   });
 
   it.each([

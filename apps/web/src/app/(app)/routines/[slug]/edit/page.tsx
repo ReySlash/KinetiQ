@@ -8,6 +8,7 @@ import { RateLimitedState } from "@/components/rate-limited-state";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
+  title: "Edit Routine",
   robots: { index: false, follow: false },
 };
 

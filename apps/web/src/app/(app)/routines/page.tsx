@@ -8,7 +8,7 @@ import { RateLimitedState } from "@/components/rate-limited-state";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Routines | KinetiQ",
+  title: "Routines",
   description: "Build and manage your private workout routines.",
 };
 
