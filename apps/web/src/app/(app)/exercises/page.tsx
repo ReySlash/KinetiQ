@@ -46,14 +46,19 @@ export default async function ExercisesPage({
     skillLevel: filters.skillLevel,
   });
   if (isRateLimitedResult(exerciseData)) {
-    return <RateLimitedState title="Exercises are temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+    return (
+      <RateLimitedState
+        title="Exercises are temporarily unavailable"
+        description="Too many requests were made. Please wait a moment and try again."
+      />
+    );
   }
   const isLastPage = exerciseData.length <= pageSize;
   const visibleExercises = exerciseData.slice(0, pageSize);
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
-      <PageHeader subtitle="Explore our exercise's catalog.">
+      <PageHeader subtitle="Explore the exercise's catalog.">
         <h1 className="text-lg font-bold leading-none">Exercises</h1>
       </PageHeader>
 
