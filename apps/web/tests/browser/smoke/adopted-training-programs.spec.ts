@@ -72,6 +72,11 @@ test("adopts, performs, completes, and advances a program with the real API", as
     page.getByRole("link", { name: /Smoke program journey · Week 1, Day 1/ }),
   ).toBeVisible();
 
+  await page.getByRole("link", { name: /^(Start|Continue)$/ }).first().click();
+  await expect(page).toHaveURL(
+    /\/workout-sessions\/[\w-]+\/exercises\/[\w-]+$/,
+  );
+
   await page.getByLabel("Repetitions").fill("8");
   await page.getByLabel("Load (kg)").fill("40");
   await page.getByRole("button", { name: "Record set" }).click();

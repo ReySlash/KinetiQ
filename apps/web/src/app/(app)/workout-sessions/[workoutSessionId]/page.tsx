@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { fetchWorkoutSession } from "@/lib/workout-sessions-server";
-import { ActiveWorkoutController } from "./components/active-workout-controller";
+import { WorkoutSessionOverviewController } from "./components/workout-session-overview-controller";
 import { WorkoutSessionSummary } from "./components/workout-session-summary";
 import { isRateLimitedResult } from "@/lib/api/error";
 import { RateLimitedState } from "@/components/rate-limited-state";
@@ -20,7 +20,7 @@ export async function generateMetadata({
   const session = await fetchWorkoutSession(workoutSessionId);
   return {
     title: session
-      ? `${!isRateLimitedResult(session) ? session.sourceRoutineNameSnapshot ?? "Workout" : "Workout"} Workout`
+      ? `${!isRateLimitedResult(session) ? (session.sourceRoutineNameSnapshot ?? "Workout") : "Workout"} Workout`
       : "Workout Session Not Found",
   };
 }
@@ -32,7 +32,13 @@ export default async function WorkoutSessionDetailsPage({
 }) {
   const { workoutSessionId } = await params;
   const session = await fetchWorkoutSession(workoutSessionId);
-  if (isRateLimitedResult(session)) return <RateLimitedState title="Workout session is temporarily unavailable" description="Too many requests were made. Please wait a moment and try again." />;
+  if (isRateLimitedResult(session))
+    return (
+      <RateLimitedState
+        title="Workout session is temporarily unavailable"
+        description="Too many requests were made. Please wait a moment and try again."
+      />
+    );
   if (!session) notFound();
 
   const isInProgress = session.status === "IN_PROGRESS";
@@ -59,9 +65,9 @@ export default async function WorkoutSessionDetailsPage({
           {session.sourceRoutineNameSnapshot ?? "Workout"}
         </h1>
       </PageHeader>
-      <section className="min-h-0 flex-1 overflow-y-auto rounded-lg md:rounded-2xl">
+      <section className="min-h-0 flex-1 md:p-1 overflow-y-auto rounded-lg border border-border/70 bg-card/80 shadow-sm md:rounded-2xl">
         {isInProgress ? (
-          <ActiveWorkoutController session={session} />
+          <WorkoutSessionOverviewController session={session} />
         ) : (
           <WorkoutSessionSummary session={session} />
         )}
