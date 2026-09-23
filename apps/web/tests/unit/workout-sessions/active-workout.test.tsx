@@ -63,13 +63,34 @@ describe("ActiveWorkout", () => {
   it("shows the current exercise prescription and an obvious set-entry action", () => {
     render(<ActiveWorkout session={session} onRecordSet={vi.fn()} />);
 
-    expect(screen.getByText("Bench Press")).toBeInTheDocument();
+    expect(screen.queryByText("Bench Press")).not.toBeInTheDocument();
     expect(
       screen.getByRole("img", { name: "Bench Press thumbnail" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/3 sets/i)).toBeInTheDocument();
     expect(screen.getByText(/8–10 reps/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /record set/i })).toBeInTheDocument();
+  });
+
+  it("shows the prescribed rest timer before the first set is recorded", () => {
+    render(
+      <ActiveWorkout
+        session={{
+          ...session,
+          performances: [
+            { ...session.performances[0], targetRestSeconds: 120 },
+          ],
+        }}
+        exercisePerformanceId={session.performances[0].id}
+        onRecordSet={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Rest timer")).toBeInTheDocument();
+    expect(screen.getByText("2:00")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Play rest timer" }),
+    ).toBeEnabled();
   });
 
   it("rejects incomplete set entry before submitting", async () => {
@@ -96,6 +117,31 @@ describe("ActiveWorkout", () => {
 
     expect(repetitions).toHaveValue("");
     expect(load).toHaveValue("");
+  });
+
+  it("prefills and records the optional RIR on a focused exercise page", async () => {
+    const user = userEvent.setup();
+    const onRecordSet = vi.fn().mockResolvedValue(true);
+    render(
+      <ActiveWorkout
+        session={session}
+        exercisePerformanceId={session.performances[0].id}
+        onRecordSet={onRecordSet}
+      />,
+    );
+
+    expect(screen.getByLabelText("RIR (optional)")).toHaveValue("2");
+    await user.type(screen.getByLabelText("Repetitions"), "8");
+    await user.type(screen.getByLabelText("Load (kg)"), "100");
+    await user.click(screen.getByRole("button", { name: /record set/i }));
+
+    expect(onRecordSet).toHaveBeenCalledWith(session.performances[0].id, {
+      repetitions: 8,
+      load: "100",
+      loadUnit: "KG",
+      rir: 2,
+    });
+    expect(screen.queryByRole("button", { name: /incline/i })).not.toBeInTheDocument();
   });
 
   it("disables submission while a set request is interrupted or pending and exposes the error", () => {

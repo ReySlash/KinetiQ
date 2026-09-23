@@ -25,15 +25,14 @@ import {
   optimisticWorkoutSessionReducer,
   type OptimisticWorkoutSessionAction,
 } from "./optimistic-workout-session";
-import {
-  getProgramReturnHref,
-  WorkoutProgramContextCard,
-} from "../../components/workout-program-context";
+import { getProgramReturnHref } from "../../components/workout-program-context";
 
 export function ActiveWorkoutController({
   session,
+  exercisePerformanceId,
 }: {
   session: WorkoutSession;
+  exercisePerformanceId?: string;
 }) {
   const router = useRouter();
   const [optimisticSession, addOptimisticAction] = useOptimistic(
@@ -71,7 +70,9 @@ export function ActiveWorkoutController({
           router.refresh();
         } catch (error) {
           setSetError(
-            error instanceof Error ? error.message : "Workout set update failed.",
+            error instanceof Error
+              ? error.message
+              : "Workout set update failed.",
           );
         } finally {
           setOperationInFlight.current = false;
@@ -103,10 +104,10 @@ export function ActiveWorkoutController({
   }
 
   return (
-    <div className="mx-auto grid gap-1 md:gap-3 p-1">
-      <WorkoutProgramContextCard provenance={session.provenance} />
+    <div className="mx-auto grid gap-1 md:gap-1 p-1">
       <ActiveWorkout
         session={optimisticSession}
+        exercisePerformanceId={exercisePerformanceId}
         isSubmitting={setPending}
         error={setError}
         onRecordSet={async (performanceId, input) => {
@@ -114,7 +115,7 @@ export function ActiveWorkoutController({
             (item) => item.id === performanceId,
           );
           if (!performance) return;
-          await runSetMutation(
+          return runSetMutation(
             {
               type: "record",
               exercisePerformanceId: performanceId,
@@ -159,6 +160,9 @@ export function ActiveWorkoutController({
             () => updateWorkoutSet(session.id, performance.id, setId, input),
           );
         }}
+        onRequestFinish={
+          exercisePerformanceId ? () => setFinishOpen(true) : undefined
+        }
       />
       {lifecycleError ? (
         <Alert variant="destructive">
@@ -166,40 +170,46 @@ export function ActiveWorkoutController({
           <AlertDescription>{lifecycleError}</AlertDescription>
         </Alert>
       ) : null}
-      <div className="flex flex-row justify-center gap-2 px-3 md:justify-end">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="outline"
-                onClick={() => setCancelOpen(true)}
-                disabled={Boolean(lifecyclePending) || setPending}
-              />
-            }
-          >
-            Cancel workout
-          </TooltipTrigger>
-          <TooltipContent>Cancel workout</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                onClick={() => setFinishOpen(true)}
-                disabled={Boolean(lifecyclePending) || setPending}
-              />
-            }
-          >
-            {lifecyclePending === "complete" ? "Finishing…" : "Finish workout"}
-          </TooltipTrigger>
-          <TooltipContent>Finish workout</TooltipContent>
-        </Tooltip>
-      </div>
-      <CancelWorkoutDialog
-        open={cancelOpen}
-        onOpenChange={setCancelOpen}
-        onConfirm={() => finishAndNavigate("cancel")}
-      />
+      {!exercisePerformanceId && (
+        <div className="flex flex-row justify-center gap-2 px-3 md:justify-end">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  onClick={() => setCancelOpen(true)}
+                  disabled={Boolean(lifecyclePending) || setPending}
+                />
+              }
+            >
+              Cancel workout
+            </TooltipTrigger>
+            <TooltipContent>Cancel workout</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  onClick={() => setFinishOpen(true)}
+                  disabled={Boolean(lifecyclePending) || setPending}
+                />
+              }
+            >
+              {lifecyclePending === "complete"
+                ? "Finishing…"
+                : "Finish workout"}
+            </TooltipTrigger>
+            <TooltipContent>Finish workout</TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+      {!exercisePerformanceId && (
+        <CancelWorkoutDialog
+          open={cancelOpen}
+          onOpenChange={setCancelOpen}
+          onConfirm={() => finishAndNavigate("cancel")}
+        />
+      )}
       <FinishWorkoutDialog
         open={finishOpen}
         onOpenChange={setFinishOpen}
