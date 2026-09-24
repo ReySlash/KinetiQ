@@ -104,7 +104,7 @@ export function ActiveWorkoutController({
   }
 
   return (
-    <div className="mx-auto grid gap-1 md:gap-1 p-1">
+    <div className="mx-auto grid gap-1 md:gap-1 p-1 h-full">
       <ActiveWorkout
         session={optimisticSession}
         exercisePerformanceId={exercisePerformanceId}

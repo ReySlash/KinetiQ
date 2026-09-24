@@ -67,7 +67,7 @@ describe("ActiveWorkout", () => {
     expect(
       screen.getByRole("img", { name: "Bench Press thumbnail" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/3 sets/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 sets · 8–10 reps/i)).toBeInTheDocument();
     expect(screen.getByText(/8–10 reps/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /record set/i })).toBeInTheDocument();
   });
@@ -174,6 +174,10 @@ describe("ActiveWorkout", () => {
     await user.click(screen.getByRole("button", { name: /incline dumbbell press/i }));
     expect(screen.getAllByText("Incline Dumbbell Press").length).toBeGreaterThan(0);
     expect(screen.getByText(/30 kg × 10 reps/i)).toBeInTheDocument();
+    expect(screen.getByText("1 / 3 sets")).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Completed set records" }),
+    ).toHaveClass("h-44", "min-h-44", "overflow-y-auto");
     await user.click(screen.getByRole("button", { name: /edit set/i }));
     const editDialog = screen.getByRole("dialog");
     expect(editDialog).toHaveTextContent("Edit set");
