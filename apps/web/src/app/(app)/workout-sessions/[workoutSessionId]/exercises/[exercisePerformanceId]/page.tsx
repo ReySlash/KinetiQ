@@ -65,7 +65,7 @@ export default async function WorkoutExercisePage({
           {performance.exerciseNameSnapshot}
         </h1>
       </PageHeader>
-      <section className="min-h-0 flex-1 overflow-y-auto rounded-lg md:rounded-2xl">
+      <section className="min-h-0 flex-1 overflow-hidden rounded-lg md:rounded-2xl">
         <ActiveWorkoutController
           session={session}
           exercisePerformanceId={exercisePerformanceId}

@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { MoreLink } from "@/components/more-link";
 import ImageWithFallback from "@/components/image-with-fallback";
 import { getLocalImageSrc } from "@/lib/local-image";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -130,10 +132,20 @@ export function ActiveWorkout({
   ].every((value) => value !== null)
     ? `${performance.targetMinReps}–${performance.targetMaxReps} reps`
     : "Flexible reps";
+  const completedSetCount = performance.completedSets.length;
+  const prescribedSetCount = performance.targetSetCount;
+  const setProgress = prescribedSetCount
+    ? Math.min(100, (completedSetCount / prescribedSetCount) * 100)
+    : 0;
   const nextPerformance = session.performances[focusedIndex + 1];
 
   return (
-    <div className="grid gap-1">
+    <div
+      className={cn(
+        "grid gap-1",
+        exercisePerformanceId && "h-full min-h-0",
+      )}
+    >
       {!exercisePerformanceId && session.performances.length > 1 && (
         <div className="grid gap-1" aria-label="Workout exercises">
           <p className="px-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -179,8 +191,19 @@ export function ActiveWorkout({
           </div>
         </div>
       )}
-      <Card className="gap-1 border-border/70 bg-card/80 p-1">
-        <CardHeader className="gap-1">
+      <Card
+        className={cn(
+          "gap-1 border-border/70 bg-card/80 p-1",
+          exercisePerformanceId && "h-full min-h-0 md:h-auto",
+        )}
+      >
+        <CardHeader
+          className={cn(
+            "gap-1",
+            exercisePerformanceId &&
+              "min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)]",
+          )}
+        >
           <div className="flex items-center justify-between gap-4">
             <ImageWithFallback
               className="size-17.5 shrink-0 rounded-xl border border-border/70 object-cover"
@@ -206,76 +229,112 @@ export function ActiveWorkout({
               tooltip="View exercise details"
             />
           </div>
-          {performance.completedSets.length > 0 && (
-            <div className="grid gap-1" aria-label="Completed sets">
+          <div
+            className={cn(
+              "grid gap-1",
+              exercisePerformanceId && "!flex min-h-0 flex-1 flex-col",
+            )}
+          >
+            <div className="flex items-center justify-between gap-2">
               <p className="text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 Completed sets
               </p>
-              {performance.completedSets.map((completedSet) => (
-                <div
-                  key={completedSet.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/30 px-3 py-2 text-sm"
-                >
-                  <span>
-                    {completedSet.loadKg} {completedSet.loadUnit.toLowerCase()}{" "}
-                    × {completedSet.repetitions} reps
-                    {completedSet.rir !== null
-                      ? ` · RIR ${completedSet.rir}`
-                      : ""}
-                  </span>
-                  <div className="flex shrink-0 items-center gap-1">
-                    {onUpdateSet && (
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label="Edit set"
-                              onClick={() => {
-                                setEditingSet({
-                                  id: completedSet.id,
-                                  repetitions: completedSet.repetitions,
-                                  load: completedSet.loadKg,
-                                });
-                              }}
-                              disabled={isSubmitting}
-                            />
-                          }
-                        >
-                          Edit
-                        </TooltipTrigger>
-                        <TooltipContent>Edit set</TooltipContent>
-                      </Tooltip>
-                    )}
-                    {onDeleteSet && (
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon-sm"
-                              aria-label="Delete set"
-                              onClick={() => setDeleteSetId(completedSet.id)}
-                              disabled={isSubmitting}
-                            />
-                          }
-                        >
-                          <Trash2 />
-                        </TooltipTrigger>
-                        <TooltipContent>Delete set</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-              ))}
+              <p className="text-xs tabular-nums text-muted-foreground">
+                {completedSetCount} / {prescribedSetCount ?? "—"} sets
+              </p>
             </div>
-          )}
+            <Progress
+              value={setProgress}
+              aria-label={`${completedSetCount} of ${prescribedSetCount ?? "unknown"} sets completed`}
+              className="gap-0.5"
+            />
+            <div
+              className={cn(
+                "grid min-w-0 gap-1 overflow-y-auto overscroll-contain rounded-xl border border-border/70 bg-background/20 p-1 pr-1",
+                exercisePerformanceId
+                  ? "h-40 min-h-40 max-h-40"
+                  : "h-44 min-h-44 md:h-52 md:min-h-52",
+              )}
+              role="region"
+              aria-label="Completed set records"
+            >
+              {performance.completedSets.length > 0 ? (
+                performance.completedSets.map((completedSet) => (
+                  <div
+                    key={completedSet.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/30 px-3 py-2 text-sm"
+                  >
+                    <span>
+                      {completedSet.loadKg} {completedSet.loadUnit.toLowerCase()}{" "}
+                      × {completedSet.repetitions} reps
+                      {completedSet.rir !== null
+                        ? ` · RIR ${completedSet.rir}`
+                        : ""}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {onUpdateSet && (
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Edit set"
+                                onClick={() => {
+                                  setEditingSet({
+                                    id: completedSet.id,
+                                    repetitions: completedSet.repetitions,
+                                    load: completedSet.loadKg,
+                                  });
+                                }}
+                                disabled={isSubmitting}
+                              />
+                            }
+                          >
+                            Edit
+                          </TooltipTrigger>
+                          <TooltipContent>Edit set</TooltipContent>
+                        </Tooltip>
+                      )}
+                      {onDeleteSet && (
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon-sm"
+                                aria-label="Delete set"
+                                onClick={() => setDeleteSetId(completedSet.id)}
+                                disabled={isSubmitting}
+                              />
+                            }
+                          >
+                            <Trash2 />
+                          </TooltipTrigger>
+                          <TooltipContent>Delete set</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="flex min-h-0 items-center justify-center text-sm text-muted-foreground">
+                  No sets recorded yet.
+                </p>
+              )}
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="gap-1">
-          <form onSubmit={handleSubmit} className="grid gap-1">
+        <CardContent
+          className={cn(
+            "gap-1",
+            exercisePerformanceId && "flex min-h-0 flex-none flex-col",
+          )}
+        >
+          <div className={cn("grid gap-1", exercisePerformanceId && "mt-auto")}>
+            <form onSubmit={handleSubmit} className="grid gap-1">
             {validationError && (
               <p role="alert" className="text-sm text-destructive">
                 {validationError}
@@ -326,41 +385,42 @@ export function ActiveWorkout({
                 {isSubmitting ? "Saving set…" : "Record set"}
               </Button>
             </div>
-          </form>
-          {exercisePerformanceId &&
-          performance.targetRestSeconds !== null &&
-          performance.targetRestSeconds !== undefined ? (
-            <div className="p-1">
-              <RestTimer
-                key={`${performance.id}-${restTimerKey}`}
-                seconds={performance.targetRestSeconds}
-                autoStart={restTimerKey > 0}
-                storageKey={`kinetiq:rest-timer:${session.id}:${performance.id}`}
-                startFresh={restTimerKey > 0}
-              />
-            </div>
-          ) : null}
-          {exercisePerformanceId ? (
-            <div className="flex justify-center gap-2">
-              <StyledLink
-                href={`/workout-sessions/${session.id}`}
-                variant="outline"
-              >
-                Back to workout
-              </StyledLink>
-              {nextPerformance ? (
+            </form>
+            {exercisePerformanceId &&
+            performance.targetRestSeconds !== null &&
+            performance.targetRestSeconds !== undefined ? (
+              <div className="p-1">
+                <RestTimer
+                  key={`${performance.id}-${restTimerKey}`}
+                  seconds={performance.targetRestSeconds}
+                  autoStart={restTimerKey > 0}
+                  storageKey={`kinetiq:rest-timer:${session.id}:${performance.id}`}
+                  startFresh={restTimerKey > 0}
+                />
+              </div>
+            ) : null}
+            {exercisePerformanceId ? (
+              <div className="flex justify-center gap-2">
                 <StyledLink
-                  href={`/workout-sessions/${session.id}/exercises/${nextPerformance.id}`}
+                  href={`/workout-sessions/${session.id}`}
+                  variant="outline"
                 >
-                  Next exercise
+                  Back to workout
                 </StyledLink>
-              ) : onRequestFinish ? (
-                <Button type="button" onClick={onRequestFinish}>
-                  Finish workout
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
+                {nextPerformance ? (
+                  <StyledLink
+                    href={`/workout-sessions/${session.id}/exercises/${nextPerformance.id}`}
+                  >
+                    Next exercise
+                  </StyledLink>
+                ) : onRequestFinish ? (
+                  <Button type="button" onClick={onRequestFinish}>
+                    Finish workout
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
       <DeleteSetDialog
