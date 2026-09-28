@@ -10,8 +10,8 @@ import { RateLimitedState } from "@/components/rate-limited-state";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Workout Sessions",
-  description: "Start, resume, and review your workouts.",
+  title: "Workouts",
+  description: "Start, resume, and review performed workouts.",
 };
 
 type SearchParams = { [key: string]: string | string[] | undefined };
@@ -51,8 +51,8 @@ export default async function WorkoutSessionsPage({
 
   return (
     <main className="flex h-dvh w-full flex-col gap-1 px-0.5 pb-13 md:gap-2 md:px-2 md:pb-2 md:pt-0">
-      <PageHeader subtitle="Start, resume, and review your workouts.">
-        <h1 className="text-lg leading-none font-bold">Workout sessions</h1>
+      <PageHeader subtitle="Start, resume, and review performed workouts.">
+        <h1 className="text-lg leading-none font-bold">Workouts</h1>
       </PageHeader>
       <section className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto px-1 py-1 md:px-0">
         {result.status === "rate-limited" || routinesResult.status === "rate-limited" ? (

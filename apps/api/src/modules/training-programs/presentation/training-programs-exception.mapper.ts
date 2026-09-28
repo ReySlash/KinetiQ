@@ -50,18 +50,23 @@ export function toTrainingProgramsHttpException(error: unknown): Error {
   if (error instanceof TrainingProgramPersistenceError) {
     return new InternalServerErrorException(
       'Failed to create training program.',
+      { cause: error },
     );
   }
   if (error instanceof TrainingProgramDeletePersistenceError) {
     return new InternalServerErrorException(
       'Failed to delete training program.',
+      { cause: error },
     );
   }
   if (error instanceof TrainingProgramQueryError) {
     return new InternalServerErrorException(
       'Failed to fetch training programs.',
+      { cause: error },
     );
   }
 
-  return new InternalServerErrorException('Training program request failed.');
+  return new InternalServerErrorException('Training program request failed.', {
+    cause: error,
+  });
 }

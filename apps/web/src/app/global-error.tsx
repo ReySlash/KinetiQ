@@ -1,11 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import { ServiceUnavailableState } from "@/components/service-unavailable-state";
+import { captureWebException } from "@/lib/monitoring/capture";
 
-export default function GlobalError({ reset }: {
+export default function GlobalError({ error, reset }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    captureWebException(error);
+  }, [error]);
+
   return (
     <html lang="en" className="dark min-h-full antialiased">
       <body className="min-h-dvh bg-background text-foreground">

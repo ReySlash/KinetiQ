@@ -84,6 +84,12 @@ acceptance gate.
 - [x] Set `NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com`.
 - [x] Set `NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com`.
 - [x] Set server-only `API_PROXY_URL=https://api.kinetiq.reyslash.com` on Vercel.
+- [ ] Set the `kinetiq-web` `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`,
+      `SENTRY_ORG`, and `SENTRY_PROJECT=kinetiq-web` in Vercel Production.
+- [ ] Set the `kinetiq-api` `SENTRY_DSN` and reviewed `COMMIT_SHA` in the API
+      runtime environment.
+- [ ] Provide the API source-map upload token only through the Docker BuildKit
+      secret, with `SENTRY_ORG` and `SENTRY_PROJECT=kinetiq-api` as build inputs.
 - [ ] Store production secrets outside Git.
 - [ ] Keep production, test, and local credentials completely separate.
 - [ ] Verify that secrets are absent from images, logs, Swagger, and CI artifacts.
@@ -187,12 +193,29 @@ acceptance gate.
 - [x] Emit structured API logs containing timestamp, service, environment,
       commit SHA, method, route, status, duration, and request ID.
 - [x] Configure bounded Docker and Nginx log retention settings.
+- [x] Add production-only Sentry integration with separate web and API projects.
+- [x] Capture unhandled web failures and non-health API `5xx` failures while
+      excluding normal API `4xx` responses.
+- [x] Disable tracing, profiling, replay, logs, and breadcrumbs.
+- [x] Sanitize monitoring events to exclude identity, credentials, cookies,
+      query strings, request/response bodies, form values, notes, and workout
+      payloads.
+- [x] Identify monitored releases by deployed Git SHA.
+- [x] Upload private source maps during production builds and exclude upload
+      credentials and source maps from runtime artifacts.
+- [ ] Create the Sentry organization and `kinetiq-web`/`kinetiq-api` projects.
+- [ ] Configure email alerts for new and regressed production issues.
+- [ ] Enable Sentry free-tier quota notifications.
+- [ ] Exclude development, preview, browser-extension, and localhost events in
+      the hosted Sentry projects.
+- [ ] Verify one controlled web error and one controlled API `500`, including
+      source mapping, release/request-ID metadata, privacy, and email delivery.
 - [ ] Configure email alerts for API and web readiness failures.
 - [ ] Configure an alert for elevated HTTP 5xx rates.
 - [ ] Configure an alert for container restart loops.
 - [ ] Configure disk-usage alerts at 80% and 90%.
 - [ ] Configure alerts for Neon connection or storage failures.
-- [ ] Configure an alert when the latest backup is more than 30 hours old.
+- [ ] Add a backup-age alert when recurring backups are introduced.
 - [ ] Configure an alert when the certificate expires within 14 days.
 - [ ] Maintain an inventory of VPS, domain, Neon, Resend, GitHub, and DNS
       credentials.
@@ -234,10 +257,10 @@ The remaining items in this section are post-launch hardening:
 These are intentionally deferred and are not first-beta blockers:
 
 - External encrypted logical backups in independent object storage.
-- Monitoring and email alert infrastructure.
 - Restore rehearsal and isolated restore verification.
 - Detailed RPO/RTO measurement (the target remains RPO 24 hours and RTO 4
   hours for planning).
+- Off-host uptime, VPS resource, certificate, and database alert infrastructure.
 - Exhaustive incident runbooks and advanced operational dashboards.
 - Automated deployment orchestration.
 
@@ -303,6 +326,8 @@ baseline from the acceptance work that remains:
 - [x] Liveness and readiness probes work locally.
 - [x] Basic request-ID logs and application rollback documentation are
       implemented; Neon backups/PITR remain operator verification.
+- [ ] Hosted Sentry projects, source-map credentials, new/regressed-issue email
+      alerts, and controlled production-event verification are complete.
 - [ ] CI gates are required on `dev` and `main`.
 - [ ] The complete HTTPS acceptance journey passes.
 

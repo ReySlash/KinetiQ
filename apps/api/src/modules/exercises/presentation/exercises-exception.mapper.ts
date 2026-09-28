@@ -26,10 +26,16 @@ export function toExercisesHttpException(error: unknown): Error {
     return new BadRequestException(error.message);
   }
   if (error instanceof ExercisePersistenceError) {
-    return new InternalServerErrorException('Failed to persist exercise.');
+    return new InternalServerErrorException('Failed to persist exercise.', {
+      cause: error,
+    });
   }
   if (error instanceof ExerciseQueryError) {
-    return new InternalServerErrorException('Failed to fetch exercises.');
+    return new InternalServerErrorException('Failed to fetch exercises.', {
+      cause: error,
+    });
   }
-  return new InternalServerErrorException('Exercise request failed.');
+  return new InternalServerErrorException('Exercise request failed.', {
+    cause: error,
+  });
 }

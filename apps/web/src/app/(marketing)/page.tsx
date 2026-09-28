@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ArrowRight, BarChart3, BookOpenCheck, ListChecks } from "lucide-react";
+import { BarChart3, BookOpenCheck, ListChecks } from "lucide-react";
 
-import StyledLink from "@/components/styled-link";
+import { MarketingCta } from "./_components/marketing-cta";
 import { MarketingFeature } from "./_components/marketing-feature";
 import { MarketingFooter } from "./_components/marketing-footer";
 import { MarketingHeader } from "./_components/marketing-header";
@@ -97,23 +97,23 @@ export default function MarketingPage() {
               </p>
 
               <div className="mt-3 flex justify-center gap-3 sm:mt-4 lg:mt-6 lg:justify-start">
-                <StyledLink
+                <MarketingCta
                   href="/sign-up"
                   size="lg"
+                  ariaLabel="Get started"
                   className="h-10 min-w-0 flex-1 rounded-lg px-3 text-xs sm:h-11 sm:flex-none sm:px-5 sm:text-sm sm:w-48"
                 >
                   Get started
-                  <ArrowRight aria-hidden="true" />
-                </StyledLink>
-                <StyledLink
+                </MarketingCta>
+                <MarketingCta
                   href="/exercises"
                   variant="outline"
                   size="lg"
+                  ariaLabel="Explore exercises"
                   className="h-10 min-w-0 flex-1 rounded-lg border-border/80 bg-background/60 px-3 text-xs sm:h-11 sm:flex-none sm:px-5 sm:text-sm sm:w-48"
                 >
                   Explore exercises
-                  <ArrowRight aria-hidden="true" />
-                </StyledLink>
+                </MarketingCta>
               </div>
 
               <ul
@@ -227,22 +227,24 @@ export default function MarketingPage() {
                   Build a clearer training system with KinetiQ.
                 </p>
                 <div className="mt-7 flex flex-wrap justify-center gap-3">
-                  <StyledLink
+                  <MarketingCta
                     href="/sign-up"
                     size="lg"
+                    ariaLabel="Get started"
+                    showArrow={false}
                     className="h-11 w-full rounded-lg px-5 sm:w-48"
                   >
                     Get started
-                  </StyledLink>
-                  <StyledLink
+                  </MarketingCta>
+                  <MarketingCta
                     href="/exercises"
                     variant="outline"
                     size="lg"
+                    ariaLabel="Explore exercises"
                     className="h-11 w-full rounded-lg border-border/80 bg-background/50 px-5 sm:w-48"
                   >
                     Explore exercises
-                    <ArrowRight aria-hidden="true" />
-                  </StyledLink>
+                  </MarketingCta>
                 </div>
               </div>
             </div>

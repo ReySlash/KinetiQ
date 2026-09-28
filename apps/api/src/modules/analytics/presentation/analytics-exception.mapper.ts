@@ -14,7 +14,10 @@ export function toAnalyticsHttpException(error: unknown): Error {
   if (error instanceof AnalyticsQueryError) {
     return new InternalServerErrorException(
       'Analytics data could not be loaded.',
+      { cause: error },
     );
   }
-  return new InternalServerErrorException('Analytics request failed.');
+  return new InternalServerErrorException('Analytics request failed.', {
+    cause: error,
+  });
 }

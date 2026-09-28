@@ -10,6 +10,7 @@ export interface EnvironmentVariables {
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
   COMMIT_SHA?: string;
+  SENTRY_DSN?: string;
 }
 
 const validNodeEnvs = new Set<NodeEnv>(['development', 'test', 'production']);
@@ -100,6 +101,25 @@ function parseProductionAuthConfig(
   }
 }
 
+function parseProductionMonitoringConfig(
+  nodeEnv: NodeEnv,
+  sentryDsn: string | undefined,
+  commitSha: string | undefined,
+): void {
+  if (nodeEnv !== 'production') {
+    return;
+  }
+
+  if (!sentryDsn) {
+    throw new Error('SENTRY_DSN is required in production.');
+  }
+  parseOptionalUrl('SENTRY_DSN', sentryDsn);
+
+  if (!commitSha || commitSha.trim() === '') {
+    throw new Error('COMMIT_SHA is required in production.');
+  }
+}
+
 export function validateEnv(
   config: Record<string, unknown>,
 ): EnvironmentVariables {
@@ -128,6 +148,8 @@ export function validateEnv(
       : undefined;
   const commitSha =
     typeof config.COMMIT_SHA === 'string' ? config.COMMIT_SHA : undefined;
+  const sentryDsn =
+    typeof config.SENTRY_DSN === 'string' ? config.SENTRY_DSN : undefined;
 
   const parsedNodeEnv = parseNodeEnv(nodeEnv);
   const parsedWebOrigin = parseOptionalUrl('WEB_ORIGIN', webOrigin);
@@ -144,6 +166,7 @@ export function validateEnv(
     resendApiKey,
     resendFromEmail,
   );
+  parseProductionMonitoringConfig(parsedNodeEnv, sentryDsn, commitSha);
 
   return {
     NODE_ENV: parsedNodeEnv,
@@ -159,5 +182,6 @@ export function validateEnv(
     RESEND_API_KEY: resendApiKey,
     RESEND_FROM_EMAIL: resendFromEmail,
     COMMIT_SHA: commitSha,
+    SENTRY_DSN: sentryDsn,
   };
 }

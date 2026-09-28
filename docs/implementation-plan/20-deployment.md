@@ -31,6 +31,10 @@ Vercel builds `apps/web` from a reviewed `main` commit. Production variables:
 - `NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com`
 - `NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com`
 - `API_PROXY_URL=https://api.kinetiq.reyslash.com`
+- `NEXT_PUBLIC_SENTRY_DSN` for the `kinetiq-web` project
+- `SENTRY_AUTH_TOKEN` with source-map upload scope
+- `SENTRY_ORG`
+- `SENTRY_PROJECT=kinetiq-web`
 
 `API_PROXY_URL` is server-only. Next.js rewrites `/api/:path*` to the Oracle API
 without placing the backend origin into application request code. Rewrites do
@@ -38,6 +42,9 @@ not replace API authentication or authorization.
 
 Vercel deployment history provides frontend rollback. Preview deployments must
 use non-production credentials or be excluded from production trusted origins.
+Only Vercel Production builds enable monitoring. They fail closed when the web
+DSN, source-map credentials, or deployed Git SHA are absent; preview, CI, test,
+and local builds remain unmonitored.
 
 ## API packaging and VPS deployment
 
@@ -46,7 +53,9 @@ contains production API dependencies, compiled output, and generated Prisma
 runtime files; it runs as the non-root `node` user and exposes liveness and
 readiness health checks.
 
-Build from a reviewed Git SHA and set `COMMIT_SHA` in runtime metadata. Do not
+Build from a reviewed Git SHA and set `COMMIT_SHA` plus the `kinetiq-api`
+`SENTRY_DSN` in runtime configuration. API production startup fails when either
+value is absent. Do not
 make long-lived edits directly on the VPS. If an emergency change occurs there,
 commit it and merge it back through `main` and `dev` immediately so Git remains
 authoritative.
@@ -54,6 +63,12 @@ authoritative.
 The production Compose file remains useful for API deployment, local image
 validation, and a possible future self-hosted frontend. The current Vercel beta
 does not run its web service on Oracle.
+
+Production API builds upload private source maps to `kinetiq-api`. Supply
+`SENTRY_AUTH_TOKEN` through the declared Docker BuildKit secret and provide
+`SENTRY_ORG`; do not place the upload token in a build argument, runtime image,
+or production environment file. The build removes source maps before creating
+the runtime image.
 
 ## Database and migrations
 
@@ -110,6 +125,9 @@ is stable.
 - `/health` checks the Vercel Next.js application.
 - Nginx and the API propagate request IDs; API request logs are structured and
   exclude credentials and request payloads.
+- Separate production Sentry projects receive sanitized web and API errors with
+  release metadata and private source-map resolution. They do not receive
+  tracing, replay, identity, request contents, normal `4xx`, or health failures.
 
 Rollback the frontend by promoting a known-good Vercel deployment. Roll back
 the API by rebuilding/restarting the previous reviewed SHA, provided migrations
@@ -118,11 +136,13 @@ migration; prefer a forward fix.
 
 ## Readiness gates before beta invitations
 
-Monitoring, email alerts, health checks, bounded logs, and application rollback
-remain part of the initial beta baseline. The current prototype has only a few
+Basic Sentry error monitoring, new/regressed-issue email alerts, health checks,
+bounded logs, and application rollback remain part of the initial beta
+baseline. The current prototype has only a few
 testers, so automated database backups, isolated restore rehearsal, and formal
 RPO/RTO measurement are explicitly deferred. Take a manual Neon snapshot before
 Prisma migrations or other risky database changes and record that it is not a
 recurring backup guarantee. Revisit full database protection when the product
-moves to the planned consolidated Hostinger VPS for paid users. Automated API
-deployment and advanced operational dashboards remain deferred.
+moves to the planned consolidated Hostinger VPS for paid users. Off-host uptime
+and VPS resource monitoring, automated API deployment, and advanced operational
+dashboards remain deferred.

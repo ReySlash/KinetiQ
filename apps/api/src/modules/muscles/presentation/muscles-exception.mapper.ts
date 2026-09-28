@@ -26,10 +26,16 @@ export function toMusclesHttpException(error: unknown): Error {
     return new BadRequestException(error.message);
   }
   if (error instanceof MusclePersistenceError) {
-    return new InternalServerErrorException('Failed to persist muscle.');
+    return new InternalServerErrorException('Failed to persist muscle.', {
+      cause: error,
+    });
   }
   if (error instanceof MuscleQueryError) {
-    return new InternalServerErrorException('Failed to fetch muscles.');
+    return new InternalServerErrorException('Failed to fetch muscles.', {
+      cause: error,
+    });
   }
-  return new InternalServerErrorException('Muscle request failed.');
+  return new InternalServerErrorException('Muscle request failed.', {
+    cause: error,
+  });
 }

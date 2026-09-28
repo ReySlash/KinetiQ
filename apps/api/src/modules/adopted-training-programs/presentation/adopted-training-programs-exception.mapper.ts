@@ -73,8 +73,11 @@ function withCode(
     | typeof UnprocessableEntityException,
   error: Error & { code?: string },
 ): Error {
-  return new ExceptionType({
-    message: error.message,
-    ...(error.code ? { code: error.code } : {}),
-  });
+  return new ExceptionType(
+    {
+      message: error.message,
+      ...(error.code ? { code: error.code } : {}),
+    },
+    { cause: error },
+  );
 }

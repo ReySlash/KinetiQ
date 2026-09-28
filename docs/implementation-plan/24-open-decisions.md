@@ -25,6 +25,7 @@ Record choices that materially affect implementation. Resolve a decision just be
 | Production media                        | Tracked static WebP assets for the beta; managed provider and upload architecture deferred                                                                                                                             | Keeps the first deployment reproducible while leaving later media delivery provider-neutral                                     |
 | Closed-beta topology                    | Next.js on Vercel, Dockerized NestJS behind Nginx on Oracle Cloud, and Neon PostgreSQL; browser `/api` calls use a Vercel rewrite to the API hostname                                                                  | Separates the independently hosted web and API while preserving same-origin browser requests                                    |
 | First-beta release process              | Vercel deploys reviewed `main`; the API is manually built on the VPS from the same reviewed SHA; no image registry or automated API deployment yet                                                                    | Keeps the first release traceable without premature deployment orchestration                                                     |
+| Production error monitoring             | Hosted Sentry free tier with separate `kinetiq-web` and `kinetiq-api` projects; production-only errors, private source maps, release SHA, strict metadata allowlist, and no tracing/replay/user identity/request contents | Provides actionable stack traces for a small beta without widening the application data collected by monitoring                  |
 | Muscle involvement scale                | Store and validate integers 0–5; warn on usually-unnecessary zero assignments                                                                                                                                          | Matches the project-wide required scale while preserving explicit “negligible” meaning                                          |
 | Training Programs backend architecture  | Pilot lean Clean Architecture/DDD layers inside one vertical feature module; leave existing modules unchanged                                                                                                          | Tests architectural value on a rule-bearing aggregate without authorizing a repository-wide rewrite                             |
 | Workout-session strength facts          | Canonical kilograms in `Decimal(7,2)`, retain entered KG/LB, and store `CompletedSet.isWarmup`                                                                                                                         | Preserves precise raw facts and the user-entered unit without expanding into later modalities                                   |
@@ -138,9 +139,12 @@ deferred.
 
 Recommendation for private MVP: 24-hour RPO, 4-hour RTO, daily/weekly/monthly backup retention, and quarterly restore drills. Confirm based on expected user cost of lost routines.
 
-### Monitoring/error provider
+### Remaining operational monitoring
 
-Choose off-host uptime/alerting, error tracking, and log retention with privacy/data-region review. Minimum launch requirement is external uptime/backup/certificate/disk alerts and correlated structured logs.
+Sentry is accepted for application error tracking. Choose off-host uptime and
+host-resource monitoring plus longer-term log retention/search after reviewing
+cost and data location. Certificate, disk, database, and availability alerts
+remain separate from Sentry application-error alerts.
 
 ## Deferred product decisions
 

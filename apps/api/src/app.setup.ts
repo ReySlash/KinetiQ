@@ -27,6 +27,7 @@ export function configureApp(app: INestApplication): void {
     const startedAt = performance.now();
 
     response.setHeader('x-request-id', requestId);
+    response.locals.requestId = requestId;
     response.on('finish', () => {
       Logger.log(
         JSON.stringify({
