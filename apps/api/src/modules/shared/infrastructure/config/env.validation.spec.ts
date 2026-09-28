@@ -92,11 +92,35 @@ describe('validateEnv', () => {
         WEB_ORIGIN: 'https://app.example.com',
         RESEND_API_KEY: 're_test_key',
         RESEND_FROM_EMAIL: 'KinetiQ <noreply@example.com>',
+        SENTRY_DSN: 'https://public@example.ingest.sentry.io/1',
+        COMMIT_SHA: 'abc123',
       }),
     ).toMatchObject({
       NODE_ENV: 'production',
       BETTER_AUTH_URL: 'https://api.example.com',
       WEB_ORIGIN: 'https://app.example.com',
     });
+  });
+
+  it('requires production error-monitoring configuration', () => {
+    const productionConfig = {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgresql://db',
+      BETTER_AUTH_SECRET: 'a'.repeat(32),
+      BETTER_AUTH_URL: 'https://api.example.com',
+      WEB_ORIGIN: 'https://app.example.com',
+      RESEND_API_KEY: 're_test_key',
+      RESEND_FROM_EMAIL: 'KinetiQ <noreply@example.com>',
+    };
+
+    expect(() => validateEnv(productionConfig)).toThrow(
+      'SENTRY_DSN is required in production.',
+    );
+    expect(() =>
+      validateEnv({
+        ...productionConfig,
+        SENTRY_DSN: 'https://public@example.ingest.sentry.io/1',
+      }),
+    ).toThrow('COMMIT_SHA is required in production.');
   });
 });

@@ -11,6 +11,9 @@ type StyledLinkProps = {
   className?: string;
   children?: React.ReactNode;
   onClick?: React.ComponentProps<typeof Link>["onClick"];
+  "aria-busy"?: React.AriaAttributes["aria-busy"];
+  "aria-disabled"?: React.AriaAttributes["aria-disabled"];
+  ariaLabel?: string;
 };
 
 export default function StyledLink(props: StyledLinkProps) {
@@ -21,12 +24,18 @@ export default function StyledLink(props: StyledLinkProps) {
     className,
     children,
     onClick,
+    "aria-busy": ariaBusy,
+    "aria-disabled": ariaDisabled,
+    ariaLabel,
   } = props;
 
   return (
     <Link
       href={href}
       onClick={onClick}
+      aria-busy={ariaBusy}
+      aria-disabled={ariaDisabled}
+      aria-label={ariaLabel}
       className={cn(buttonVariants({ variant, size }), className)}
     >
       {children}

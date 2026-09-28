@@ -1,11 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import { ServiceUnavailableState } from "@/components/service-unavailable-state";
+import { captureWebException } from "@/lib/monitoring/capture";
 
-export default function Error({ reset }: {
+export default function Error({ error, reset }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    captureWebException(error);
+  }, [error]);
+
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-background p-4 text-foreground">
       <section className="w-full max-w-2xl rounded-2xl border border-border/70 bg-card/80 shadow-sm">

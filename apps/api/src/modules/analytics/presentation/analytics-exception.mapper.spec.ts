@@ -36,5 +36,6 @@ describe('toAnalyticsHttpException', () => {
     expect(
       (exception as InternalServerErrorException).getResponse(),
     ).toMatchObject({ message: 'Analytics data could not be loaded.' });
+    expect(exception.cause).toBe(error);
   });
 });

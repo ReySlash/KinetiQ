@@ -48,7 +48,11 @@ pnpm --filter web build
 
 The root shortcuts `pnpm dev:web`, `pnpm lint:web`, and `pnpm build:web` are
 also available. The production build requires valid `NEXT_PUBLIC_SITE_URL`,
-`NEXT_PUBLIC_API_URL`, and server-side `API_PROXY_URL` values in Vercel.
+`NEXT_PUBLIC_API_URL`, and server-side `API_PROXY_URL` values in Vercel. Vercel
+Production additionally requires `NEXT_PUBLIC_SENTRY_DSN`,
+`SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT=kinetiq-web`, and the Git SHA
+provided by Vercel. Monitoring and source-map upload stay disabled for local,
+test, CI, and preview builds.
 
 ## Tests
 

@@ -32,9 +32,14 @@ is an outstanding repository task.
    - `NEXT_PUBLIC_SITE_URL=https://kinetiq.reyslash.com`
    - `NEXT_PUBLIC_API_URL=https://kinetiq.reyslash.com`
    - `API_PROXY_URL=https://api.kinetiq.reyslash.com`
+   - `NEXT_PUBLIC_SENTRY_DSN` for `kinetiq-web`
+   - `SENTRY_AUTH_TOKEN` with source-map upload scope
+   - `SENTRY_ORG`
+   - `SENTRY_PROJECT=kinetiq-web`
 4. On the VPS, fetch and check out the same reviewed SHA.
 5. Apply Prisma migrations to Neon with production credentials.
-6. Build and restart the API image with `COMMIT_SHA` set to that SHA.
+6. Export the API source-map build credentials, then build and restart the API
+   image with `COMMIT_SHA` set to that SHA and the `kinetiq-api` runtime DSN.
 7. Verify private-container and public HTTPS health endpoints.
 8. Run the closed-beta acceptance journey and record the deployed SHA and
    migration state.
@@ -63,8 +68,14 @@ sudo certbot renew --dry-run
 Keep production values outside Git. The VPS API requires `NODE_ENV`, `PORT`,
 `WEB_ORIGIN`, Neon `DATABASE_URL`, `BETTER_AUTH_URL`, a high-entropy
 `BETTER_AUTH_SECRET`, Resend configuration, and `COMMIT_SHA`. Vercel owns the
-three web variables listed above. Production, CI, and local credentials must
-remain separate.
+web variables listed above. The API also requires `SENTRY_DSN` at runtime.
+Production, CI, and local credentials must remain separate.
+
+The API image build consumes `SENTRY_AUTH_TOKEN` through a Docker BuildKit
+secret and reads `SENTRY_ORG` plus `SENTRY_PROJECT=kinetiq-api` as build
+metadata. The token is not a runtime environment variable and must not be stored
+in `deploy/production.env`. Monitoring is disabled for local, test, CI, and
+preview execution.
 
 ## Database migrations
 
@@ -99,7 +110,12 @@ curl --fail https://kinetiq.reyslash.com/health
 
 Also verify signup, verification email, sign-in/out, public reference reads,
 owner-scoped routines/programs/workouts/analytics, important images, responsive
-layouts, and safe production errors.
+layouts, and safe production errors. Before inviting testers, intentionally
+exercise one controlled web error and one existing controlled API `500` path in
+a private verification session. Confirm each event reaches the correct Sentry
+project, resolves to repository source, contains release/request-ID metadata,
+contains none of the prohibited request or identity data, and triggers the
+new-issue email alert. Do not add a public error-trigger endpoint.
 
 ## Rollback
 
@@ -112,6 +128,7 @@ production migration.
 
 ## Post-launch work
 
-External encrypted logical backups, monitoring/email alerts, restore rehearsal,
-detailed RPO/RTO measurement, exhaustive incident runbooks, automated API
-deployment orchestration, and operational dashboards remain post-launch work.
+External encrypted logical backups, restore rehearsal, detailed RPO/RTO
+measurement, off-host uptime/VPS resource alerts, exhaustive incident runbooks,
+automated API deployment orchestration, and operational dashboards remain
+post-launch work.

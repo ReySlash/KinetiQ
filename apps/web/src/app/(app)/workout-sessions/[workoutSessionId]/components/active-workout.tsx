@@ -141,10 +141,7 @@ export function ActiveWorkout({
 
   return (
     <div
-      className={cn(
-        "grid gap-1",
-        exercisePerformanceId && "h-full min-h-0",
-      )}
+      className={cn("grid gap-1", exercisePerformanceId && "h-full min-h-0")}
     >
       {!exercisePerformanceId && session.performances.length > 1 && (
         <div className="grid gap-1" aria-label="Workout exercises">
@@ -232,7 +229,7 @@ export function ActiveWorkout({
           <div
             className={cn(
               "grid gap-1",
-              exercisePerformanceId && "!flex min-h-0 flex-1 flex-col",
+              exercisePerformanceId && "flex! min-h-0 flex-1 flex-col",
             )}
           >
             <div className="flex items-center justify-between gap-2">
@@ -265,8 +262,9 @@ export function ActiveWorkout({
                     className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/30 px-3 py-2 text-sm"
                   >
                     <span>
-                      {completedSet.loadKg} {completedSet.loadUnit.toLowerCase()}{" "}
-                      × {completedSet.repetitions} reps
+                      {completedSet.loadKg}{" "}
+                      {completedSet.loadUnit.toLowerCase()} ×{" "}
+                      {completedSet.repetitions} reps
                       {completedSet.rir !== null
                         ? ` · RIR ${completedSet.rir}`
                         : ""}
@@ -335,56 +333,56 @@ export function ActiveWorkout({
         >
           <div className={cn("grid gap-1", exercisePerformanceId && "mt-auto")}>
             <form onSubmit={handleSubmit} className="grid gap-1">
-            {validationError && (
-              <p role="alert" className="text-sm text-destructive">
-                {validationError}
-              </p>
-            )}
-            {error && (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            )}
-            <div className="grid grid-cols-2 gap-4">
+              {validationError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {validationError}
+                </p>
+              )}
+              {error && (
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="workout-repetitions">Repetitions</Label>
+                  <Input
+                    id="workout-repetitions"
+                    inputMode="numeric"
+                    value={repetitions}
+                    onChange={(event) => setRepetitions(event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="workout-load">Load (kg)</Label>
+                  <Input
+                    id="workout-load"
+                    inputMode="decimal"
+                    value={load}
+                    onChange={(event) => setLoad(event.target.value)}
+                  />
+                </div>
+              </div>
               <div className="grid gap-2">
-                <Label htmlFor="workout-repetitions">Repetitions</Label>
+                <Label htmlFor="workout-rir">RIR (optional)</Label>
                 <Input
-                  id="workout-repetitions"
+                  id="workout-rir"
                   inputMode="numeric"
-                  value={repetitions}
-                  onChange={(event) => setRepetitions(event.target.value)}
+                  value={rir}
+                  onChange={(event) => setRir(event.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="workout-load">Load (kg)</Label>
-                <Input
-                  id="workout-load"
-                  inputMode="decimal"
-                  value={load}
-                  onChange={(event) => setLoad(event.target.value)}
-                />
+              <div className="flex justify-center md:justify-end p-1">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={isSubmitting}
+                  aria-label="Record set"
+                  className="border-primary! text-primary hover:bg-primary! hover:text-black!"
+                >
+                  {isSubmitting ? "Saving set…" : "Record set"}
+                </Button>
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="workout-rir">RIR (optional)</Label>
-              <Input
-                id="workout-rir"
-                inputMode="numeric"
-                value={rir}
-                onChange={(event) => setRir(event.target.value)}
-              />
-            </div>
-            <div className="flex justify-center md:justify-end p-1">
-              <Button
-                type="submit"
-                variant="outline"
-                disabled={isSubmitting}
-                aria-label="Record set"
-                className="border-primary! text-primary hover:bg-primary! hover:text-black!"
-              >
-                {isSubmitting ? "Saving set…" : "Record set"}
-              </Button>
-            </div>
             </form>
             {exercisePerformanceId &&
             performance.targetRestSeconds !== null &&

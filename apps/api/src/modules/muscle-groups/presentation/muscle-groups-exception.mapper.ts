@@ -17,8 +17,12 @@ export function toMuscleGroupsHttpException(
   }
 
   if (error instanceof MuscleGroupQueryError) {
-    return new InternalServerErrorException(queryFailureMessage);
+    return new InternalServerErrorException(queryFailureMessage, {
+      cause: error,
+    });
   }
 
-  return new InternalServerErrorException('Muscle group request failed.');
+  return new InternalServerErrorException('Muscle group request failed.', {
+    cause: error,
+  });
 }

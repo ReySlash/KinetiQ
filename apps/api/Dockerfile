@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Node.js 24, matching the repository's reviewed base image.
 ARG NODE_IMAGE=node:24.21.0-bookworm-slim@sha256:2fe369e969550cde8e867afc3fe370b260140cab4a23d467074295b42163d553
 
@@ -23,11 +24,29 @@ RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS build
 
+ARG COMMIT_SHA=unknown
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT=kinetiq-api
+ARG UPLOAD_SENTRY_SOURCEMAPS=false
+
 COPY apps/api apps/api
 
 # Always generate Prisma from the source/schema inside Docker.
 RUN pnpm --filter api prisma:generate
 RUN pnpm --filter api build
+RUN --mount=type=secret,id=sentry_auth_token \
+  if [ "${UPLOAD_SENTRY_SOURCEMAPS}" = "true" ]; then \
+    test -n "${SENTRY_ORG}"; \
+    test -n "${SENTRY_PROJECT}"; \
+    test "${COMMIT_SHA}" != "unknown"; \
+    test -s /run/secrets/sentry_auth_token; \
+    export SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; \
+    export SENTRY_ORG="${SENTRY_ORG}"; \
+    export SENTRY_PROJECT="${SENTRY_PROJECT}"; \
+    export COMMIT_SHA="${COMMIT_SHA}"; \
+    pnpm --filter api sentry:sourcemaps; \
+  fi; \
+  find apps/api/dist -type f -name '*.map' -delete
 
 FROM base AS production-dependencies
 

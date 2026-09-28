@@ -33,10 +33,16 @@ export function toRoutinesHttpException(error: unknown): Error {
     return new ConflictException(error.message);
   }
   if (error instanceof RoutinePersistenceError) {
-    return new InternalServerErrorException('Failed to persist routine.');
+    return new InternalServerErrorException('Failed to persist routine.', {
+      cause: error,
+    });
   }
   if (error instanceof RoutineQueryError) {
-    return new InternalServerErrorException('Failed to fetch routines.');
+    return new InternalServerErrorException('Failed to fetch routines.', {
+      cause: error,
+    });
   }
-  return new InternalServerErrorException('Routine request failed.');
+  return new InternalServerErrorException('Routine request failed.', {
+    cause: error,
+  });
 }

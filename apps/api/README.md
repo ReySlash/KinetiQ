@@ -31,7 +31,8 @@ alias. Development Swagger is available at `http://localhost:3000/api/docs`.
 The local environment file requires a PostgreSQL `DATABASE_URL`, Better Auth
 configuration, the frontend origin, and the other values described in
 `apps/api/.env.example`. Never commit a populated environment file or live
-credentials.
+credentials. Sentry is disabled outside production. Production startup requires
+the `kinetiq-api` `SENTRY_DSN` and the deployed `COMMIT_SHA`.
 
 ## Prisma commands
 
@@ -61,6 +62,12 @@ pnpm --filter api typecheck
 ```
 
 The root `pnpm dev:api` command is the preferred local watch-mode shortcut.
+
+Production API image builds upload private source maps with
+`pnpm --filter api sentry:sourcemaps`. Supply `SENTRY_AUTH_TOKEN` only as the
+declared Docker BuildKit secret and provide `SENTRY_ORG` plus
+`SENTRY_PROJECT=kinetiq-api` as build metadata. The upload token and source-map
+files are not part of the runtime image.
 
 ## Tests
 

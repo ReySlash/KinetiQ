@@ -5,10 +5,10 @@
 A single developer needs enough signal to detect broken deployments and diagnose
 requests without operating a large observability platform. The current
 prototype baseline starts with API request logs, health checks, Vercel deployment
-visibility, bounded VPS logs, and a manually managed Neon safety snapshot before
-risky database changes. Recurring off-provider backups, restore rehearsal, and
-formal RPO/RTO measurement are deferred until paid-user infrastructure is
-justified.
+visibility, bounded VPS logs, production-only Sentry error monitoring, and a
+manually managed Neon safety snapshot before risky database changes. Recurring
+off-provider backups, restore rehearsal, and formal RPO/RTO measurement are
+deferred until paid-user infrastructure is justified.
 
 ## Logging
 
@@ -44,7 +44,25 @@ Alerts must be actionable and reach the developer outside the failed VPS. Initia
 
 ## Error tracking
 
-An external error tracker is recommended if its cost and data region are acceptable. Scrub request bodies, cookies, user notes, and file content; send release SHA and request ID. If deferred, ensure centralized logs and alerts can identify new 5xx errors. Frontend errors should include route/release metadata but no form contents by default.
+Hosted Sentry is the accepted basic error tracker. The web and API use separate
+free-tier projects (`kinetiq-web` and `kinetiq-api`) and initialize only in
+production. The web captures unhandled browser, React boundary, Server
+Component, route-handler, and SSR failures. The API captures unexpected
+exceptions and non-health `5xx` responses while excluding normal `4xx` and the
+liveness/readiness routes.
+
+Events are error-only. Tracing, profiling, replay, logs, and breadcrumbs are
+disabled. A strict allowlist retains only the sanitized route, runtime, request
+ID, HTTP method/status where applicable, release, environment, and stack trace.
+Names, emails, user IDs, cookies, authorization headers, request/response
+bodies, query strings, form values, notes, and workout payloads must never be
+sent. Sentry transport failures must not affect application responses.
+
+Production releases use the reviewed Git SHA and upload private source maps at
+build time. Source-map credentials are build-only and must not enter runtime
+artifacts. Creating the hosted organization/projects, enabling new/regressed
+issue email alerts and quota notifications, and verifying one controlled web
+and API event remain operator acceptance steps.
 
 ## Backup strategy
 
@@ -85,12 +103,17 @@ Create concise runbooks for deploy failure, database unavailable, full disk, exp
 
 ## Testing and current acceptance
 
-Automated tests cover health behavior, dependency timeout, and API request-ID
-propagation. The remaining prototype operational acceptance is certificate
-renewal, log retention, off-host alerting, and safe manual snapshots before
-risky database changes. The stronger backup standard remains deferred until
-recurring backups and restore can be measured on the consolidated host.
+Automated tests cover health behavior, dependency timeout, API request-ID
+propagation, production monitoring configuration, Sentry event sanitization,
+API exception filtering, and web error-boundary capture. The remaining
+prototype operational acceptance is hosted Sentry activation and event review,
+certificate renewal, host/uptime alerts, and safe manual snapshots before risky
+database changes. The stronger backup standard remains deferred until recurring
+backups and restore can be measured on the consolidated host.
 
 ## Future extensions and open questions
 
-OpenTelemetry traces, Prometheus/Grafana, centralized log search, and SLO/error-budget practices can follow usage. Choose monitoring/error providers, retention, alert channel, backup bucket/region, encryption key custody, and drill frequency during post-launch hardening.
+OpenTelemetry traces, Prometheus/Grafana, centralized log search, and
+SLO/error-budget practices can follow usage. Off-host uptime monitoring, host
+resource alerts, log retention/search, backup bucket/region, encryption-key
+custody, and drill frequency remain post-launch operational decisions.

@@ -47,7 +47,9 @@ export function toWorkoutSessionsHttpException(error: unknown): Error {
     error instanceof WorkoutSessionPersistenceError ||
     error instanceof WorkoutSessionQueryError
   ) {
-    return new InternalServerErrorException(error.message);
+    return new InternalServerErrorException(error.message, { cause: error });
   }
-  return new InternalServerErrorException('Workout session request failed.');
+  return new InternalServerErrorException('Workout session request failed.', {
+    cause: error,
+  });
 }

@@ -5,6 +5,11 @@ services:
       dockerfile: apps/api/Dockerfile
       args:
         COMMIT_SHA: ${COMMIT_SHA:?set COMMIT_SHA to the reviewed Git SHA}
+        SENTRY_ORG: ${SENTRY_ORG:?set SENTRY_ORG to the Sentry organization slug}
+        SENTRY_PROJECT: kinetiq-api
+        UPLOAD_SENTRY_SOURCEMAPS: "true"
+      secrets:
+        - sentry_auth_token
     env_file:
       - ./deploy/production.env
     ports:
@@ -56,3 +61,7 @@ services:
 networks:
   private:
     driver: bridge
+
+secrets:
+  sentry_auth_token:
+    environment: SENTRY_AUTH_TOKEN
